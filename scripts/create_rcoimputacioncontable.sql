@@ -3,7 +3,9 @@
 -- Esquema simplificado para exportación Syteline
 -- ============================================================
 
-CREATE TABLE IF NOT EXISTS rcoimputacioncontable (
+DROP TABLE IF EXISTS rcoimputacioncontable;
+
+CREATE TABLE rcoimputacioncontable (
   IdImputacionContable INT           AUTO_INCREMENT PRIMARY KEY,
   Folio                VARCHAR(20)   NOT NULL,
   Secuencia            INT           NOT NULL,

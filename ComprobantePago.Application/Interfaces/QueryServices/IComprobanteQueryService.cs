@@ -27,8 +27,9 @@ namespace ComprobantePago.Application.Interfaces.QueryServices
         // ── Consultas Imputación ──────────────────
         Task<IEnumerable<ImputacionDetalleDto>> ObtenerImputacionesAsync(
             string folio);
+        Task<IEnumerable<ComboDto>> ObtenerCuentasContablesAsync(string filtro = "");
         Task<IEnumerable<ComboDto>> ObtenerCodigosUnidadAsync(
-            string campo, int unidad, string codigo);
+            string campo, int unidad, string codigo, string filtro = "");
         Task<byte[]> ObtenerPlantillaImputacionAsync();
         Task<IEnumerable<SytelineCabeceraDto>> ObtenerCabecerasSytelineAsync(List<string>? folios = null);
         Task<IEnumerable<SytelineDistribucionDto>> ObtenerDistribucionSytelineAsync(List<string>? folios = null);
