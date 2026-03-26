@@ -227,7 +227,7 @@ function exportarImputacion() {
     }
 
     const folios = seleccionados.map(s => s.folio);
-    enviarFormExportar('/Comprobante/ExportarImputacionSyteline', folios);
+    enviarFormExportar('/Comprobante/ExportarDistribucionSyteline', folios);
 }
 
 // ── Enviar form dinámico para descarga ────────

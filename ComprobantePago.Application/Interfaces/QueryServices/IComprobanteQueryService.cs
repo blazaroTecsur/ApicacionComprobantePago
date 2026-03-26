@@ -31,5 +31,6 @@ namespace ComprobantePago.Application.Interfaces.QueryServices
             string campo, int unidad, string codigo);
         Task<byte[]> ObtenerPlantillaImputacionAsync();
         Task<IEnumerable<SytelineCabeceraDto>> ObtenerCabecerasSytelineAsync(List<string>? folios = null);
+        Task<IEnumerable<SytelineDistribucionDto>> ObtenerDistribucionSytelineAsync(List<string>? folios = null);
     }
 }

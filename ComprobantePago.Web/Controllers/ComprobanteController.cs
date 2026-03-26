@@ -484,6 +484,38 @@ namespace ComprobantePago.Web.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<IActionResult> ExportarDistribucionSyteline(
+            [FromForm] List<string> folios)
+        {
+            if (folios == null || !folios.Any())
+                return Ok(new
+                {
+                    exito = false,
+                    mensaje = "No hay comprobantes seleccionados."
+                });
+
+            var datos = await _queryService
+                .ObtenerDistribucionSytelineAsync(folios);
+
+            if (!datos.Any())
+                return Ok(new
+                {
+                    exito = false,
+                    mensaje = "No hay imputaciones para exportar."
+                });
+
+            var excel = _excelService.GenerarDistribucion(datos);
+            var fecha = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+
+            return File(
+                excel,
+                "application/vnd.openxmlformats-officedocument" +
+                ".spreadsheetml.sheet",
+                $"Distribucion_Syteline_{fecha}.xlsx"
+            );
+        }
+
         [HttpGet]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ExportarCabeceraSyteline(

@@ -257,6 +257,165 @@ namespace ComprobantePago.Infrastructure.Services
             return ms.ToArray();
         }
 
+        public byte[] GenerarDistribucion(
+            IEnumerable<SytelineDistribucionDto> datos)
+        {
+            using var wb = new XLWorkbook();
+            var ws = wb.Worksheets.Add("Hoja1");
+
+            var headers = new[]
+            {
+                "Proveedor", "Comprobante", "Nombre", "Tipo",
+                "Fecha dist", "OC", "NRM", "Reg previo",
+                "Reg desde OC", "Factura", "Fecha factura",
+                "Sec dist", "Proyecto", "Tar", "Cód coste",
+                "Sist impst", "Cód imp", "Desc cód imp",
+                "Cód imp exento", "Desc exento",
+                "Base imp", "Importe", "Tipo cambio",
+                "Cuenta", "Desc cuenta",
+                "Unidad1", "Unid2", "Unidad3", "Unidad4",
+                "Moneda",
+                "Impo compra", "Flete", "Imp", "Corretaje",
+                "Seguro", "Flete local", "Cargos varios",
+                "Sales Tax", "IGV", "Mnto fctura", "Total dist",
+                "Is Third Party?", "Nº proveedor", "Nombre prov",
+                "Núm reg fiscal", "Dígito cheque",
+                "Nacional", "Doc.Soporte", "Tipo doc",
+                "Número Doc", "Establecimiento", "Secuencial",
+                "Pago Loc Ext", "Punto emisión", "Pago exterior",
+                "Tipo Régimen", "Tipo doc", "Tipo núm reg",
+                "Aplica Cont", "País", "¿Régimen pref?", "País",
+                "C(NumAutorizacion)", "C(FechaEmision)"
+            };
+
+            for (int i = 0; i < headers.Length; i++)
+            {
+                var cell = ws.Cell(1, i + 1);
+                cell.Value = headers[i];
+                cell.Style.Font.Bold = true;
+                cell.Style.Fill.BackgroundColor =
+                    XLColor.FromHtml("#185FA5");
+                cell.Style.Font.FontColor = XLColor.White;
+                cell.Style.Alignment.Horizontal =
+                    XLAlignmentHorizontalValues.Center;
+                cell.Style.Border.OutsideBorder =
+                    XLBorderStyleValues.Thin;
+            }
+
+            int row = 2;
+            foreach (var d in datos)
+            {
+                int col = 1;
+
+                // 1-Proveedor
+                ws.Cell(row, col++).Value = d.Proveedor;
+                // 2-Comprobante
+                ws.Cell(row, col++).Value = d.Comprobante;
+                // 3-Nombre
+                ws.Cell(row, col++).Value = d.Nombre;
+                // 4-Tipo (fijo)
+                ws.Cell(row, col++).Value = "Comprobante";
+                // 5-Fecha dist
+                ws.Cell(row, col++).Value = d.FechaDistribucion;
+                // 6-OC (fijo)
+                ws.Cell(row, col++).Value = "";
+                // 7-NRM (fijo)
+                ws.Cell(row, col++).Value = "";
+                // 8-Reg previo (fijo)
+                ws.Cell(row, col++).Value = "";
+                // 9-Reg desde OC (fijo)
+                ws.Cell(row, col++).Value = 0;
+                // 10-Factura
+                ws.Cell(row, col++).Value = d.Factura;
+                // 11-Fecha factura
+                ws.Cell(row, col++).Value = d.FechaFactura;
+                // 12-Sec dist
+                ws.Cell(row, col++).Value = d.SecDist;
+                // 13-Proyecto
+                ws.Cell(row, col++).Value = d.Proyecto;
+                // 14-Tar (fijo)
+                ws.Cell(row, col++).Value = 0;
+                // 15-Cód coste (fijo)
+                ws.Cell(row, col++).Value = 0;
+                // 16-Sist impst
+                ws.Cell(row, col++).Value = d.SistImpst;
+                // 17-Cód imp
+                ws.Cell(row, col++).Value = d.CodImp;
+                // 18-Desc cód imp
+                ws.Cell(row, col++).Value = d.DescCodImp;
+                // 19-Cód imp exento (fijo)
+                ws.Cell(row, col++).Value = "";
+                // 20-Desc exento (fijo)
+                ws.Cell(row, col++).Value = "";
+                // 21-Base imp
+                SetMonto(ws.Cell(row, col++), d.BaseImp);
+                // 22-Importe
+                SetMonto(ws.Cell(row, col++), d.Importe);
+                // 23-Tipo cambio
+                ws.Cell(row, col++).Value = d.TasaCambio;
+                // 24-Cuenta
+                ws.Cell(row, col++).Value = d.CuentaContable;
+                // 25-Desc cuenta
+                ws.Cell(row, col++).Value = d.DescripcionCuenta;
+                // 26-Unidad1
+                ws.Cell(row, col++).Value = d.CodUnidad1;
+                // 27-Unid2 (fijo)
+                ws.Cell(row, col++).Value = "";
+                // 28-Unidad3
+                ws.Cell(row, col++).Value = d.CodUnidad3;
+                // 29-Unidad4
+                ws.Cell(row, col++).Value = d.CodUnidad4;
+                // 30-Moneda
+                ws.Cell(row, col++).Value = d.Moneda;
+                // 31-Impo compra
+                SetMonto(ws.Cell(row, col++), d.ImpoCompra);
+                // 32-Flete (fijo)
+                SetMonto(ws.Cell(row, col++), 0);
+                // 33-Imp (fijo)
+                SetMonto(ws.Cell(row, col++), 0);
+                // 34-Corretaje (fijo)
+                SetMonto(ws.Cell(row, col++), 0);
+                // 35-Seguro (fijo)
+                SetMonto(ws.Cell(row, col++), 0);
+                // 36-Flete local (fijo)
+                SetMonto(ws.Cell(row, col++), 0);
+                // 37-Cargos varios (fijo)
+                SetMonto(ws.Cell(row, col++), 0);
+                // 38-Sales Tax (fijo)
+                SetMonto(ws.Cell(row, col++), 0);
+                // 39-IGV
+                SetMonto(ws.Cell(row, col++), d.IGV);
+                // 40-Mnto fctura
+                SetMonto(ws.Cell(row, col++), d.MntoFactura);
+                // 41-Total dist
+                SetMonto(ws.Cell(row, col++), d.TotalDistribucion);
+                // 42-Is Third Party? (1 solo en línea principal)
+                ws.Cell(row, col++).Value = d.EsLineaPrincipal ? 1 : 0;
+                // 43-Nº proveedor
+                ws.Cell(row, col++).Value = d.NroProveedor;
+                // 44-Nombre prov
+                ws.Cell(row, col++).Value = d.NombreProv;
+                // 45-Núm reg fiscal
+                ws.Cell(row, col++).Value = d.NumRegFiscal;
+                // 46-64: campos fijos vacíos
+                for (int f = 46; f <= 64; f++)
+                    ws.Cell(row, col++).Value = "";
+
+                if (row % 2 == 0)
+                    ws.Row(row).Style.Fill.BackgroundColor =
+                        XLColor.FromHtml("#EBF2FA");
+
+                row++;
+            }
+
+            ws.Columns().AdjustToContents();
+            ws.SheetView.FreezeRows(1);
+
+            using var ms = new MemoryStream();
+            wb.SaveAs(ms);
+            return ms.ToArray();
+        }
+
         // ── Helper formato monto ──────────────────
         private static void SetMonto(IXLCell cell, decimal valor)
         {
