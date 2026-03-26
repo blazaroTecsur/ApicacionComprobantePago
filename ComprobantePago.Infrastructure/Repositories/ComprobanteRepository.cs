@@ -288,23 +288,162 @@ namespace ComprobantePago.Infrastructure.Repositories
             return resultado;
         }
 
-        // ── Imputaciones (pendiente) ──────────────
-        public Task<ImputacionDetalleDto> AgregarImputacionAsync(
+        // ── Imputaciones ──────────────────────────
+        public async Task<ImputacionDetalleDto> AgregarImputacionAsync(
             AgregarImputacionCommand command)
-            => Task.FromResult(new ImputacionDetalleDto());
+        {
+            var dto = command.Imputacion;
+            var maxSec = await _contexto.ImputacionesContables
+                .Where(x => x.Folio == dto.Folio)
+                .MaxAsync(x => (int?)x.Secuencia) ?? 0;
 
-        public Task<ImputacionDetalleDto> EditarImputacionAsync(
+            var entidad = MapearDtoAEntidad(dto, maxSec + 1);
+            await _contexto.ImputacionesContables.AddAsync(entidad);
+            await _contexto.SaveChangesAsync();
+            return MapearEntidadADto(entidad);
+        }
+
+        public async Task<ImputacionDetalleDto> EditarImputacionAsync(
             EditarImputacionCommand command)
-            => Task.FromResult(new ImputacionDetalleDto());
+        {
+            var dto = command.Imputacion;
+            var secuencia = int.TryParse(dto.Secuencia, out var s) ? s : 0;
 
-        public Task EliminarImputacionAsync(
+            var entidad = await _contexto.ImputacionesContables
+                .FirstOrDefaultAsync(x => x.Folio == dto.Folio
+                                       && x.Secuencia == secuencia)
+                ?? throw new Exception(
+                    $"Imputación {dto.Folio}/{secuencia} no encontrada.");
+
+            entidad.AliasCuenta = dto.AliasCuenta;
+            entidad.CuentaContable = dto.CuentaContable;
+            entidad.DescripcionCuenta = dto.DescripcionCuenta;
+            entidad.Monto = dto.Monto;
+            entidad.Descripcion = dto.Descripcion;
+            entidad.Referencia = dto.Referencia;
+            entidad.NOT_Campo = dto.Not;
+            entidad.Fondo = dto.Fondo;
+            entidad.Dividendo = dto.Dividendo;
+            entidad.Varios = dto.Varios;
+            entidad.Actividad = dto.Actividad;
+            entidad.CentroResponsabilidad = dto.CentroResponsabilidad;
+            entidad.Proyecto = dto.Proyecto;
+            entidad.CalidadRed = dto.CalidadRed;
+            entidad.UbicacionGeografica = dto.UbicacionGeografica;
+            entidad.SubRecurso = dto.SubRecurso;
+            entidad.ActividadIngreso = dto.ActividadIngreso;
+            entidad.Cajero = dto.Cajero;
+            entidad.Proveedor = dto.Proveedor;
+            entidad.JerarquiaCargo = dto.JerarquiaCargo;
+            entidad.CodUnidad1Cuenta = dto.CodUnidad1Cuenta;
+            entidad.CodUnidad3Cuenta = dto.CodUnidad3Cuenta;
+            entidad.CodUnidad4Cuenta = dto.CodUnidad4Cuenta;
+            entidad.CodUnidad1Actividad = dto.CodUnidad1Actividad;
+            entidad.CodUnidad3Actividad = dto.CodUnidad3Actividad;
+            entidad.CodUnidad4Actividad = dto.CodUnidad4Actividad;
+            entidad.CodUnidad1SubRecurso = dto.CodUnidad1SubRecurso;
+            entidad.CodUnidad3SubRecurso = dto.CodUnidad3SubRecurso;
+            entidad.CodUnidad4SubRecurso = dto.CodUnidad4SubRecurso;
+            entidad.UsuarioAct = "SYSTEM";
+            entidad.FechaAct = DateTime.Now;
+
+            await _contexto.SaveChangesAsync();
+            return MapearEntidadADto(entidad);
+        }
+
+        public async Task EliminarImputacionAsync(
             EliminarImputacionCommand command)
-            => Task.CompletedTask;
+        {
+            var entidad = await _contexto.ImputacionesContables
+                .FirstOrDefaultAsync(x => x.Folio == command.Folio
+                                       && x.Secuencia == command.Secuencia);
+            if (entidad != null)
+            {
+                _contexto.ImputacionesContables.Remove(entidad);
+                await _contexto.SaveChangesAsync();
+            }
+        }
 
         public Task<IEnumerable<ImputacionDetalleDto>>
             CargarImputacionMasivaAsync(IFormFile file)
             => Task.FromResult<IEnumerable<ImputacionDetalleDto>>(
                 new List<ImputacionDetalleDto>());
+
+        // ── Helpers imputación ────────────────────
+        private static ImputacionContable MapearDtoAEntidad(
+            Application.DTOs.Comprobante.Requests.ImputacionDto dto,
+            int secuencia) => new()
+        {
+            Folio = dto.Folio,
+            Secuencia = secuencia,
+            AliasCuenta = dto.AliasCuenta,
+            CuentaContable = dto.CuentaContable,
+            DescripcionCuenta = dto.DescripcionCuenta,
+            Monto = dto.Monto,
+            Descripcion = dto.Descripcion,
+            Referencia = dto.Referencia,
+            NOT_Campo = dto.Not,
+            Fondo = dto.Fondo,
+            Dividendo = dto.Dividendo,
+            Varios = dto.Varios,
+            Actividad = dto.Actividad,
+            CentroResponsabilidad = dto.CentroResponsabilidad,
+            Proyecto = dto.Proyecto,
+            CalidadRed = dto.CalidadRed,
+            UbicacionGeografica = dto.UbicacionGeografica,
+            SubRecurso = dto.SubRecurso,
+            ActividadIngreso = dto.ActividadIngreso,
+            Cajero = dto.Cajero,
+            Proveedor = dto.Proveedor,
+            JerarquiaCargo = dto.JerarquiaCargo,
+            CodUnidad1Cuenta = dto.CodUnidad1Cuenta,
+            CodUnidad3Cuenta = dto.CodUnidad3Cuenta,
+            CodUnidad4Cuenta = dto.CodUnidad4Cuenta,
+            CodUnidad1Actividad = dto.CodUnidad1Actividad,
+            CodUnidad3Actividad = dto.CodUnidad3Actividad,
+            CodUnidad4Actividad = dto.CodUnidad4Actividad,
+            CodUnidad1SubRecurso = dto.CodUnidad1SubRecurso,
+            CodUnidad3SubRecurso = dto.CodUnidad3SubRecurso,
+            CodUnidad4SubRecurso = dto.CodUnidad4SubRecurso,
+            UsuarioReg = "SYSTEM",
+            FechaReg = DateTime.Now
+        };
+
+        private static ImputacionDetalleDto MapearEntidadADto(
+            ImputacionContable e) => new()
+        {
+            Secuencia = e.Secuencia,
+            Folio = e.Folio,
+            AliasCuenta = e.AliasCuenta ?? string.Empty,
+            CuentaContable = e.CuentaContable ?? string.Empty,
+            DescripcionCuenta = e.DescripcionCuenta ?? string.Empty,
+            Monto = e.Monto,
+            Descripcion = e.Descripcion ?? string.Empty,
+            Referencia = e.Referencia ?? string.Empty,
+            Not = e.NOT_Campo ?? string.Empty,
+            Fondo = e.Fondo ?? string.Empty,
+            Dividendo = e.Dividendo ?? string.Empty,
+            Varios = e.Varios ?? string.Empty,
+            Actividad = e.Actividad ?? string.Empty,
+            CentroResponsabilidad = e.CentroResponsabilidad ?? string.Empty,
+            Proyecto = e.Proyecto ?? string.Empty,
+            CalidadRed = e.CalidadRed ?? string.Empty,
+            UbicacionGeografica = e.UbicacionGeografica ?? string.Empty,
+            SubRecurso = e.SubRecurso ?? string.Empty,
+            ActividadIngreso = e.ActividadIngreso ?? string.Empty,
+            Cajero = e.Cajero ?? string.Empty,
+            Proveedor = e.Proveedor ?? string.Empty,
+            JerarquiaCargo = e.JerarquiaCargo ?? string.Empty,
+            CodUnidad1Cuenta = e.CodUnidad1Cuenta ?? string.Empty,
+            CodUnidad3Cuenta = e.CodUnidad3Cuenta ?? string.Empty,
+            CodUnidad4Cuenta = e.CodUnidad4Cuenta ?? string.Empty,
+            CodUnidad1Actividad = e.CodUnidad1Actividad ?? string.Empty,
+            CodUnidad3Actividad = e.CodUnidad3Actividad ?? string.Empty,
+            CodUnidad4Actividad = e.CodUnidad4Actividad ?? string.Empty,
+            CodUnidad1SubRecurso = e.CodUnidad1SubRecurso ?? string.Empty,
+            CodUnidad3SubRecurso = e.CodUnidad3SubRecurso ?? string.Empty,
+            CodUnidad4SubRecurso = e.CodUnidad4SubRecurso ?? string.Empty
+        };
 
         // ── Validar ZIP SUNAT ─────────────────────
         public async Task<ValidacionSunatDto> ValidarZipSunatAsync(
