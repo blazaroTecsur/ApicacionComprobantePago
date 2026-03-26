@@ -1,6 +1,7 @@
 ﻿using ComprobantePago.Application.Commands.Comprobante;
 using ComprobantePago.Application.Commands.Imputacion;
 using ComprobantePago.Application.DTOs.Comprobante.Response;
+using ComprobantePago.Domain.Entities;
 using Microsoft.AspNetCore.Http;
 
 namespace ComprobantePago.Application.Interfaces.Repositories
@@ -34,7 +35,7 @@ namespace ComprobantePago.Application.Interfaces.Repositories
         Task<ValidacionSunatDto> ValidarPdfSunatAsync(IFormFile archivo);
         Task<ValidacionSunatDto> ValidarZipSunatAsync(IFormFile archivo);
         Task GuardarDocumentosAsync(string folio, List<(byte[] contenido, string nombre, string tipo)> archivos);
-        Task<Domain.Entities.DocumentoElectronico?> DescargarDocumentoAsync(int idDocumento);
+        Task<DocumentoElectronico?> DescargarDocumentoAsync(int idDocumento);
         Task<string> GenerarFolioAsync();
     }
 }
