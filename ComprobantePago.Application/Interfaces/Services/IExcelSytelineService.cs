@@ -6,5 +6,7 @@ namespace ComprobantePago.Application.Interfaces.Services
     {
         byte[] GenerarCabecera(
             IEnumerable<SytelineCabeceraDto> datos);
+        byte[] GenerarDistribucion(
+            IEnumerable<SytelineDistribucionDto> datos);
     }
 }

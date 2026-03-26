@@ -252,13 +252,192 @@ namespace ComprobantePago.Infrastructure.QueryServices
                 .ToListAsync();
         }
 
-        public Task<IEnumerable<ImputacionDetalleDto>>
+        public async Task<IEnumerable<ImputacionDetalleDto>>
             ObtenerImputacionesAsync(string folio)
-            => Task.FromResult<IEnumerable<ImputacionDetalleDto>>(
-                new List<ImputacionDetalleDto>());
+        {
+            var lista = await _contexto.ImputacionesContables
+                .Where(x => x.Folio == folio)
+                .OrderBy(x => x.Secuencia)
+                .ToListAsync();
+
+            return lista.Select(e => new ImputacionDetalleDto
+            {
+                Secuencia = e.Secuencia,
+                Folio = e.Folio,
+                AliasCuenta = e.AliasCuenta ?? string.Empty,
+                CuentaContable = e.CuentaContable ?? string.Empty,
+                DescripcionCuenta = e.DescripcionCuenta ?? string.Empty,
+                Monto = e.Monto,
+                Descripcion = e.Descripcion ?? string.Empty,
+                Referencia = e.Referencia ?? string.Empty,
+                Not = e.NOT_Campo ?? string.Empty,
+                Fondo = e.Fondo ?? string.Empty,
+                Dividendo = e.Dividendo ?? string.Empty,
+                Varios = e.Varios ?? string.Empty,
+                Actividad = e.Actividad ?? string.Empty,
+                CentroResponsabilidad = e.CentroResponsabilidad ?? string.Empty,
+                Proyecto = e.Proyecto ?? string.Empty,
+                CalidadRed = e.CalidadRed ?? string.Empty,
+                UbicacionGeografica = e.UbicacionGeografica ?? string.Empty,
+                SubRecurso = e.SubRecurso ?? string.Empty,
+                ActividadIngreso = e.ActividadIngreso ?? string.Empty,
+                Cajero = e.Cajero ?? string.Empty,
+                Proveedor = e.Proveedor ?? string.Empty,
+                JerarquiaCargo = e.JerarquiaCargo ?? string.Empty,
+                CodUnidad1Cuenta = e.CodUnidad1Cuenta ?? string.Empty,
+                CodUnidad3Cuenta = e.CodUnidad3Cuenta ?? string.Empty,
+                CodUnidad4Cuenta = e.CodUnidad4Cuenta ?? string.Empty,
+                CodUnidad1Actividad = e.CodUnidad1Actividad ?? string.Empty,
+                CodUnidad3Actividad = e.CodUnidad3Actividad ?? string.Empty,
+                CodUnidad4Actividad = e.CodUnidad4Actividad ?? string.Empty,
+                CodUnidad1SubRecurso = e.CodUnidad1SubRecurso ?? string.Empty,
+                CodUnidad3SubRecurso = e.CodUnidad3SubRecurso ?? string.Empty,
+                CodUnidad4SubRecurso = e.CodUnidad4SubRecurso ?? string.Empty
+            });
+        }
 
         public Task<byte[]> ObtenerPlantillaImputacionAsync()
             => Task.FromResult<byte[]>(null!);
+        #endregion
+
+        #region Distribución Syteline
+        public async Task<IEnumerable<SytelineDistribucionDto>>
+            ObtenerDistribucionSytelineAsync(List<string>? folios = null)
+        {
+            var query = _contexto.Comprobantes
+                .Where(x => x.CodigoEstado == "APROBADO");
+
+            if (folios != null && folios.Any())
+                query = query.Where(x => folios.Contains(x.Folio));
+
+            var comprobantes = await query
+                .OrderBy(x => x.FechaAprobacion)
+                .ToListAsync();
+
+            var resultado = new List<SytelineDistribucionDto>();
+
+            foreach (var c in comprobantes)
+            {
+                var imputaciones = await _contexto.ImputacionesContables
+                    .Where(x => x.Folio == c.Folio)
+                    .OrderBy(x => x.Secuencia)
+                    .ToListAsync();
+
+                if (!imputaciones.Any()) continue;
+
+                var totalDist = imputaciones.Sum(i => i.Monto);
+                var fechaDist = c.FechaRecepcion.HasValue
+                    ? c.FechaRecepcion.Value.ToString("d/MM/yyyy")
+                    : c.FechaEmision.ToString("d/MM/yyyy");
+
+                for (int idx = 0; idx < imputaciones.Count; idx++)
+                {
+                    var imp = imputaciones[idx];
+                    int baseSeq = idx * 15;
+
+                    // Subfila A — principal
+                    resultado.Add(new SytelineDistribucionDto
+                    {
+                        Proveedor = c.RucReceptor,
+                        Comprobante = c.IdComprobante,
+                        Nombre = c.RazonSocialReceptor,
+                        FechaDistribucion = fechaDist,
+                        Factura = $"{c.Serie}-{c.Numero}",
+                        FechaFactura = c.FechaEmision.ToString("d/MM/yyyy"),
+                        TasaCambio = c.TasaCambio,
+                        Moneda = c.Moneda,
+                        ImpoCompra = c.MontoNeto,
+                        IGV = c.MontoIGVCredito,
+                        MntoFactura = c.MontoBruto,
+                        TotalDistribucion = totalDist,
+                        NroProveedor = c.RucBeneficiario ?? string.Empty,
+                        NombreProv = c.RazonSocialBenef ?? string.Empty,
+                        NumRegFiscal = c.RucBeneficiario ?? string.Empty,
+                        SecDist = baseSeq + 5,
+                        Proyecto = imp.Proyecto ?? string.Empty,
+                        SistImpst = string.Empty,
+                        CodImp = string.Empty,
+                        DescCodImp = string.Empty,
+                        BaseImp = 0,
+                        Importe = imp.Monto,
+                        CuentaContable = imp.CuentaContable ?? string.Empty,
+                        DescripcionCuenta = imp.DescripcionCuenta ?? string.Empty,
+                        CodUnidad1 = imp.CodUnidad1Cuenta ?? string.Empty,
+                        CodUnidad3 = imp.CodUnidad3Cuenta ?? string.Empty,
+                        CodUnidad4 = imp.CodUnidad4Cuenta ?? string.Empty,
+                        EsLineaPrincipal = true
+                    });
+
+                    // Subfila B — NR
+                    resultado.Add(new SytelineDistribucionDto
+                    {
+                        Proveedor = c.RucReceptor,
+                        Comprobante = c.IdComprobante,
+                        Nombre = c.RazonSocialReceptor,
+                        FechaDistribucion = fechaDist,
+                        Factura = $"{c.Serie}-{c.Numero}",
+                        FechaFactura = c.FechaEmision.ToString("d/MM/yyyy"),
+                        TasaCambio = c.TasaCambio,
+                        Moneda = c.Moneda,
+                        ImpoCompra = c.MontoNeto,
+                        IGV = c.MontoIGVCredito,
+                        MntoFactura = c.MontoBruto,
+                        TotalDistribucion = totalDist,
+                        NroProveedor = string.Empty,
+                        NombreProv = string.Empty,
+                        NumRegFiscal = string.Empty,
+                        SecDist = baseSeq + 10,
+                        Proyecto = imp.Proyecto ?? string.Empty,
+                        SistImpst = "1",
+                        CodImp = "NR",
+                        DescCodImp = "No Aplica Retención",
+                        BaseImp = c.MontoNeto,
+                        Importe = 0,
+                        CuentaContable = imp.CuentaContable ?? string.Empty,
+                        DescripcionCuenta = imp.DescripcionCuenta ?? string.Empty,
+                        CodUnidad1 = imp.CodUnidad1Cuenta ?? string.Empty,
+                        CodUnidad3 = imp.CodUnidad3Cuenta ?? string.Empty,
+                        CodUnidad4 = imp.CodUnidad4Cuenta ?? string.Empty,
+                        EsLineaPrincipal = false
+                    });
+
+                    // Subfila C — IGV18
+                    resultado.Add(new SytelineDistribucionDto
+                    {
+                        Proveedor = c.RucReceptor,
+                        Comprobante = c.IdComprobante,
+                        Nombre = c.RazonSocialReceptor,
+                        FechaDistribucion = fechaDist,
+                        Factura = $"{c.Serie}-{c.Numero}",
+                        FechaFactura = c.FechaEmision.ToString("d/MM/yyyy"),
+                        TasaCambio = c.TasaCambio,
+                        Moneda = c.Moneda,
+                        ImpoCompra = c.MontoNeto,
+                        IGV = c.MontoIGVCredito,
+                        MntoFactura = c.MontoBruto,
+                        TotalDistribucion = totalDist,
+                        NroProveedor = string.Empty,
+                        NombreProv = string.Empty,
+                        NumRegFiscal = string.Empty,
+                        SecDist = baseSeq + 15,
+                        Proyecto = imp.Proyecto ?? string.Empty,
+                        SistImpst = "2",
+                        CodImp = "IGV18",
+                        DescCodImp = "IGV 18%",
+                        BaseImp = c.MontoNeto,
+                        Importe = c.MontoIGVCredito,
+                        CuentaContable = imp.CuentaContable ?? string.Empty,
+                        DescripcionCuenta = imp.DescripcionCuenta ?? string.Empty,
+                        CodUnidad1 = imp.CodUnidad1Cuenta ?? string.Empty,
+                        CodUnidad3 = imp.CodUnidad3Cuenta ?? string.Empty,
+                        CodUnidad4 = imp.CodUnidad4Cuenta ?? string.Empty,
+                        EsLineaPrincipal = false
+                    });
+                }
+            }
+
+            return resultado;
+        }
         #endregion
 
         #region Syteline
