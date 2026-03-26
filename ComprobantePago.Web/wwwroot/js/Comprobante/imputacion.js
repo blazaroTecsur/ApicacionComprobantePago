@@ -316,13 +316,20 @@ function ocultarCodigosUnidad(campo) {
     $(`#txtCodUnidad4${campo}`).val('');
 }
 
+function buscarCuentaContable() {
+    CorporativoQuery.ajaxGet('/Comprobante/ObtenerCuentasContables',
+        function (data) {
+            if (!data || data.length === 0) {
+                CorporativoCore.notificarInfo('No hay cuentas contables disponibles.');
+                return;
+            }
+            mostrarModalBusqueda(data, 'Seleccionar Cuenta Contable', 'seleccionar-cuenta');
+        }
+    );
+}
+
 function buscarCodigoUnidad(campo, unidad, inputId) {
     const codigoOrigen = $('#txtCuentaContable').val();
-    if (!codigoOrigen) {
-        CorporativoCore.notificarAdvertencia('Debe seleccionar una cuenta contable primero.');
-        return;
-    }
-
     CorporativoQuery.ajaxGet(
         `/Comprobante/ObtenerCodigosUnidad?campo=${campo}&unidad=${unidad}&codigo=${codigoOrigen}`,
         function (data) {
@@ -330,53 +337,59 @@ function buscarCodigoUnidad(campo, unidad, inputId) {
                 CorporativoCore.notificarInfo('No hay códigos de unidad disponibles.');
                 return;
             }
-            mostrarModalCodigoUnidad(data, inputId);
+            mostrarModalBusqueda(data, 'Seleccionar Código de Unidad', 'seleccionar-unidad', inputId);
         }
     );
 }
 
-function mostrarModalCodigoUnidad(data, inputId) {
-    const opciones = data.map(d =>
-        `<a class="list-group-item list-group-item-action seleccionar-unidad"
-            data-codigo="${d.codigo}"
-            data-input="${inputId}"
-            href="#">
-            <span class="fw-bold">${d.codigo}</span>
-            <span class="text-muted ms-2">${d.descripcion}</span>
-         </a>`
-    ).join('');
+function mostrarModalBusqueda(data, titulo, claseItem, inputId) {
+    const renderItem = (d) => {
+        const extra = inputId ? `data-input="${inputId}"` : '';
+        return `<a class="list-group-item list-group-item-action ${claseItem}"
+                   data-codigo="${d.codigo}" ${extra} href="#">
+                    <span class="fw-bold">${d.codigo}</span>
+                    <span class="text-muted ms-2">${d.descripcion}</span>
+                </a>`;
+    };
 
     const html = `
-        <div class="modal fade" id="modalCodigoUnidad" tabindex="-1">
+        <div class="modal fade" id="modalBusqueda" tabindex="-1">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <div class="modal-header py-2"
-                         style="background-color:#5b74ad;">
+                    <div class="modal-header py-2" style="background-color:#5b74ad;">
                         <h6 class="modal-title text-white mb-0">
-                            <i class="bi bi-search"></i>
-                            Seleccionar Código de Unidad
+                            <i class="bi bi-search"></i> ${titulo}
                         </h6>
-                        <button type="button"
-                                class="btn-close btn-close-white"
+                        <button type="button" class="btn-close btn-close-white"
                                 data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="modal-body p-0"
-                         style="max-height:400px; overflow-y:auto;">
-                        <div class="list-group list-group-flush">
-                            ${opciones}
+                    <div class="modal-body pb-0 pt-2 px-2">
+                        <input type="text" class="form-control form-control-sm mb-2"
+                               id="txtFiltroBusqueda" placeholder="Filtrar..." autocomplete="off" />
+                    </div>
+                    <div class="modal-body p-0" style="max-height:360px; overflow-y:auto;">
+                        <div class="list-group list-group-flush" id="listaBusqueda">
+                            ${data.map(renderItem).join('')}
                         </div>
                     </div>
                 </div>
             </div>
         </div>`;
 
-    $('#modalCodigoUnidad').remove();
+    $('#modalBusqueda').remove();
     $('#modalContainer').append(html);
 
-    const modal = new bootstrap.Modal(
-        document.getElementById('modalCodigoUnidad')
-    );
+    $('#txtFiltroBusqueda').on('keyup', function () {
+        const texto = $(this).val().toLowerCase();
+        $('#listaBusqueda a').each(function () {
+            const coincide = $(this).text().toLowerCase().includes(texto);
+            $(this).toggleClass('d-none', !coincide);
+        });
+    });
+
+    const modal = new bootstrap.Modal(document.getElementById('modalBusqueda'));
     modal.show();
+    setTimeout(() => $('#txtFiltroBusqueda').focus(), 300);
 }
 
 // ════════════════════════════════════════════
@@ -427,6 +440,8 @@ function bindEventosImputacion() {
 
     // ── Códigos Unidad ────────────────────────
 
+    $('#btnBuscarCuentaContable').on('click', buscarCuentaContable);
+
     $('#txtCuentaContable').on('change', function () {
         if (!CorporativoCore.esVacio($(this).val())) mostrarCodigosUnidad('Cuenta');
         else ocultarCodigosUnidad('Cuenta');
@@ -436,13 +451,22 @@ function bindEventosImputacion() {
     $('#btnBuscarCodUnidad3Cuenta').on('click', () => buscarCodigoUnidad('Cuenta', 3, '#txtCodUnidad3Cuenta'));
     $('#btnBuscarCodUnidad4Cuenta').on('click', () => buscarCodigoUnidad('Cuenta', 4, '#txtCodUnidad4Cuenta'));
 
+    $(document).on('click', '.seleccionar-cuenta', function (e) {
+        e.preventDefault();
+        const codigo = $(this).data('codigo');
+        $('#txtAliasCuenta').val(codigo);
+        $('#txtCuentaContable').val(codigo);
+        const descripcion = $(this).find('.text-muted').text().trim();
+        $('#txtDescripcionCuenta').val(descripcion);
+        $('#txtCuentaContable').trigger('change');
+        bootstrap.Modal.getInstance(document.getElementById('modalBusqueda')).hide();
+    });
+
     $(document).on('click', '.seleccionar-unidad', function (e) {
         e.preventDefault();
         const codigo = $(this).data('codigo');
         const inputId = $(this).data('input');
         $(inputId).val(codigo);
-        bootstrap.Modal.getInstance(
-            document.getElementById('modalCodigoUnidad')
-        ).hide();
+        bootstrap.Modal.getInstance(document.getElementById('modalBusqueda')).hide();
     });
 }

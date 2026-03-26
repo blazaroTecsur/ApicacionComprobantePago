@@ -246,11 +246,18 @@ namespace ComprobantePago.Web.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> ObtenerCuentasContables(string filtro = "")
+        {
+            var data = await _queryService.ObtenerCuentasContablesAsync(filtro);
+            return Ok(data);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> ObtenerCodigosUnidad(
-            string campo, int unidad, string codigo)
+            string campo, int unidad, string codigo, string filtro = "")
         {
             var data = await _queryService
-                .ObtenerCodigosUnidadAsync(campo, unidad, codigo);
+                .ObtenerCodigosUnidadAsync(campo, unidad, codigo, filtro);
             return Ok(data);
         }
 
