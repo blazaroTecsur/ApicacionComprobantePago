@@ -269,30 +269,10 @@ namespace ComprobantePago.Infrastructure.QueryServices
                 DescripcionCuenta = e.DescripcionCuenta ?? string.Empty,
                 Monto = e.Monto,
                 Descripcion = e.Descripcion ?? string.Empty,
-                Referencia = e.Referencia ?? string.Empty,
-                Not = e.NOT_Campo ?? string.Empty,
-                Fondo = e.Fondo ?? string.Empty,
-                Dividendo = e.Dividendo ?? string.Empty,
-                Varios = e.Varios ?? string.Empty,
-                Actividad = e.Actividad ?? string.Empty,
-                CentroResponsabilidad = e.CentroResponsabilidad ?? string.Empty,
                 Proyecto = e.Proyecto ?? string.Empty,
-                CalidadRed = e.CalidadRed ?? string.Empty,
-                UbicacionGeografica = e.UbicacionGeografica ?? string.Empty,
-                SubRecurso = e.SubRecurso ?? string.Empty,
-                ActividadIngreso = e.ActividadIngreso ?? string.Empty,
-                Cajero = e.Cajero ?? string.Empty,
-                Proveedor = e.Proveedor ?? string.Empty,
-                JerarquiaCargo = e.JerarquiaCargo ?? string.Empty,
                 CodUnidad1Cuenta = e.CodUnidad1Cuenta ?? string.Empty,
                 CodUnidad3Cuenta = e.CodUnidad3Cuenta ?? string.Empty,
-                CodUnidad4Cuenta = e.CodUnidad4Cuenta ?? string.Empty,
-                CodUnidad1Actividad = e.CodUnidad1Actividad ?? string.Empty,
-                CodUnidad3Actividad = e.CodUnidad3Actividad ?? string.Empty,
-                CodUnidad4Actividad = e.CodUnidad4Actividad ?? string.Empty,
-                CodUnidad1SubRecurso = e.CodUnidad1SubRecurso ?? string.Empty,
-                CodUnidad3SubRecurso = e.CodUnidad3SubRecurso ?? string.Empty,
-                CodUnidad4SubRecurso = e.CodUnidad4SubRecurso ?? string.Empty
+                CodUnidad4Cuenta = e.CodUnidad4Cuenta ?? string.Empty
             });
         }
 
