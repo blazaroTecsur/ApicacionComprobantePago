@@ -13,6 +13,7 @@ namespace ComprobantePago.Infrastructure.Persistence.Configurations
             builder.HasKey(x => x.IdDocumento);
             builder.Property(x => x.Folio).HasMaxLength(20).IsRequired();
             builder.Property(x => x.TipoArchivo).HasMaxLength(10).IsRequired();
+            builder.Property(x => x.SubTipo).HasMaxLength(30).IsRequired().HasDefaultValue("");
             builder.Property(x => x.NombreArchivo).HasMaxLength(255).IsRequired();
             builder.Property(x => x.Contenido).HasColumnType("longblob").IsRequired();
             builder.Property(x => x.UsuarioReg).HasMaxLength(50).IsRequired();
