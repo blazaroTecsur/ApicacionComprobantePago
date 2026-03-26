@@ -1,5 +1,5 @@
-﻿// ============================================
-// DRAGDROP.JS - Drag & Drop XML/PDF
+// ============================================
+// DRAGDROP.JS - Drag & Drop XML / PDF / ZIP
 // ============================================
 
 $(document).ready(function () {
@@ -40,15 +40,14 @@ function inicializarDragDrop() {
 function procesarArchivo(archivo) {
     const extension = archivo.name.split('.').pop().toLowerCase();
 
-    if (extension !== 'xml' && extension !== 'pdf') {
-        CorporativoCore.notificarError('Solo se aceptan archivos XML o PDF.');
-        return;
-    }
-
     if (extension === 'xml') {
         validarXmlSunat(archivo);
+    } else if (extension === 'zip') {
+        validarZipSunat(archivo);
+    } else if (extension === 'pdf') {
+        subirDocumentoSinValidacion(archivo, 'PDF');
     } else {
-        validarPdfSunat(archivo);
+        CorporativoCore.notificarError('Solo se aceptan archivos XML, PDF o ZIP.');
     }
 }
 
@@ -69,7 +68,7 @@ function validarXmlSunat(archivo) {
         },
         success: function (response) {
             CorporativoCore.hideLoading();
-            mostrarResultadoSunat(response, 'xml', archivo);
+            mostrarResultadoSunat(response, 'xml');
         },
         error: function (xhr) {
             CorporativoCore.hideLoading();
@@ -83,14 +82,14 @@ function validarXmlSunat(archivo) {
     });
 }
 
-// ── Validar PDF contra SUNAT ──────────────────
-function validarPdfSunat(archivo) {
+// ── Validar ZIP contra SUNAT ──────────────────
+function validarZipSunat(archivo) {
     const formData = new FormData();
     formData.append('archivo', archivo);
 
     CorporativoCore.showLoading();
     $.ajax({
-        url: '/Comprobante/ValidarPdfSunat',
+        url: '/Comprobante/ValidarZipSunat',
         type: 'POST',
         data: formData,
         processData: false,
@@ -100,31 +99,71 @@ function validarPdfSunat(archivo) {
         },
         success: function (response) {
             CorporativoCore.hideLoading();
-
-            if (!response.exito) {
+            if (!response.exito && response.motivo) {
                 $('#divResultadoSunat').removeClass('d-none');
                 $('#alertaSunat').html(`
                     <div class="alert alert-warning d-flex align-items-center gap-2">
                         <i class="bi bi-exclamation-triangle-fill fs-5"></i>
                         <div>
-                            <strong>Validación PDF no disponible</strong>
-                            <p class="mb-0 small">
-                                ${response.motivo || response.mensaje ||
-                    'Por favor use el archivo XML.'}
-                            </p>
+                            <strong>Error al procesar ZIP</strong>
+                            <p class="mb-0 small">${response.motivo}</p>
                         </div>
                     </div>`);
                 return;
             }
-
-            mostrarResultadoSunat(response, 'pdf', archivo);
+            mostrarResultadoSunat(response, 'zip');
         },
         error: function (xhr) {
             CorporativoCore.hideLoading();
             CorporativoCore.handleError(xhr, {
                 onCustom: function () {
                     CorporativoCore.notificarError(
-                        'Error al validar el archivo PDF.');
+                        'Error al procesar el archivo ZIP.');
+                }
+            });
+        }
+    });
+}
+
+// ── Subir documento sin validación SUNAT ──────
+function subirDocumentoSinValidacion(archivo, tipo) {
+    const folio = $('#hdnFolio').val();
+    if (!folio) {
+        CorporativoCore.notificarError(
+            'Primero debe validar el comprobante XML para obtener un folio.');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('folio', folio);
+    formData.append('archivos', archivo);
+
+    CorporativoCore.showLoading();
+    $.ajax({
+        url: '/Comprobante/SubirDocumentos',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'RequestVerificationToken': CorporativoCore.obtenerToken()
+        },
+        success: function (response) {
+            CorporativoCore.hideLoading();
+            if (response.exito) {
+                CorporativoCore.notificarExito(
+                    `Archivo ${tipo} guardado correctamente.`);
+                renderizarDocumentosElectronicos(response.documentos);
+            } else {
+                CorporativoCore.notificarError(
+                    response.mensaje || 'Error al guardar el archivo.');
+            }
+        },
+        error: function (xhr) {
+            CorporativoCore.hideLoading();
+            CorporativoCore.handleError(xhr, {
+                onCustom: function () {
+                    CorporativoCore.notificarError('Error al subir el archivo.');
                 }
             });
         }
@@ -132,7 +171,7 @@ function validarPdfSunat(archivo) {
 }
 
 // ── Mostrar resultado validación SUNAT ────────
-function mostrarResultadoSunat(response, tipo, archivo) {
+function mostrarResultadoSunat(response, tipo) {
     $('#divResultadoSunat').removeClass('d-none');
 
     const estado = response.estadoSunat;
@@ -152,27 +191,26 @@ function mostrarResultadoSunat(response, tipo, archivo) {
                         </p>
                     </div>
                 </div>`;
-            if (tipo === 'xml' || tipo === 'pdf') {
-                Swal.fire({
-                    title: 'Comprobante validado',
-                    html: `
-                        Se registró el comprobante con folio:
-                        <strong>${response.folio}</strong>.<br>
-                        Este ya ha sido validado ante SUNAT.<br><br>
-                        Favor de proceder a completar los datos y
-                        <strong>ENVIAR</strong> el comprobante vía SyteLine.
-                    `,
-                    icon: 'info',
-                    confirmButtonText: 'Aceptar',
-                    confirmButtonColor: '#185FA5'
-                }).then(() => {
-                    $('#hdnFolio').val(response.folio);
-                    $('#txtFolio').val(response.folio)
-                        .addClass('folio-generado');
-                    poblarCamposDesdeXml(response.datos);
-                    mostrarVistaDetalle();
-                });
-            }
+            Swal.fire({
+                title: 'Comprobante validado',
+                html: `
+                    Se registró el comprobante con folio:
+                    <strong>${response.folio}</strong>.<br>
+                    Este ya ha sido validado ante SUNAT.<br><br>
+                    Favor de proceder a completar los datos y
+                    <strong>ENVIAR</strong> el comprobante vía SyteLine.
+                `,
+                icon: 'info',
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: '#185FA5'
+            }).then(() => {
+                $('#hdnFolio').val(response.folio);
+                $('#txtFolio').val(response.folio)
+                    .addClass('folio-generado');
+                poblarCamposDesdeXml(response.datos);
+                mostrarVistaDetalle();
+                cargarDocumentosElectronicos(response.folio);
+            });
             break;
 
         case '3': // AUTORIZADO
@@ -187,27 +225,26 @@ function mostrarResultadoSunat(response, tipo, archivo) {
                         </p>
                     </div>
                 </div>`;
-            if (tipo === 'xml' || tipo === 'pdf') {
-                Swal.fire({
-                    title: 'Comprobante validado',
-                    html: `
-                        Se registró el comprobante con folio:
-                        <strong>${response.folio}</strong>.<br>
-                        Este ya ha sido validado ante SUNAT.<br><br>
-                        Favor de proceder a completar los datos y
-                        <strong>ENVIAR</strong> el comprobante vía SyteLine.
-                    `,
-                    icon: 'info',
-                    confirmButtonText: 'Aceptar',
-                    confirmButtonColor: '#185FA5'
-                }).then(() => {
-                    $('#hdnFolio').val(response.folio);
-                    $('#txtFolio').val(response.folio)
-                        .addClass('folio-generado');
-                    poblarCamposDesdeXml(response.datos);
-                    mostrarVistaDetalle();
-                });
-            }
+            Swal.fire({
+                title: 'Comprobante validado',
+                html: `
+                    Se registró el comprobante con folio:
+                    <strong>${response.folio}</strong>.<br>
+                    Este ya ha sido validado ante SUNAT.<br><br>
+                    Favor de proceder a completar los datos y
+                    <strong>ENVIAR</strong> el comprobante vía SyteLine.
+                `,
+                icon: 'info',
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: '#185FA5'
+            }).then(() => {
+                $('#hdnFolio').val(response.folio);
+                $('#txtFolio').val(response.folio)
+                    .addClass('folio-generado');
+                poblarCamposDesdeXml(response.datos);
+                mostrarVistaDetalle();
+                cargarDocumentosElectronicos(response.folio);
+            });
             break;
 
         case '2': // ANULADO
@@ -349,7 +386,7 @@ function poblarCamposDesdeXml(datos) {
     }
 
     // ── Bloquear campos electrónicos ──────────
-    bloquearCamposElectronico(); // ← NUEVO
+    bloquearCamposElectronico();
 
     CorporativoCore.notificarExito('Campos poblados correctamente.');
 }
@@ -377,6 +414,76 @@ function habilitarCamposManuales() {
     $('#btnBuscarCRPrincipal').prop('disabled', false);
 }
 
+// ── Cargar documentos electrónicos ────────────
+function cargarDocumentosElectronicos(folio) {
+    if (!folio) return;
+    $.ajax({
+        url: '/Comprobante/DocumentosElectronicos',
+        type: 'GET',
+        data: { folio: folio },
+        success: function (docs) {
+            renderizarDocumentosElectronicos(docs);
+        }
+    });
+}
+
+// ── Renderizar tabla de documentos ────────────
+function renderizarDocumentosElectronicos(docs) {
+    const panel = $('#pnlDocsElectronicos');
+    if (!docs || docs.length === 0) {
+        panel.html(`
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-folder2-open fs-2 d-block mb-2"></i>
+                No hay documentos electrónicos adjuntos.
+            </div>`);
+        return;
+    }
+
+    const iconos = {
+        'XML': '<i class="bi bi-file-earmark-code text-warning"></i>',
+        'PDF': '<i class="bi bi-file-earmark-pdf text-danger"></i>',
+        'CDR': '<i class="bi bi-file-earmark-check text-success"></i>'
+    };
+
+    let filas = '';
+    docs.forEach(function (doc) {
+        const icono = iconos[doc.tipoArchivo] ||
+            '<i class="bi bi-file-earmark"></i>';
+        const tamanio = doc.tamanioBytes > 1024
+            ? (doc.tamanioBytes / 1024).toFixed(1) + ' KB'
+            : doc.tamanioBytes + ' B';
+        filas += `
+            <tr>
+                <td class="text-center">${icono}</td>
+                <td><span class="badge bg-secondary">${doc.tipoArchivo}</span></td>
+                <td>${doc.nombreArchivo}</td>
+                <td class="text-muted small">${doc.fechaReg}</td>
+                <td class="text-muted small">${tamanio}</td>
+                <td>
+                    <a href="/Comprobante/DescargarDocumento?id=${doc.idDocumento}"
+                       class="btn btn-outline-primary btn-sm" target="_blank">
+                        <i class="bi bi-download"></i>
+                    </a>
+                </td>
+            </tr>`;
+    });
+
+    panel.html(`
+        <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:40px"></th>
+                    <th style="width:70px">Tipo</th>
+                    <th>Nombre</th>
+                    <th style="width:150px">Fecha</th>
+                    <th style="width:80px">Tamaño</th>
+                    <th style="width:60px"></th>
+                </tr>
+            </thead>
+            <tbody>${filas}</tbody>
+        </table>`);
+}
+
 // ── Bind eventos drag & drop ──────────────────
 function bindEventosDragDrop() {
 
@@ -396,6 +503,30 @@ function bindEventosDragDrop() {
         $('#alertaSunat').html('');
         $('#areaDragDrop').removeClass('drag_over');
         CorporativoCore.notificarInfo('Área limpiada.');
+    });
+
+    // Cargar docs al activar la pestaña
+    $('a[href="#tabDocElectronicos"]').on('shown.bs.tab', function () {
+        const folio = $('#hdnFolio').val();
+        if (folio) cargarDocumentosElectronicos(folio);
+    });
+
+    // Botón agregar documento adicional
+    $('#btnAgregarDocumento').on('click', function () {
+        $('#inpDocumentoAdicional').trigger('click');
+    });
+
+    $('#inpDocumentoAdicional').on('change', function () {
+        if (this.files.length > 0) {
+            const archivo = this.files[0];
+            const ext = archivo.name.split('.').pop().toLowerCase();
+            if (ext === 'xml') {
+                subirDocumentoSinValidacion(archivo, 'XML');
+            } else {
+                subirDocumentoSinValidacion(archivo, 'PDF');
+            }
+            $(this).val('');
+        }
     });
 }
 

@@ -391,6 +391,87 @@ namespace ComprobantePago.Web.Controllers
             }
         }
 
+        // POST: /Comprobante/ValidarZipSunat
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ValidarZipSunat(IFormFile archivo)
+        {
+            try
+            {
+                if (archivo == null || archivo.Length == 0)
+                    return Ok(new
+                    {
+                        exito = false,
+                        mensaje = "Archivo inválido."
+                    });
+
+                var resultado = await _repository.ValidarZipSunatAsync(archivo);
+                return Ok(resultado);
+            }
+            catch (Exception ex)
+            {
+                return Ok(new { exito = false, mensaje = ex.Message });
+            }
+        }
+
+        // POST: /Comprobante/SubirDocumentos
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubirDocumentos(
+            string folio, IFormFileCollection archivos)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(folio))
+                    return Ok(new { exito = false, mensaje = "Folio requerido." });
+
+                if (archivos == null || archivos.Count == 0)
+                    return Ok(new { exito = false, mensaje = "No se recibieron archivos." });
+
+                var lista = new List<(byte[] contenido, string nombre, string tipo)>();
+                foreach (var archivo in archivos)
+                {
+                    if (archivo.Length == 0) continue;
+                    var ext = Path.GetExtension(archivo.FileName)
+                        .TrimStart('.').ToLowerInvariant();
+
+                    string tipo;
+                    if (ext == "pdf") tipo = "PDF";
+                    else if (ext == "xml" && archivo.FileName.StartsWith("R-",
+                        StringComparison.OrdinalIgnoreCase)) tipo = "CDR";
+                    else tipo = "XML";
+
+                    using var ms = new MemoryStream();
+                    await archivo.CopyToAsync(ms);
+                    lista.Add((ms.ToArray(), archivo.FileName, tipo));
+                }
+
+                if (lista.Count > 0)
+                    await _repository.GuardarDocumentosAsync(folio, lista);
+
+                var docs = await _queryService.ObtenerDocumentosElectronicosAsync(folio);
+                return Ok(new { exito = true, documentos = docs });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new { exito = false, mensaje = ex.Message });
+            }
+        }
+
+        // GET: /Comprobante/DescargarDocumento?id={id}
+        [HttpGet]
+        public async Task<IActionResult> DescargarDocumento(int id)
+        {
+            var doc = await _repository.DescargarDocumentoAsync(id);
+            if (doc == null) return NotFound();
+
+            var ext = Path.GetExtension(doc.NombreArchivo)
+                .TrimStart('.').ToLowerInvariant();
+            var contentType = ext == "pdf" ? "application/pdf" : "application/octet-stream";
+
+            return File(doc.Contenido, contentType, doc.NombreArchivo);
+        }
+
         [HttpGet]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ExportarCabeceraSyteline(

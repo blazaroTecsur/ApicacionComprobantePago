@@ -8,6 +8,7 @@ using ComprobantePago.Infrastructure.Persistence;
 using ComprobantePago.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using System.IO.Compression;
 
 namespace ComprobantePago.Infrastructure.Repositories
 {
@@ -210,7 +211,12 @@ namespace ComprobantePago.Infrastructure.Repositories
         public async Task<ValidacionSunatDto> ValidarXmlSunatAsync(
             IFormFile archivo)
         {
-            using var stream = archivo.OpenReadStream();
+            // Leer contenido para poder guardarlo después
+            using var ms = new MemoryStream();
+            await archivo.CopyToAsync(ms);
+            var contenidoXml = ms.ToArray();
+
+            using var stream = new MemoryStream(contenidoXml);
             var datos = _xmlService.LeerDatosXml(stream);
 
             var resultado = await _sunatService.ValidarComprobanteAsync(
@@ -227,6 +233,12 @@ namespace ComprobantePago.Infrastructure.Repositories
             {
                 resultado.Datos = datos;
                 resultado.Folio = await GenerarFolioAsync();
+
+                // Guardar XML automáticamente al validar
+                await GuardarDocumentosAsync(resultado.Folio, new List<(byte[], string, string)>
+                {
+                    (contenidoXml, archivo.FileName, "XML")
+                });
             }
 
             return resultado;
@@ -292,6 +304,96 @@ namespace ComprobantePago.Infrastructure.Repositories
             CargarImputacionMasivaAsync(IFormFile file)
             => Task.FromResult<IEnumerable<ImputacionDetalleDto>>(
                 new List<ImputacionDetalleDto>());
+
+        // ── Validar ZIP SUNAT ─────────────────────
+        public async Task<ValidacionSunatDto> ValidarZipSunatAsync(
+            IFormFile archivo)
+        {
+            using var zipStream = archivo.OpenReadStream();
+            using var zip = new ZipArchive(zipStream, ZipArchiveMode.Read);
+
+            // Buscar XML que no sea CDR (nombre no empieza con R-)
+            var entradaXml = zip.Entries.FirstOrDefault(e =>
+                e.Name.EndsWith(".xml", StringComparison.OrdinalIgnoreCase) &&
+                !e.Name.StartsWith("R-", StringComparison.OrdinalIgnoreCase));
+
+            if (entradaXml == null)
+                return new ValidacionSunatDto
+                {
+                    Exito = false,
+                    EstadoSunat = "ERROR",
+                    Motivo = "El ZIP no contiene un archivo XML de comprobante."
+                };
+
+            using var xmlStream = entradaXml.Open();
+            var datos = _xmlService.LeerDatosXml(xmlStream);
+
+            var resultado = await _sunatService.ValidarComprobanteAsync(
+                numRuc: datos.RucProveedor,
+                codComp: datos.TipoSunat,
+                numeroSerie: datos.Serie,
+                numero: datos.Numero,
+                fechaEmision: datos.FechaEmision,
+                monto: datos.MontoTotal
+            );
+
+            if (resultado.CodigoEstado == "1" ||
+                resultado.CodigoEstado == "3")
+            {
+                resultado.Datos = datos;
+                resultado.Folio = await GenerarFolioAsync();
+
+                // Guardar todos los archivos del ZIP automáticamente
+                var archivos = new List<(byte[] contenido, string nombre, string tipo)>();
+                foreach (var entrada in zip.Entries)
+                {
+                    var ext = Path.GetExtension(entrada.Name)
+                        .TrimStart('.').ToLowerInvariant();
+                    if (ext != "xml" && ext != "pdf") continue;
+
+                    using var ms = new MemoryStream();
+                    using var entStream = entrada.Open();
+                    await entStream.CopyToAsync(ms);
+
+                    var esCdr = entrada.Name.StartsWith("R-",
+                        StringComparison.OrdinalIgnoreCase);
+                    var tipo = ext == "pdf" ? "PDF" : (esCdr ? "CDR" : "XML");
+                    archivos.Add((ms.ToArray(), entrada.Name, tipo));
+                }
+                await GuardarDocumentosAsync(resultado.Folio, archivos);
+            }
+
+            return resultado;
+        }
+
+        // ── Guardar Documentos Electrónicos ──────
+        public async Task GuardarDocumentosAsync(
+            string folio,
+            List<(byte[] contenido, string nombre, string tipo)> archivos)
+        {
+            foreach (var (contenido, nombre, tipo) in archivos)
+            {
+                var doc = new DocumentoElectronico
+                {
+                    Folio = folio,
+                    TipoArchivo = tipo,
+                    NombreArchivo = nombre,
+                    Contenido = contenido,
+                    FechaReg = DateTime.Now,
+                    UsuarioReg = "SYSTEM"
+                };
+                await _contexto.DocumentosElectronicos.AddAsync(doc);
+            }
+            await _contexto.SaveChangesAsync();
+        }
+
+        // ── Descargar Documento Electrónico ───────
+        public async Task<DocumentoElectronico?> DescargarDocumentoAsync(
+            int idDocumento)
+        {
+            return await _contexto.DocumentosElectronicos
+                .FirstOrDefaultAsync(x => x.IdDocumento == idDocumento);
+        }
 
         // ── Helpers ───────────────────────────────
         private async Task<Comprobante> ObtenerPorFolioAsync(
