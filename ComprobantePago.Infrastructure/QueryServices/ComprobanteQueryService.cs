@@ -234,10 +234,22 @@ namespace ComprobantePago.Infrastructure.QueryServices
         public Task<byte[]> ObtenerPdfAsync(string folio)
             => Task.FromResult<byte[]>(null!);
 
-        public Task<IEnumerable<object>>
+        public async Task<IEnumerable<DocumentoElectronicoDto>>
             ObtenerDocumentosElectronicosAsync(string folio)
-            => Task.FromResult<IEnumerable<object>>(
-                new List<object>());
+        {
+            return await _contexto.DocumentosElectronicos
+                .Where(x => x.Folio == folio)
+                .OrderBy(x => x.FechaReg)
+                .Select(x => new DocumentoElectronicoDto
+                {
+                    IdDocumento = x.IdDocumento,
+                    TipoArchivo = x.TipoArchivo,
+                    NombreArchivo = x.NombreArchivo,
+                    FechaReg = x.FechaReg.ToString("dd/MM/yyyy HH:mm"),
+                    TamanioBytes = x.Contenido.Length
+                })
+                .ToListAsync();
+        }
 
         public Task<IEnumerable<ImputacionDetalleDto>>
             ObtenerImputacionesAsync(string folio)

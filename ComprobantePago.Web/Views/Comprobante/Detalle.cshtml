@@ -69,10 +69,11 @@
         <div id="areaDragDrop" class="drag_area p-4">
             <i class="bi bi-cloud-upload fs-2"></i>
             <p class="mb-1 mt-2 fw-bold">
-                Arrastre un archivo XML o PDF aquí
+                Arrastre un archivo XML, PDF o ZIP aquí
             </p>
             <p class="mb-2 text-muted small">
-                El archivo será validado contra SUNAT antes de procesarse
+                El XML del comprobante será validado contra SUNAT.
+                Los archivos ZIP se descomprimirán automáticamente.
             </p>
             <div class="mt-2">
                 <button type="button" class="btn btn-primary btn-sm"
@@ -80,7 +81,7 @@
                     <i class="bi bi-folder2-open"></i> Seleccionar archivo
                 </button>
                 <input type="file" id="inpArchivoComprobante"
-                       accept=".xml,.pdf" style="display:none" />
+                       accept=".xml,.pdf,.zip" style="display:none" />
             </div>
         </div>
 
@@ -528,10 +529,23 @@
             <!-- Tab 3: Documentos Electrónicos -->
             <div class="tab-pane fade" id="tabDocElectronicos">
                 <div class="seccion-panel mt-2">
-                    <div class="seccion-header">
+                    <div class="seccion-header d-flex justify-content-between align-items-center">
                         <strong>Documentos Electrónicos Relacionados</strong>
+                        <div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm"
+                                    id="btnAgregarDocumento"
+                                    title="Subir documento adicional (PDF)">
+                                <i class="bi bi-plus-circle"></i> Agregar
+                            </button>
+                            <input type="file" id="inpDocumentoAdicional"
+                                   accept=".xml,.pdf" style="display:none" />
+                        </div>
                     </div>
                     <div class="seccion-body" id="pnlDocsElectronicos">
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-folder2-open fs-2 d-block mb-2"></i>
+                            No hay documentos electrónicos adjuntos.
+                        </div>
                     </div>
                 </div>
             </div>
