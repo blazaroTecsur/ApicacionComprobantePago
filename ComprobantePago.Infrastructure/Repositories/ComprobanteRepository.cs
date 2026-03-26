@@ -235,10 +235,11 @@ namespace ComprobantePago.Infrastructure.Repositories
                 resultado.Folio = await GenerarFolioAsync();
 
                 // Guardar XML automáticamente al validar
-                await GuardarDocumentosAsync(resultado.Folio, new List<(byte[], string, string)>
-                {
-                    (contenidoXml, archivo.FileName, "XML")
-                });
+                await GuardarDocumentosAsync(resultado.Folio,
+                    new List<(byte[], string, string, string)>
+                    {
+                        (contenidoXml, archivo.FileName, "XML", "XML_SUNAT")
+                    });
             }
 
             return resultado;
@@ -344,7 +345,7 @@ namespace ComprobantePago.Infrastructure.Repositories
                 resultado.Folio = await GenerarFolioAsync();
 
                 // Guardar todos los archivos del ZIP automáticamente
-                var archivos = new List<(byte[] contenido, string nombre, string tipo)>();
+                var archivos = new List<(byte[] contenido, string nombre, string tipo, string subTipo)>();
                 foreach (var entrada in zip.Entries)
                 {
                     var ext = Path.GetExtension(entrada.Name)
@@ -357,8 +358,11 @@ namespace ComprobantePago.Infrastructure.Repositories
 
                     var esCdr = entrada.Name.StartsWith("R-",
                         StringComparison.OrdinalIgnoreCase);
-                    var tipo = ext == "pdf" ? "PDF" : (esCdr ? "CDR" : "XML");
-                    archivos.Add((ms.ToArray(), entrada.Name, tipo));
+                    string tipo, subTipo;
+                    if (ext == "pdf")        { tipo = "PDF"; subTipo = "REPRESENTACION_IMPRESA"; }
+                    else if (esCdr)          { tipo = "XML"; subTipo = "XML_CDR"; }
+                    else                     { tipo = "XML"; subTipo = "XML_SUNAT"; }
+                    archivos.Add((ms.ToArray(), entrada.Name, tipo, subTipo));
                 }
                 await GuardarDocumentosAsync(resultado.Folio, archivos);
             }
@@ -369,14 +373,15 @@ namespace ComprobantePago.Infrastructure.Repositories
         // ── Guardar Documentos Electrónicos ──────
         public async Task GuardarDocumentosAsync(
             string folio,
-            List<(byte[] contenido, string nombre, string tipo)> archivos)
+            List<(byte[] contenido, string nombre, string tipo, string subTipo)> archivos)
         {
-            foreach (var (contenido, nombre, tipo) in archivos)
+            foreach (var (contenido, nombre, tipo, subTipo) in archivos)
             {
                 var doc = new DocumentoElectronico
                 {
                     Folio = folio,
                     TipoArchivo = tipo,
+                    SubTipo = subTipo,
                     NombreArchivo = nombre,
                     Contenido = contenido,
                     FechaReg = DateTime.Now,
@@ -393,6 +398,18 @@ namespace ComprobantePago.Infrastructure.Repositories
         {
             return await _contexto.DocumentosElectronicos
                 .FirstOrDefaultAsync(x => x.IdDocumento == idDocumento);
+        }
+
+        // ── Eliminar Documento Electrónico ────────
+        public async Task EliminarDocumentoAsync(int idDocumento)
+        {
+            var doc = await _contexto.DocumentosElectronicos
+                .FirstOrDefaultAsync(x => x.IdDocumento == idDocumento);
+            if (doc != null)
+            {
+                _contexto.DocumentosElectronicos.Remove(doc);
+                await _contexto.SaveChangesAsync();
+            }
         }
 
         // ── Helpers ───────────────────────────────

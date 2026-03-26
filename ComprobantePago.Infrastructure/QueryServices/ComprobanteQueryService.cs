@@ -244,6 +244,7 @@ namespace ComprobantePago.Infrastructure.QueryServices
                 {
                     IdDocumento = x.IdDocumento,
                     TipoArchivo = x.TipoArchivo,
+                    SubTipo = x.SubTipo,
                     NombreArchivo = x.NombreArchivo,
                     FechaReg = x.FechaReg.ToString("dd/MM/yyyy HH:mm"),
                     TamanioBytes = x.Contenido.Length

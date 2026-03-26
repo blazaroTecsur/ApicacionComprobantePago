@@ -418,32 +418,28 @@ namespace ComprobantePago.Web.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubirDocumentos(
-            string folio, IFormFileCollection archivos)
+            string folio, string subTipo, IFormFileCollection archivos)
         {
             try
             {
                 if (string.IsNullOrEmpty(folio))
                     return Ok(new { exito = false, mensaje = "Folio requerido." });
-
+                if (string.IsNullOrEmpty(subTipo))
+                    return Ok(new { exito = false, mensaje = "Tipo de documento requerido." });
                 if (archivos == null || archivos.Count == 0)
                     return Ok(new { exito = false, mensaje = "No se recibieron archivos." });
 
-                var lista = new List<(byte[] contenido, string nombre, string tipo)>();
+                var lista = new List<(byte[] contenido, string nombre, string tipo, string subTipo)>();
                 foreach (var archivo in archivos)
                 {
                     if (archivo.Length == 0) continue;
                     var ext = Path.GetExtension(archivo.FileName)
                         .TrimStart('.').ToLowerInvariant();
-
-                    string tipo;
-                    if (ext == "pdf") tipo = "PDF";
-                    else if (ext == "xml" && archivo.FileName.StartsWith("R-",
-                        StringComparison.OrdinalIgnoreCase)) tipo = "CDR";
-                    else tipo = "XML";
+                    var tipo = ext == "pdf" ? "PDF" : ext.ToUpper();
 
                     using var ms = new MemoryStream();
                     await archivo.CopyToAsync(ms);
-                    lista.Add((ms.ToArray(), archivo.FileName, tipo));
+                    lista.Add((ms.ToArray(), archivo.FileName, tipo, subTipo));
                 }
 
                 if (lista.Count > 0)
@@ -470,6 +466,22 @@ namespace ComprobantePago.Web.Controllers
             var contentType = ext == "pdf" ? "application/pdf" : "application/octet-stream";
 
             return File(doc.Contenido, contentType, doc.NombreArchivo);
+        }
+
+        // POST: /Comprobante/EliminarDocumento
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EliminarDocumento([FromBody] int id)
+        {
+            try
+            {
+                await _repository.EliminarDocumentoAsync(id);
+                return Ok(new { exito = true });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new { exito = false, mensaje = ex.Message });
+            }
         }
 
         [HttpGet]

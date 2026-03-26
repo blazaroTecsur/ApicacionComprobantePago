@@ -1,13 +1,28 @@
 // ============================================
 // DRAGDROP.JS - Drag & Drop XML / PDF / ZIP
+//              + Panel Documentos Electrónicos
 // ============================================
 
+// ── Configuración de categorías ───────────────
+const CATEGORIAS_DOC = [
+    { subTipo: 'REPRESENTACION_IMPRESA', accept: ['.pdf'] },
+    { subTipo: 'XML_SUNAT',             accept: ['.xml'] },
+    { subTipo: 'CORREO_ORIGEN',         accept: ['.msg', '.eml'] },
+    { subTipo: 'ORDEN_COMPRA',          accept: ['.pdf'] },
+    { subTipo: 'XML_CDR',              accept: ['.xml'] }
+];
+
+// Estado interno del panel
+let _docsActuales = [];
+let _subTipoSeleccionado = null;
+
+// ─────────────────────────────────────────────
 $(document).ready(function () {
     inicializarDragDrop();
     bindEventosDragDrop();
 });
 
-// ── Inicializar ───────────────────────────────
+// ── Inicializar área principal drag & drop ────
 function inicializarDragDrop() {
     const area = document.getElementById('areaDragDrop');
     if (!area) return;
@@ -28,15 +43,13 @@ function inicializarDragDrop() {
         e.preventDefault();
         e.stopPropagation();
         $(this).removeClass('drag_over');
-
         const archivos = e.dataTransfer.files;
         if (archivos.length === 0) return;
-
         procesarArchivo(archivos[0]);
     });
 }
 
-// ── Procesar archivo ──────────────────────────
+// ── Procesar archivo del drag-drop principal ──
 function procesarArchivo(archivo) {
     const extension = archivo.name.split('.').pop().toLowerCase();
 
@@ -45,7 +58,7 @@ function procesarArchivo(archivo) {
     } else if (extension === 'zip') {
         validarZipSunat(archivo);
     } else if (extension === 'pdf') {
-        subirDocumentoSinValidacion(archivo, 'PDF');
+        subirDocumentoSinValidacion(archivo, 'REPRESENTACION_IMPRESA');
     } else {
         CorporativoCore.notificarError('Solo se aceptan archivos XML, PDF o ZIP.');
     }
@@ -63,9 +76,7 @@ function validarXmlSunat(archivo) {
         data: formData,
         processData: false,
         contentType: false,
-        headers: {
-            'RequestVerificationToken': CorporativoCore.obtenerToken()
-        },
+        headers: { 'RequestVerificationToken': CorporativoCore.obtenerToken() },
         success: function (response) {
             CorporativoCore.hideLoading();
             mostrarResultadoSunat(response, 'xml');
@@ -74,8 +85,7 @@ function validarXmlSunat(archivo) {
             CorporativoCore.hideLoading();
             CorporativoCore.handleError(xhr, {
                 onCustom: function () {
-                    CorporativoCore.notificarError(
-                        'Error al validar el archivo XML.');
+                    CorporativoCore.notificarError('Error al validar el archivo XML.');
                 }
             });
         }
@@ -94,9 +104,7 @@ function validarZipSunat(archivo) {
         data: formData,
         processData: false,
         contentType: false,
-        headers: {
-            'RequestVerificationToken': CorporativoCore.obtenerToken()
-        },
+        headers: { 'RequestVerificationToken': CorporativoCore.obtenerToken() },
         success: function (response) {
             CorporativoCore.hideLoading();
             if (!response.exito && response.motivo) {
@@ -117,8 +125,7 @@ function validarZipSunat(archivo) {
             CorporativoCore.hideLoading();
             CorporativoCore.handleError(xhr, {
                 onCustom: function () {
-                    CorporativoCore.notificarError(
-                        'Error al procesar el archivo ZIP.');
+                    CorporativoCore.notificarError('Error al procesar el archivo ZIP.');
                 }
             });
         }
@@ -126,16 +133,43 @@ function validarZipSunat(archivo) {
 }
 
 // ── Subir documento sin validación SUNAT ──────
-function subirDocumentoSinValidacion(archivo, tipo) {
+// (PDF u otros desde el drag-drop principal)
+function subirDocumentoSinValidacion(archivo, subTipo) {
     const folio = $('#hdnFolio').val();
     if (!folio) {
         CorporativoCore.notificarError(
             'Primero debe validar el comprobante XML para obtener un folio.');
         return;
     }
+    _subirDocumentoConFolio(archivo, folio, subTipo);
+}
 
+// ── Subir archivo a una categoría desde panel ─
+function subirDocumentoCategoria(archivo) {
+    const folio = $('#hdnFolio').val();
+    if (!folio) {
+        CorporativoCore.notificarError('No hay un folio asignado.');
+        return;
+    }
+    if (!_subTipoSeleccionado) return;
+
+    const cat = CATEGORIAS_DOC.find(c => c.subTipo === _subTipoSeleccionado);
+    const ext = '.' + archivo.name.split('.').pop().toLowerCase();
+    if (cat && !cat.accept.includes(ext)) {
+        const permitidos = cat.accept.join(', ');
+        CorporativoCore.notificarError(
+            `Tipo de archivo no permitido. Solo se aceptan: ${permitidos}`);
+        return;
+    }
+
+    _subirDocumentoConFolio(archivo, folio, _subTipoSeleccionado);
+}
+
+// ── Helper: POST a SubirDocumentos ────────────
+function _subirDocumentoConFolio(archivo, folio, subTipo) {
     const formData = new FormData();
     formData.append('folio', folio);
+    formData.append('subTipo', subTipo);
     formData.append('archivos', archivo);
 
     CorporativoCore.showLoading();
@@ -145,15 +179,16 @@ function subirDocumentoSinValidacion(archivo, tipo) {
         data: formData,
         processData: false,
         contentType: false,
-        headers: {
-            'RequestVerificationToken': CorporativoCore.obtenerToken()
-        },
+        headers: { 'RequestVerificationToken': CorporativoCore.obtenerToken() },
         success: function (response) {
             CorporativoCore.hideLoading();
             if (response.exito) {
-                CorporativoCore.notificarExito(
-                    `Archivo ${tipo} guardado correctamente.`);
-                renderizarDocumentosElectronicos(response.documentos);
+                CorporativoCore.notificarExito('Documento guardado correctamente.');
+                _docsActuales = response.documentos || [];
+                actualizarIndicadoresCategorias(_docsActuales);
+                if (_subTipoSeleccionado) {
+                    renderizarPanelDerecho(_subTipoSeleccionado, _docsActuales);
+                }
             } else {
                 CorporativoCore.notificarError(
                     response.mensaje || 'Error al guardar el archivo.');
@@ -166,6 +201,189 @@ function subirDocumentoSinValidacion(archivo, tipo) {
                     CorporativoCore.notificarError('Error al subir el archivo.');
                 }
             });
+        }
+    });
+}
+
+// ── Eliminar documento ────────────────────────
+function eliminarDocumento(idDocumento) {
+    Swal.fire({
+        title: '¿Eliminar documento?',
+        text: 'Esta acción no se puede deshacer.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then(function (result) {
+        if (!result.isConfirmed) return;
+
+        CorporativoCore.showLoading();
+        $.ajax({
+            url: '/Comprobante/EliminarDocumento',
+            type: 'POST',
+            data: JSON.stringify(idDocumento),
+            contentType: 'application/json',
+            headers: { 'RequestVerificationToken': CorporativoCore.obtenerToken() },
+            success: function (response) {
+                CorporativoCore.hideLoading();
+                if (response.exito) {
+                    CorporativoCore.notificarExito('Documento eliminado.');
+                    // Quitar del estado local
+                    _docsActuales = _docsActuales.filter(
+                        d => d.idDocumento !== idDocumento);
+                    actualizarIndicadoresCategorias(_docsActuales);
+                    if (_subTipoSeleccionado) {
+                        renderizarPanelDerecho(_subTipoSeleccionado, _docsActuales);
+                    }
+                } else {
+                    CorporativoCore.notificarError(
+                        response.mensaje || 'Error al eliminar.');
+                }
+            },
+            error: function (xhr) {
+                CorporativoCore.hideLoading();
+                CorporativoCore.handleError(xhr, {
+                    onCustom: function () {
+                        CorporativoCore.notificarError('Error al eliminar el documento.');
+                    }
+                });
+            }
+        });
+    });
+}
+
+// ── Cargar documentos electrónicos ────────────
+function cargarDocumentosElectronicos(folio) {
+    if (!folio) return;
+    $.ajax({
+        url: '/Comprobante/DocumentosElectronicos',
+        type: 'GET',
+        data: { folio: folio },
+        success: function (docs) {
+            _docsActuales = docs || [];
+            actualizarIndicadoresCategorias(_docsActuales);
+            // Seleccionar primera categoría con archivo, o la primera de la lista
+            const primera = _docsActuales.length > 0
+                ? _docsActuales[0].subTipo
+                : CATEGORIAS_DOC[0].subTipo;
+            seleccionarCategoria(primera);
+        }
+    });
+}
+
+// ── Seleccionar categoría del panel izquierdo ─
+function seleccionarCategoria(subTipo) {
+    _subTipoSeleccionado = subTipo;
+
+    // Resaltar en la lista
+    $('#listaCategoriasDocs .doc-cat-item')
+        .removeClass('doc-cat-activa');
+    $(`#listaCategoriasDocs .doc-cat-item[data-subtipo="${subTipo}"]`)
+        .addClass('doc-cat-activa');
+
+    renderizarPanelDerecho(subTipo, _docsActuales);
+}
+
+// ── Renderizar panel derecho ──────────────────
+function renderizarPanelDerecho(subTipo, docs) {
+    const doc = docs.find(d => d.subTipo === subTipo) || null;
+    const cat = CATEGORIAS_DOC.find(c => c.subTipo === subTipo);
+    const accept = cat ? cat.accept.join(',') : '*';
+    const panel = $('#panelContenidoDoc');
+
+    if (doc) {
+        // ── Tarjeta de archivo existente ──────
+        const ext = doc.nombreArchivo.split('.').pop().toLowerCase();
+        let icono, colorIcono;
+        if (ext === 'pdf') {
+            icono = 'bi-file-earmark-pdf-fill';
+            colorIcono = '#dc3545';
+        } else if (ext === 'xml') {
+            icono = 'bi-file-earmark-code-fill';
+            colorIcono = '#ffc107';
+        } else {
+            icono = 'bi-file-earmark-fill';
+            colorIcono = '#6c757d';
+        }
+
+        const tamanio = doc.tamanioBytes > 1024
+            ? (doc.tamanioBytes / 1024).toFixed(1) + ' KB'
+            : doc.tamanioBytes + ' B';
+
+        panel.html(`
+            <div class="d-flex flex-column align-items-center justify-content-center"
+                 style="min-height:240px">
+                <p class="text-muted small mb-3">
+                    <strong>Nombre:</strong> ${doc.nombreArchivo}
+                    <span class="ms-2 text-muted">(${tamanio})</span>
+                </p>
+                <div class="border rounded p-4 text-center"
+                     style="width:200px; border-style: dashed !important;">
+                    <i class="bi ${icono} fs-1" style="color:${colorIcono}"></i>
+                </div>
+                <div class="mt-3 d-flex gap-2">
+                    <a href="/Comprobante/DescargarDocumento?id=${doc.idDocumento}"
+                       class="btn btn-success btn-sm" target="_blank">
+                        <i class="bi bi-download"></i> Descargar
+                    </a>
+                    <button type="button" class="btn btn-danger btn-sm"
+                            onclick="eliminarDocumento(${doc.idDocumento})">
+                        <i class="bi bi-trash"></i> Eliminar
+                    </button>
+                </div>
+            </div>`);
+    } else {
+        // ── Zona de drop vacía ────────────────
+        const acceptLabel = cat ? cat.accept.join(', ') : '';
+        panel.html(`
+            <div id="zonaDropCategoria"
+                 class="d-flex flex-column align-items-center justify-content-center"
+                 style="min-height:240px; border: 2px dashed #ccc;
+                        border-radius: 8px; cursor: pointer;"
+                 onclick="$('#inpDocCategoria').trigger('click')">
+                <i class="bi bi-cloud-upload fs-2 text-muted"></i>
+                <p class="text-muted mt-2 mb-1">Arrastra el archivo aquí o haz clic</p>
+                <p class="text-muted small">Tipos permitidos: <strong>${acceptLabel}</strong></p>
+            </div>`);
+
+        // Actualizar el accept del input
+        $('#inpDocCategoria').attr('accept', accept);
+
+        // Drag-drop sobre la zona de categoría
+        const zona = document.getElementById('zonaDropCategoria');
+        if (zona) {
+            zona.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $(this).css('background', '#f0f8ff');
+            });
+            zona.addEventListener('dragleave', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $(this).css('background', '');
+            });
+            zona.addEventListener('drop', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $(this).css('background', '');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) subirDocumentoCategoria(files[0]);
+            });
+        }
+    }
+}
+
+// ── Actualizar indicadores de categorías ──────
+function actualizarIndicadoresCategorias(docs) {
+    $('#listaCategoriasDocs .doc-cat-item').each(function () {
+        const st = $(this).data('subtipo');
+        const tiene = docs.some(d => d.subTipo === st);
+        $(this).find('.doc-cat-badge').remove();
+        if (tiene) {
+            $(this).append(
+                '<span class="doc-cat-badge"></span>');
         }
     });
 }
@@ -205,8 +423,7 @@ function mostrarResultadoSunat(response, tipo) {
                 confirmButtonColor: '#185FA5'
             }).then(() => {
                 $('#hdnFolio').val(response.folio);
-                $('#txtFolio').val(response.folio)
-                    .addClass('folio-generado');
+                $('#txtFolio').val(response.folio).addClass('folio-generado');
                 poblarCamposDesdeXml(response.datos);
                 mostrarVistaDetalle();
                 cargarDocumentosElectronicos(response.folio);
@@ -239,8 +456,7 @@ function mostrarResultadoSunat(response, tipo) {
                 confirmButtonColor: '#185FA5'
             }).then(() => {
                 $('#hdnFolio').val(response.folio);
-                $('#txtFolio').val(response.folio)
-                    .addClass('folio-generado');
+                $('#txtFolio').val(response.folio).addClass('folio-generado');
                 poblarCamposDesdeXml(response.datos);
                 mostrarVistaDetalle();
                 cargarDocumentosElectronicos(response.folio);
@@ -307,29 +523,20 @@ function mostrarResultadoSunat(response, tipo) {
 function poblarCamposDesdeXml(datos) {
     if (!datos) return;
 
-    // ── Folio ─────────────────────────────────
     $('#txtFolio').val($('#hdnFolio').val());
-
-    // ── Receptor ──────────────────────────────
     $('#txtNumeroDocumentoIdentidad').val(datos.ruc);
     $('#txtRazonSocial').val(datos.razonSocial);
-
-    // ── RUC Beneficiario = mismo RUC ──────────
     $('#txtRucBenef').val(datos.ruc);
     $('#txtRazonSocialBenef').val(datos.razonSocial);
-
-    // ── Comprobante ───────────────────────────
     $('#txtSerie').val(datos.serie);
     $('#txtNumero').val(datos.numero);
     poblarFecha('#txtFechaEmision', datos.fechaEmision);
 
-    // ── Combos ────────────────────────────────
     esperarComboYAsignar('#ddlTipoDocumento', 'FP');
     esperarComboYAsignar('#ddlTipoSunat', datos.tipoSunat);
     esperarComboYAsignar('#ddlMoneda', datos.moneda);
     esperarComboYAsignar('#dldLugarPago', '04');
 
-    // ── Montos ────────────────────────────────
     if (datos.montoTotal) {
         $('#MontoTotal').removeClass('d-none');
         $('#lblMontoTotal').text('Total');
@@ -346,7 +553,6 @@ function poblarCamposDesdeXml(datos) {
         $('#txtMontoIGVCredito').val(CorporativoCore.formatearMonto(datos.montoIGV));
     }
 
-    // ── Plazo de pago ─────────────────────────
     if (datos.plazoPago) {
         $('#txtPlazoPago').val(datos.plazoPago);
         const fechaVenc = calcularFechaVencimiento(
@@ -357,12 +563,10 @@ function poblarCamposDesdeXml(datos) {
         }
     }
 
-    // ── Hidden fields ─────────────────────────
     $('#hdnEstadoSunat').val('ACEPTADO');
     $('#hdnEsDocumentoElectronico').val('S');
     $('#rdoFacturacionElectronica').prop('checked', true);
 
-    // ── Detracción ────────────────────────────
     if (datos.tieneDetraccion) {
         $('#TieneDetraccion').prop('checked', true);
         $('#NoTieneDetraccion').prop('checked', false);
@@ -385,9 +589,7 @@ function poblarCamposDesdeXml(datos) {
         $('#txtFechaDeposito').prop('disabled', true);
     }
 
-    // ── Bloquear campos electrónicos ──────────
     bloquearCamposElectronico();
-
     CorporativoCore.notificarExito('Campos poblados correctamente.');
 }
 
@@ -414,79 +616,10 @@ function habilitarCamposManuales() {
     $('#btnBuscarCRPrincipal').prop('disabled', false);
 }
 
-// ── Cargar documentos electrónicos ────────────
-function cargarDocumentosElectronicos(folio) {
-    if (!folio) return;
-    $.ajax({
-        url: '/Comprobante/DocumentosElectronicos',
-        type: 'GET',
-        data: { folio: folio },
-        success: function (docs) {
-            renderizarDocumentosElectronicos(docs);
-        }
-    });
-}
-
-// ── Renderizar tabla de documentos ────────────
-function renderizarDocumentosElectronicos(docs) {
-    const panel = $('#pnlDocsElectronicos');
-    if (!docs || docs.length === 0) {
-        panel.html(`
-            <div class="text-center text-muted py-4">
-                <i class="bi bi-folder2-open fs-2 d-block mb-2"></i>
-                No hay documentos electrónicos adjuntos.
-            </div>`);
-        return;
-    }
-
-    const iconos = {
-        'XML': '<i class="bi bi-file-earmark-code text-warning"></i>',
-        'PDF': '<i class="bi bi-file-earmark-pdf text-danger"></i>',
-        'CDR': '<i class="bi bi-file-earmark-check text-success"></i>'
-    };
-
-    let filas = '';
-    docs.forEach(function (doc) {
-        const icono = iconos[doc.tipoArchivo] ||
-            '<i class="bi bi-file-earmark"></i>';
-        const tamanio = doc.tamanioBytes > 1024
-            ? (doc.tamanioBytes / 1024).toFixed(1) + ' KB'
-            : doc.tamanioBytes + ' B';
-        filas += `
-            <tr>
-                <td class="text-center">${icono}</td>
-                <td><span class="badge bg-secondary">${doc.tipoArchivo}</span></td>
-                <td>${doc.nombreArchivo}</td>
-                <td class="text-muted small">${doc.fechaReg}</td>
-                <td class="text-muted small">${tamanio}</td>
-                <td>
-                    <a href="/Comprobante/DescargarDocumento?id=${doc.idDocumento}"
-                       class="btn btn-outline-primary btn-sm" target="_blank">
-                        <i class="bi bi-download"></i>
-                    </a>
-                </td>
-            </tr>`;
-    });
-
-    panel.html(`
-        <table class="table table-sm table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th style="width:40px"></th>
-                    <th style="width:70px">Tipo</th>
-                    <th>Nombre</th>
-                    <th style="width:150px">Fecha</th>
-                    <th style="width:80px">Tamaño</th>
-                    <th style="width:60px"></th>
-                </tr>
-            </thead>
-            <tbody>${filas}</tbody>
-        </table>`);
-}
-
-// ── Bind eventos drag & drop ──────────────────
+// ── Bind eventos ──────────────────────────────
 function bindEventosDragDrop() {
 
+    // Botón seleccionar archivo (drag-drop principal)
     $('#btnSeleccionarArchivo').on('click', function () {
         $('#inpArchivoComprobante').trigger('click');
     });
@@ -505,28 +638,24 @@ function bindEventosDragDrop() {
         CorporativoCore.notificarInfo('Área limpiada.');
     });
 
+    // Clic en categoría del panel izquierdo
+    $(document).on('click', '.doc-cat-item', function () {
+        const subTipo = $(this).data('subtipo');
+        seleccionarCategoria(subTipo);
+    });
+
+    // Input file del panel de categorías
+    $('#inpDocCategoria').on('change', function () {
+        if (this.files.length > 0) {
+            subirDocumentoCategoria(this.files[0]);
+            $(this).val('');
+        }
+    });
+
     // Cargar docs al activar la pestaña
     $('a[href="#tabDocElectronicos"]').on('shown.bs.tab', function () {
         const folio = $('#hdnFolio').val();
         if (folio) cargarDocumentosElectronicos(folio);
-    });
-
-    // Botón agregar documento adicional
-    $('#btnAgregarDocumento').on('click', function () {
-        $('#inpDocumentoAdicional').trigger('click');
-    });
-
-    $('#inpDocumentoAdicional').on('change', function () {
-        if (this.files.length > 0) {
-            const archivo = this.files[0];
-            const ext = archivo.name.split('.').pop().toLowerCase();
-            if (ext === 'xml') {
-                subirDocumentoSinValidacion(archivo, 'XML');
-            } else {
-                subirDocumentoSinValidacion(archivo, 'PDF');
-            }
-            $(this).val('');
-        }
     });
 }
 
@@ -546,8 +675,7 @@ function esperarComboYAsignar(selector, valor) {
         clearInterval(intervalo);
         const combo = $(selector);
         if (!combo.val() || combo.val() !== valor) {
-            combo.append(
-                `<option value="${valor}" selected>${valor}</option>`);
+            combo.append(`<option value="${valor}" selected>${valor}</option>`);
         }
     }, 5000);
 }
@@ -555,11 +683,9 @@ function esperarComboYAsignar(selector, valor) {
 // ── Poblar fecha con Flatpickr ────────────────
 function poblarFecha(selector, valor) {
     if (!valor) return;
-    // Convertir dd/MM/yyyy → yyyy-MM-dd para HTML5
     const partes = valor.split('/');
     if (partes.length === 3) {
-        const fechaHtml5 = `${partes[2]}-${partes[1]}-${partes[0]}`;
-        $(selector).val(fechaHtml5);
+        $(selector).val(`${partes[2]}-${partes[1]}-${partes[0]}`);
     } else {
         $(selector).val(valor);
     }
