@@ -34,8 +34,9 @@ namespace ComprobantePago.Application.Interfaces.Repositories
         Task<ValidacionSunatDto> ValidarXmlSunatAsync(IFormFile archivo);
         Task<ValidacionSunatDto> ValidarPdfSunatAsync(IFormFile archivo);
         Task<ValidacionSunatDto> ValidarZipSunatAsync(IFormFile archivo);
-        Task GuardarDocumentosAsync(string folio, List<(byte[] contenido, string nombre, string tipo)> archivos);
-        Task<DocumentoElectronico?> DescargarDocumentoAsync(int idDocumento);
+        Task GuardarDocumentosAsync(string folio, List<(byte[] contenido, string nombre, string tipo, string subTipo)> archivos);
+        Task<Domain.Entities.DocumentoElectronico?> DescargarDocumentoAsync(int idDocumento);
+        Task EliminarDocumentoAsync(int idDocumento);
         Task<string> GenerarFolioAsync();
     }
 }
