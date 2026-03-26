@@ -529,25 +529,48 @@
             <!-- Tab 3: Documentos Electrónicos -->
             <div class="tab-pane fade" id="tabDocElectronicos">
                 <div class="seccion-panel mt-2">
-                    <div class="seccion-header d-flex justify-content-between align-items-center">
+                    <div class="seccion-header">
                         <strong>Documentos Electrónicos Relacionados</strong>
-                        <div>
-                            <button type="button" class="btn btn-outline-secondary btn-sm"
-                                    id="btnAgregarDocumento"
-                                    title="Subir documento adicional (PDF)">
-                                <i class="bi bi-plus-circle"></i> Agregar
-                            </button>
-                            <input type="file" id="inpDocumentoAdicional"
-                                   accept=".xml,.pdf" style="display:none" />
-                        </div>
                     </div>
-                    <div class="seccion-body" id="pnlDocsElectronicos">
-                        <div class="text-center text-muted py-4">
-                            <i class="bi bi-folder2-open fs-2 d-block mb-2"></i>
-                            No hay documentos electrónicos adjuntos.
+                    <div class="seccion-body p-0">
+                        <div class="row g-0" style="min-height:300px">
+                            <!-- Panel izquierdo: categorías -->
+                            <div class="col-auto border-end" style="width:220px; background:#fafafa;">
+                                <ul class="list-unstyled mb-0" id="listaCategoriasDocs">
+                                    <li class="doc-cat-item" data-subtipo="REPRESENTACION_IMPRESA"
+                                        data-accept=".pdf" data-label="Representación Impresa">
+                                        REPRESENTACIÓN IMPRESA
+                                    </li>
+                                    <li class="doc-cat-item" data-subtipo="XML_SUNAT"
+                                        data-accept=".xml" data-label="XML SUNAT">
+                                        XML SUNAT
+                                    </li>
+                                    <li class="doc-cat-item" data-subtipo="CORREO_ORIGEN"
+                                        data-accept=".msg,.eml" data-label="Correo Origen">
+                                        CORREO ORIGEN
+                                    </li>
+                                    <li class="doc-cat-item" data-subtipo="ORDEN_COMPRA"
+                                        data-accept=".pdf" data-label="Orden de Compra">
+                                        ORDEN DE COMPRA
+                                    </li>
+                                    <li class="doc-cat-item" data-subtipo="XML_CDR"
+                                        data-accept=".xml" data-label="XML CDR">
+                                        XML CDR
+                                    </li>
+                                </ul>
+                            </div>
+                            <!-- Panel derecho: contenido de la categoría -->
+                            <div class="col p-3" id="panelContenidoDoc">
+                                <div class="text-center text-muted py-4">
+                                    <i class="bi bi-arrow-left fs-5 d-block mb-2"></i>
+                                    Seleccione una categoría
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
+                <!-- Input file oculto para subir documentos por categoría -->
+                <input type="file" id="inpDocCategoria" style="display:none" />
             </div>
 
             <!-- Tab 4: Impresión -->
