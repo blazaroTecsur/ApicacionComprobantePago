@@ -212,22 +212,12 @@
                         <thead>
                             <tr>
                                 <th>Cuenta</th>
-                                <th>Fondos</th>
-                                <th>Varios</th>
-                                <th>Actividad</th>
-                                <th>C.R.</th>
-                                <th>Proyec.</th>
-                                <th>Red</th>
-                                <th>Ubicac.</th>
-                                <th>Recurso</th>
-                                <th>Ingreso</th>
-                                <th>Caj.</th>
-                                <th>Proveedor</th>
-                                <th>Jerarquía Cargo</th>
+                                <th>Proyecto</th>
+                                <th>Unidad 1</th>
+                                <th>Unidad 3</th>
+                                <th>Unidad 4</th>
                                 <th>Monto</th>
                                 <th>Descripción</th>
-                                <th>Referencia</th>
-                                <th>Gasto Presupuesto</th>
                                 <th class="d-none">Cuenta Larga</th>
                                 <th>Acciones</th>
                             </tr>
@@ -288,239 +278,62 @@
                     <div class="seccion-body">
                         <input type="hidden" id="txtSecuencia" />
 
-                        <!-- Cuenta -->
-                        <div class="col-md-6 mb-2" id="Cuenta">
-                            <label class="form-label">Cuenta</label>
-                            <div class="input-group input-group-sm">
-                                <input type="text" class="form-control" id="txtAliasCuenta" readonly />
-                                <input type="hidden" id="txtCuentaContable" />
-                                <button class="btn btn-outline-secondary" type="button" id="btnBuscarCuentaContable">
-                                    <i class="bi bi-search"></i>
-                                </button>
-                                <input type="text" class="form-control" id="txtDescripcionCuenta" readonly />
-                            </div>
-                            <div id="divCodigosUnidadCuenta" class="d-none mt-2">
-                                <div class="row g-1">
-                                    <div class="col-md-4">
-                                        <label class="form-label">Cód. Unidad 1</label>
-                                        <div class="input-group input-group-sm">
-                                            <input type="text" class="form-control" id="txtCodUnidad1Cuenta" readonly />
-                                            <button class="btn btn-outline-secondary" type="button" id="btnBuscarCodUnidad1Cuenta"><i class="bi bi-search"></i></button>
+                        <!-- Cuenta contable -->
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-8">
+                                <label class="form-label">Cuenta</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control" id="txtAliasCuenta" readonly placeholder="Alias" />
+                                    <input type="hidden" id="txtCuentaContable" />
+                                    <button class="btn btn-outline-secondary" type="button" id="btnBuscarCuentaContable">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                    <input type="text" class="form-control" id="txtDescripcionCuenta" readonly placeholder="Descripción" />
+                                </div>
+                                <div id="divCodigosUnidadCuenta" class="d-none mt-2">
+                                    <div class="row g-1">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Cód. Unidad 1</label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="text" class="form-control" id="txtCodUnidad1Cuenta" readonly />
+                                                <button class="btn btn-outline-secondary" type="button" id="btnBuscarCodUnidad1Cuenta"><i class="bi bi-search"></i></button>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Cód. Unidad 3</label>
-                                        <div class="input-group input-group-sm">
-                                            <input type="text" class="form-control" id="txtCodUnidad3Cuenta" readonly />
-                                            <button class="btn btn-outline-secondary" type="button" id="btnBuscarCodUnidad3Cuenta"><i class="bi bi-search"></i></button>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Cód. Unidad 3</label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="text" class="form-control" id="txtCodUnidad3Cuenta" readonly />
+                                                <button class="btn btn-outline-secondary" type="button" id="btnBuscarCodUnidad3Cuenta"><i class="bi bi-search"></i></button>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Cód. Unidad 4</label>
-                                        <div class="input-group input-group-sm">
-                                            <input type="text" class="form-control" id="txtCodUnidad4Cuenta" readonly />
-                                            <button class="btn btn-outline-secondary" type="button" id="btnBuscarCodUnidad4Cuenta"><i class="bi bi-search"></i></button>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Cód. Unidad 4</label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="text" class="form-control" id="txtCodUnidad4Cuenta" readonly />
+                                                <button class="btn btn-outline-secondary" type="button" id="btnBuscarCodUnidad4Cuenta"><i class="bi bi-search"></i></button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Descripción, Monto, Referencia -->
-                        <div class="row g-2 mb-2">
-                            <div class="col-md-6">
-                                <label class="form-label">Descripción</label>
-                                <input type="text" class="form-control form-control-sm" id="txtDescripcion" readonly />
                             </div>
                             <div class="col-md-2">
                                 <label class="form-label">Monto</label>
-                                <input type="text" class="form-control form-control-sm text-end" id="txtMonto" value="0.00" readonly />
-                            </div>
-                            <div class="col-md-3" id="Referencia">
-                                <label class="form-label">Referencia</label>
-                                <input type="text" class="form-control form-control-sm" id="txtReferencia" readonly />
+                                <input type="text" class="form-control form-control-sm text-end" id="txtMonto" value="0.00" />
                             </div>
                         </div>
 
-                        <!-- Auxiliares -->
-                        <div class="seccion-header mt-2">
-                            <strong>Auxiliares Contables</strong>
-                        </div>
-                        <div class="row g-2 mt-1">
-
-                            <div class="col-md-6" id="Fondos">
-                                <label class="form-label">Fondos</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="text" class="form-control" id="txtAuxiliarContableFondo" readonly />
-                                    <button class="btn btn-outline-secondary" type="button" id="btnBuscarFondo"><i class="bi bi-search"></i></button>
-                                    <input type="text" class="form-control" id="txtDescripcionAuxiliarContableFondo" readonly />
-                                </div>
-                            </div>
-
-                            <div class="col-md-6" id="Dividendo">
-                                <label class="form-label">Dividendo</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="text" class="form-control" id="txtAuxiliarContableDividendo" readonly />
-                                    <button class="btn btn-outline-secondary" type="button" id="btnBuscarDividendo"><i class="bi bi-search"></i></button>
-                                    <input type="text" class="form-control" id="txtDescripcionAuxiliarContableDividendo" readonly />
-                                </div>
-                            </div>
-
-                            <div class="col-md-6" id="Varios">
-                                <label class="form-label">Varios</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="text" class="form-control" id="txtAuxiliarContableVarios" readonly />
-                                    <button class="btn btn-outline-secondary" type="button" id="btnBuscarVarios"><i class="bi bi-search"></i></button>
-                                    <input type="text" class="form-control" id="txtDescripcionAuxiliarContableVarios" readonly />
-                                </div>
-                            </div>
-
-                            <div class="col-md-6" id="Actividad">
-                                <label class="form-label">Actividad</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="text" class="form-control" id="txtAuxiliarContableActividad" readonly />
-                                    <button class="btn btn-outline-secondary" type="button" id="btnBuscarActividad"><i class="bi bi-search"></i></button>
-                                    <input type="text" class="form-control" id="txtDescripcionAuxiliarContableActividad" readonly />
-                                </div>
-                                <div id="divCodigosUnidadActividad" class="d-none mt-2">
-                                    <div class="row g-1">
-                                        <div class="col-md-4">
-                                            <label class="form-label">Cód. Unidad 1</label>
-                                            <div class="input-group input-group-sm">
-                                                <input type="text" class="form-control" id="txtCodUnidad1Actividad" readonly />
-                                                <button class="btn btn-outline-secondary" type="button" id="btnBuscarCodUnidad1Actividad"><i class="bi bi-search"></i></button>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Cód. Unidad 3</label>
-                                            <div class="input-group input-group-sm">
-                                                <input type="text" class="form-control" id="txtCodUnidad3Actividad" readonly />
-                                                <button class="btn btn-outline-secondary" type="button" id="btnBuscarCodUnidad3Actividad"><i class="bi bi-search"></i></button>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Cód. Unidad 4</label>
-                                            <div class="input-group input-group-sm">
-                                                <input type="text" class="form-control" id="txtCodUnidad4Actividad" readonly />
-                                                <button class="btn btn-outline-secondary" type="button" id="btnBuscarCodUnidad4Actividad"><i class="bi bi-search"></i></button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6" id="CentroResponsabilidad">
-                                <label class="form-label">Centro de Responsabilidad</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="text" class="form-control" id="txtAuxiliarContableCR" readonly />
-                                    <button class="btn btn-outline-secondary" type="button" id="btnBuscarCR"><i class="bi bi-search"></i></button>
-                                    <input type="text" class="form-control" id="txtDescripcionAuxiliarContableCR" readonly />
-                                </div>
-                            </div>
-
-                            <div class="col-md-6" id="Icapi">
+                        <!-- Proyecto y Descripción -->
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-4">
                                 <label class="form-label">Proyecto</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="text" class="form-control" id="txtAuxiliarContableIcapi" readonly />
-                                    <button class="btn btn-outline-secondary" type="button" id="btnBuscarIcapi"><i class="bi bi-search"></i></button>
-                                    <input type="text" class="form-control" id="txtDescripcionAuxiliarContableIcapi" readonly />
-                                </div>
+                                <input type="text" class="form-control form-control-sm" id="txtProyecto" placeholder="Código de proyecto" />
                             </div>
-
-                            <div class="col-md-6" id="CalidadRed">
-                                <label class="form-label">Calidad Red</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="text" class="form-control" id="txtAuxiliarContableCalidadRed" readonly />
-                                    <button class="btn btn-outline-secondary" type="button" id="btnBuscarCalidadRed"><i class="bi bi-search"></i></button>
-                                    <input type="text" class="form-control" id="txtDescripcionAuxiliarContableCalidadRed" readonly />
-                                </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Descripción</label>
+                                <input type="text" class="form-control form-control-sm" id="txtDescripcion" />
                             </div>
-
-                            <div class="col-md-6" id="Ubicacion">
-                                <label class="form-label">Ubicación</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="text" class="form-control" id="txtAuxiliarContableUbicacionGeografica" readonly />
-                                    <button class="btn btn-outline-secondary" type="button" id="btnBuscarUbicacionGeografica"><i class="bi bi-search"></i></button>
-                                    <input type="text" class="form-control" id="txtDescripcionAuxiliarContableUbicacionGeografica" readonly />
-                                </div>
-                            </div>
-
-                            <div class="col-md-6" id="SubRecurso">
-                                <label class="form-label">Sub-Recurso</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="text" class="form-control" id="txtAuxiliarContableSubrecurso" readonly />
-                                    <button class="btn btn-outline-secondary" type="button" id="btnBuscarSubrecurso"><i class="bi bi-search"></i></button>
-                                    <input type="text" class="form-control" id="txtDescripcionAuxiliarContableSubrecurso" readonly />
-                                </div>
-                                <div id="divCodigosUnidadSubRecurso" class="d-none mt-2">
-                                    <div class="row g-1">
-                                        <div class="col-md-4">
-                                            <label class="form-label">Cód. Unidad 1</label>
-                                            <div class="input-group input-group-sm">
-                                                <input type="text" class="form-control" id="txtCodUnidad1SubRecurso" readonly />
-                                                <button class="btn btn-outline-secondary" type="button" id="btnBuscarCodUnidad1SubRecurso"><i class="bi bi-search"></i></button>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Cód. Unidad 3</label>
-                                            <div class="input-group input-group-sm">
-                                                <input type="text" class="form-control" id="txtCodUnidad3SubRecurso" readonly />
-                                                <button class="btn btn-outline-secondary" type="button" id="btnBuscarCodUnidad3SubRecurso"><i class="bi bi-search"></i></button>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Cód. Unidad 4</label>
-                                            <div class="input-group input-group-sm">
-                                                <input type="text" class="form-control" id="txtCodUnidad4SubRecurso" readonly />
-                                                <button class="btn btn-outline-secondary" type="button" id="btnBuscarCodUnidad4SubRecurso"><i class="bi bi-search"></i></button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6" id="Producto">
-                                <label class="form-label">Actividad Ingreso</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="text" class="form-control" id="txtAuxiliarContableProducto" readonly />
-                                    <button class="btn btn-outline-secondary" type="button" id="btnBuscarProducto"><i class="bi bi-search"></i></button>
-                                    <input type="text" class="form-control" id="txtDescripcionAuxiliarContableProducto" readonly />
-                                </div>
-                            </div>
-
-                            <div class="col-md-6" id="Cajero">
-                                <label class="form-label">Cajero</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="text" class="form-control" id="txtAuxiliarContableCajero" readonly />
-                                    <button class="btn btn-outline-secondary" type="button" id="btnBuscarCajero"><i class="bi bi-search"></i></button>
-                                    <input type="text" class="form-control" id="txtDescripcionAuxiliarContableCajero" readonly />
-                                </div>
-                            </div>
-
-                            <div class="col-md-6" id="Proveedor">
-                                <label class="form-label">Proveedor</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="text" class="form-control" id="txtAuxiliarContableProveedor" readonly />
-                                    <button class="btn btn-outline-secondary" type="button" id="btnBuscarProveedor"><i class="bi bi-search"></i></button>
-                                    <input type="text" class="form-control" id="txtDescripcionAuxiliarContableProveedor" readonly />
-                                </div>
-                            </div>
-
-                            <div class="col-md-6" id="JerarquiaPersonal">
-                                <label class="form-label">Jerarquía Cargo</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="text" class="form-control" id="txtAuxiliarContableJerarquiaPersonal" readonly />
-                                    <button class="btn btn-outline-secondary" type="button" id="btnBuscarJerarquiaPersonal"><i class="bi bi-search"></i></button>
-                                    <input type="text" class="form-control" id="txtDescripcionAuxiliarContableJerarquiaPersonal" readonly />
-                                </div>
-                            </div>
-
-                            <div class="col-md-3" id="panelNOT">
-                                <label class="form-label">Gasto Presupuesto</label>
-                                <input type="text" class="form-control form-control-sm" id="txtNOT" readonly />
-                            </div>
-
                         </div>
+
                     </div>
                 </div>
 

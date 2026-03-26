@@ -1,4 +1,4 @@
-﻿// ============================================
+// ============================================
 // IMPUTACION.JS - Imputación Contable
 // ============================================
 
@@ -24,26 +24,16 @@ function inicializarTablaImputacion() {
         ordering: false,
         columns: [
             { data: 'aliasCuenta' },
-            { data: 'fondo' },
-            { data: 'varios' },
-            { data: 'actividad' },
-            { data: 'centroResponsabilidad' },
             { data: 'proyecto' },
-            { data: 'calidadRed' },
-            { data: 'ubicacionGeografica' },
-            { data: 'subRecurso' },
-            { data: 'actividadIngreso' },
-            { data: 'cajero' },
-            { data: 'proveedor' },
-            { data: 'jerarquiaCargo' },
+            { data: 'codUnidad1Cuenta' },
+            { data: 'codUnidad3Cuenta' },
+            { data: 'codUnidad4Cuenta' },
             {
                 data: 'monto',
                 render: d => CorporativoCore.formatearMonto(d),
                 className: 'text-end'
             },
             { data: 'descripcion' },
-            { data: 'referencia' },
-            { data: 'not' },
             { data: 'cuentaContable', visible: false },
             {
                 data: 'secuencia',
@@ -100,55 +90,13 @@ function mostrarFormularioEditar(secuencia) {
     $('#txtDescripcionCuenta').val(imp.descripcionCuenta);
     $('#txtDescripcion').val(imp.descripcion);
     $('#txtMonto').val(CorporativoCore.formatearMonto(imp.monto));
-    $('#txtReferencia').val(imp.referencia);
-    $('#txtNOT').val(imp.not);
-
-    $('#txtAuxiliarContableFondo').val(imp.fondo);
-    $('#txtDescripcionAuxiliarContableFondo').val(imp.descFondo);
-    $('#txtAuxiliarContableDividendo').val(imp.dividendo);
-    $('#txtDescripcionAuxiliarContableDividendo').val(imp.descDividendo);
-    $('#txtAuxiliarContableVarios').val(imp.varios);
-    $('#txtDescripcionAuxiliarContableVarios').val(imp.descVarios);
-    $('#txtAuxiliarContableActividad').val(imp.actividad);
-    $('#txtDescripcionAuxiliarContableActividad').val(imp.descActividad);
-    $('#txtAuxiliarContableCR').val(imp.centroResponsabilidad);
-    $('#txtDescripcionAuxiliarContableCR').val(imp.descCR);
-    $('#txtAuxiliarContableIcapi').val(imp.proyecto);
-    $('#txtDescripcionAuxiliarContableIcapi').val(imp.descProyecto);
-    $('#txtAuxiliarContableCalidadRed').val(imp.calidadRed);
-    $('#txtDescripcionAuxiliarContableCalidadRed').val(imp.descCalidadRed);
-    $('#txtAuxiliarContableUbicacionGeografica').val(imp.ubicacionGeografica);
-    $('#txtDescripcionAuxiliarContableUbicacionGeografica').val(imp.descUbicacion);
-    $('#txtAuxiliarContableSubrecurso').val(imp.subRecurso);
-    $('#txtDescripcionAuxiliarContableSubrecurso').val(imp.descSubRecurso);
-    $('#txtAuxiliarContableProducto').val(imp.actividadIngreso);
-    $('#txtDescripcionAuxiliarContableProducto').val(imp.descActividadIngreso);
-    $('#txtAuxiliarContableCajero').val(imp.cajero);
-    $('#txtDescripcionAuxiliarContableCajero').val(imp.descCajero);
-    $('#txtAuxiliarContableProveedor').val(imp.proveedor);
-    $('#txtDescripcionAuxiliarContableProveedor').val(imp.descProveedor);
-    $('#txtAuxiliarContableJerarquiaPersonal').val(imp.jerarquiaCargo);
-    $('#txtDescripcionAuxiliarContableJerarquiaPersonal').val(imp.descJerarquia);
+    $('#txtProyecto').val(imp.proyecto);
 
     if (imp.cuentaContable) {
         mostrarCodigosUnidad('Cuenta');
         $('#txtCodUnidad1Cuenta').val(imp.codUnidad1Cuenta);
         $('#txtCodUnidad3Cuenta').val(imp.codUnidad3Cuenta);
         $('#txtCodUnidad4Cuenta').val(imp.codUnidad4Cuenta);
-    }
-
-    if (imp.actividad) {
-        mostrarCodigosUnidad('Actividad');
-        $('#txtCodUnidad1Actividad').val(imp.codUnidad1Actividad);
-        $('#txtCodUnidad3Actividad').val(imp.codUnidad3Actividad);
-        $('#txtCodUnidad4Actividad').val(imp.codUnidad4Actividad);
-    }
-
-    if (imp.subRecurso) {
-        mostrarCodigosUnidad('SubRecurso');
-        $('#txtCodUnidad1SubRecurso').val(imp.codUnidad1SubRecurso);
-        $('#txtCodUnidad3SubRecurso').val(imp.codUnidad3SubRecurso);
-        $('#txtCodUnidad4SubRecurso').val(imp.codUnidad4SubRecurso);
     }
 
     $('#pnlDetalleImputacion').removeClass('d-none');
@@ -168,34 +116,10 @@ function obtenerDatosFormulario() {
         descripcionCuenta: $('#txtDescripcionCuenta').val(),
         descripcion: $('#txtDescripcion').val(),
         monto: CorporativoCore.limpiarMonto($('#txtMonto').val()),
-        referencia: $('#txtReferencia').val(),
-        not: $('#txtNOT').val(),
-
-        fondo: $('#txtAuxiliarContableFondo').val(),
-        dividendo: $('#txtAuxiliarContableDividendo').val(),
-        varios: $('#txtAuxiliarContableVarios').val(),
-        actividad: $('#txtAuxiliarContableActividad').val(),
-        centroResponsabilidad: $('#txtAuxiliarContableCR').val(),
-        proyecto: $('#txtAuxiliarContableIcapi').val(),
-        calidadRed: $('#txtAuxiliarContableCalidadRed').val(),
-        ubicacionGeografica: $('#txtAuxiliarContableUbicacionGeografica').val(),
-        subRecurso: $('#txtAuxiliarContableSubrecurso').val(),
-        actividadIngreso: $('#txtAuxiliarContableProducto').val(),
-        cajero: $('#txtAuxiliarContableCajero').val(),
-        proveedor: $('#txtAuxiliarContableProveedor').val(),
-        jerarquiaCargo: $('#txtAuxiliarContableJerarquiaPersonal').val(),
-
+        proyecto: $('#txtProyecto').val(),
         codUnidad1Cuenta: $('#txtCodUnidad1Cuenta').val(),
         codUnidad3Cuenta: $('#txtCodUnidad3Cuenta').val(),
         codUnidad4Cuenta: $('#txtCodUnidad4Cuenta').val(),
-
-        codUnidad1Actividad: $('#txtCodUnidad1Actividad').val(),
-        codUnidad3Actividad: $('#txtCodUnidad3Actividad').val(),
-        codUnidad4Actividad: $('#txtCodUnidad4Actividad').val(),
-
-        codUnidad1SubRecurso: $('#txtCodUnidad1SubRecurso').val(),
-        codUnidad3SubRecurso: $('#txtCodUnidad3SubRecurso').val(),
-        codUnidad4SubRecurso: $('#txtCodUnidad4SubRecurso').val(),
     };
 }
 
@@ -317,14 +241,9 @@ function limpiarFormularioImputacion() {
     $('#txtAliasCuenta, #txtCuentaContable, #txtDescripcionCuenta').val('');
     $('#txtDescripcion').val('');
     $('#txtMonto').val('0.00');
-    $('#txtReferencia, #txtNOT').val('');
-
-    $('[id^="txtAuxiliarContable"]').val('');
-    $('[id^="txtDescripcionAuxiliarContable"]').val('');
+    $('#txtProyecto').val('');
 
     ocultarCodigosUnidad('Cuenta');
-    ocultarCodigosUnidad('Actividad');
-    ocultarCodigosUnidad('SubRecurso');
 }
 
 // ── Ocultar formulario ────────────────────────
@@ -397,19 +316,10 @@ function ocultarCodigosUnidad(campo) {
     $(`#txtCodUnidad4${campo}`).val('');
 }
 
-function obtenerCodigoOrigen(campo) {
-    const mapa = {
-        'Cuenta': '#txtCuentaContable',
-        'Actividad': '#txtAuxiliarContableActividad',
-        'SubRecurso': '#txtAuxiliarContableSubrecurso'
-    };
-    return $(mapa[campo]).val();
-}
-
 function buscarCodigoUnidad(campo, unidad, inputId) {
-    const codigoOrigen = obtenerCodigoOrigen(campo);
+    const codigoOrigen = $('#txtCuentaContable').val();
     if (!codigoOrigen) {
-        CorporativoCore.notificarAdvertencia(`Debe seleccionar ${campo} primero.`);
+        CorporativoCore.notificarAdvertencia('Debe seleccionar una cuenta contable primero.');
         return;
     }
 
@@ -522,27 +432,9 @@ function bindEventosImputacion() {
         else ocultarCodigosUnidad('Cuenta');
     });
 
-    $('#txtAuxiliarContableActividad').on('change', function () {
-        if (!CorporativoCore.esVacio($(this).val())) mostrarCodigosUnidad('Actividad');
-        else ocultarCodigosUnidad('Actividad');
-    });
-
-    $('#txtAuxiliarContableSubrecurso').on('change', function () {
-        if (!CorporativoCore.esVacio($(this).val())) mostrarCodigosUnidad('SubRecurso');
-        else ocultarCodigosUnidad('SubRecurso');
-    });
-
     $('#btnBuscarCodUnidad1Cuenta').on('click', () => buscarCodigoUnidad('Cuenta', 1, '#txtCodUnidad1Cuenta'));
     $('#btnBuscarCodUnidad3Cuenta').on('click', () => buscarCodigoUnidad('Cuenta', 3, '#txtCodUnidad3Cuenta'));
     $('#btnBuscarCodUnidad4Cuenta').on('click', () => buscarCodigoUnidad('Cuenta', 4, '#txtCodUnidad4Cuenta'));
-
-    $('#btnBuscarCodUnidad1Actividad').on('click', () => buscarCodigoUnidad('Actividad', 1, '#txtCodUnidad1Actividad'));
-    $('#btnBuscarCodUnidad3Actividad').on('click', () => buscarCodigoUnidad('Actividad', 3, '#txtCodUnidad3Actividad'));
-    $('#btnBuscarCodUnidad4Actividad').on('click', () => buscarCodigoUnidad('Actividad', 4, '#txtCodUnidad4Actividad'));
-
-    $('#btnBuscarCodUnidad1SubRecurso').on('click', () => buscarCodigoUnidad('SubRecurso', 1, '#txtCodUnidad1SubRecurso'));
-    $('#btnBuscarCodUnidad3SubRecurso').on('click', () => buscarCodigoUnidad('SubRecurso', 3, '#txtCodUnidad3SubRecurso'));
-    $('#btnBuscarCodUnidad4SubRecurso').on('click', () => buscarCodigoUnidad('SubRecurso', 4, '#txtCodUnidad4SubRecurso'));
 
     $(document).on('click', '.seleccionar-unidad', function (e) {
         e.preventDefault();
