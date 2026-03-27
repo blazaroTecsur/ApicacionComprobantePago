@@ -227,13 +227,22 @@ function poblarCabecera(data) {
 
 // ── Poblar montos dinámicos ───────────────────
 function poblarMontos(data) {
+    const montoNeto      = data.montoNeto      || 0;
+    const montoExento    = data.montoExento    || 0;
+    const montoIGV       = data.montoIGVCredito || 0;
+    const montoTotal     = data.montoTotal     || 0;
+    const montoRetencion = data.montoRetencion || 0;
+    const montoBruto     = data.montoBruto     || 0;
+
     $('#MontoNeto').removeClass('d-none');
-    $('#lblMontoNeto').text(data.lblMontoNeto || 'Valor Venta');
-    $('#txtMontoNeto').val(CorporativoCore.formatearMonto(data.montoNeto || 0));
+    $('#txtMontoNeto').val(CorporativoCore.formatearMonto(montoNeto));
 
     $('#MontoExento').removeClass('d-none');
-    $('#lblMontoExento').text(data.lblMontoExento || 'Monto Exento');
-    $('#txtMontoExento').val(CorporativoCore.formatearMonto(data.montoExento || 0));
+    $('#txtMontoExento').val(CorporativoCore.formatearMonto(montoExento));
+
+    // Subtotal = Monto Neto + Exento (base total antes de IGV)
+    $('#MontoSubtotal').removeClass('d-none');
+    $('#txtMontoSubtotal').val(CorporativoCore.formatearMonto(montoNeto + montoExento));
 
     if (data.montoIGVCosto) {
         $('#MontoIGVCosto').removeClass('d-none');
@@ -242,20 +251,18 @@ function poblarMontos(data) {
     }
 
     $('#MontoIGVCredito').removeClass('d-none');
-    $('#lblMontoIGVCredito').text(data.lblMontoIGVCredito || 'IGV Cred. Fiscal');
-    $('#txtMontoIGVCredito').val(CorporativoCore.formatearMonto(data.montoIGVCredito || 0));
+    $('#txtMontoIGVCredito').val(CorporativoCore.formatearMonto(montoIGV));
+    const pctIGV = montoNeto > 0 ? (montoIGV / montoNeto * 100).toFixed(2) : '0.00';
+    $('#txtMontoIGVCreditoPorcentajeIGV').val(pctIGV);
 
     $('#MontoTotal').removeClass('d-none');
-    $('#lblMontoTotal').text(data.lblMontoTotal || 'Total');
-    $('#txtMontoTotal').val(CorporativoCore.formatearMonto(data.montoTotal || 0));
-
-    $('#MontoBruto').removeClass('d-none');
-    $('#lblMontoBruto').text(data.lblMontoBruto || 'Total a Pagar');
-    $('#txtMontoBruto').val(CorporativoCore.formatearMonto(data.montoBruto || 0));
+    $('#txtMontoTotal').val(CorporativoCore.formatearMonto(montoTotal));
 
     $('#MontoRetencion').removeClass('d-none');
-    $('#lblMontoRetencion').text(data.lblMontoRetencion || 'Retención');
-    $('#txtMontoRetencion').val(CorporativoCore.formatearMonto(data.montoRetencion || 0));
+    $('#txtMontoRetencion').val(CorporativoCore.formatearMonto(montoRetencion));
+
+    $('#MontoBruto').removeClass('d-none');
+    $('#txtMontoBruto').val(CorporativoCore.formatearMonto(montoBruto));
 }
 
 // ── Mostrar botones según estado ──────────────
@@ -450,7 +457,7 @@ function limpiarFormulario() {
     $('#divOrdenCompra, #divTipoOrden').addClass('d-none');
 
     // Montos dinámicos
-    $('#MontoNeto, #MontoExento, #MontoIGVCosto, #MontoIGVCredito')
+    $('#MontoNeto, #MontoExento, #MontoSubtotal, #MontoIGVCosto, #MontoIGVCredito')
         .addClass('d-none');
     $('#MontoTotal, #MontoBruto, #MontoRetencion, #MontoMultas, #ValorAduana')
         .addClass('d-none');
@@ -517,14 +524,9 @@ function activarModoManual() {
     $('#Resultados').removeClass('d-none');
     $('#hdnEsDocumentoElectronico').val('N');
     habilitarCamposManual();
-    $('#MontoNeto, #MontoExento, #MontoIGVCosto, #MontoIGVCredito')
+    $('#MontoNeto, #MontoExento, #MontoSubtotal, #MontoIGVCosto, #MontoIGVCredito')
         .removeClass('d-none');
     $('#MontoTotal, #MontoBruto, #MontoRetencion').removeClass('d-none');
-    $('#lblMontoNeto').text('Valor Venta');
-    $('#lblMontoIGVCredito').text('IGV');
-    $('#lblMontoTotal').text('Total');
-    $('#lblMontoBruto').text('Total a Pagar');
-    $('#lblMontoRetencion').text('Retención');
     mostrarBotonesNuevo();
 }
 

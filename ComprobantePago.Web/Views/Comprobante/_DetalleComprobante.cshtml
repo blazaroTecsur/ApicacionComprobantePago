@@ -328,30 +328,33 @@
 
         <!-- Montos dinámicos -->
         <div class="row g-2">
-            <div class="col-md-3 d-none" id="MontoNeto">
+            <div class="col-md-2 d-none" id="MontoNeto">
                 <input type="hidden" id="txtMontoNetoCampo" />
                 <input type="hidden" id="txtMontoNetoCalculo" />
                 <input type="hidden" id="txtMontoNetoIndDetalle" />
                 <input type="hidden" id="txtMontoNetoTipDes" />
-                <label id="lblMontoNeto" class="form-label"></label>
+                <label id="lblMontoNeto" class="form-label">Monto Neto</label>
                 <div class="input-group input-group-sm">
-                    <input class="form-control text-end d-none" type="text"
-                           id="txtMontoNetoPorcentajeIGV" value="0.00" readonly />
                     <input class="form-control text-end monto" type="text"
                            id="txtMontoNeto" readonly />
                 </div>
             </div>
-            <div class="col-md-3 d-none" id="MontoExento">
+            <div class="col-md-2 d-none" id="MontoExento">
                 <input type="hidden" id="txtMontoExentoCampo" />
                 <input type="hidden" id="txtMontoExentoCalculo" />
                 <input type="hidden" id="txtMontoExentoIndDetalle" />
                 <input type="hidden" id="txtMontoExentoTipDes" />
-                <label id="lblMontoExento" class="form-label"></label>
+                <label id="lblMontoExento" class="form-label">Exento</label>
                 <div class="input-group input-group-sm">
-                    <input class="form-control text-end d-none" type="text"
-                           id="txtMontoExentoPorcentajeIGV" value="0.00" readonly />
                     <input class="form-control text-end monto" type="text"
                            id="txtMontoExento" readonly />
+                </div>
+            </div>
+            <div class="col-md-2 d-none" id="MontoSubtotal">
+                <label class="form-label">Subtotal</label>
+                <div class="input-group input-group-sm">
+                    <input class="form-control text-end" type="text"
+                           id="txtMontoSubtotal" readonly />
                 </div>
             </div>
             <div class="col-md-3 d-none" id="MontoIGVCosto">
@@ -372,51 +375,48 @@
                 <input type="hidden" id="txtMontoIGVCreditoCalculo" />
                 <input type="hidden" id="txtMontoIGVCreditoIndDetalle" />
                 <input type="hidden" id="txtMontoIGVCreditoTipDes" />
-                <label id="lblMontoIGVCredito" class="form-label"></label>
+                <label id="lblMontoIGVCredito" class="form-label">IGV Créd. Fiscal</label>
                 <div class="input-group input-group-sm">
-                    <input class="form-control text-end d-none" type="text"
+                    <span class="input-group-text px-1">%</span>
+                    <input class="form-control text-end" type="text" style="max-width:60px"
                            id="txtMontoIGVCreditoPorcentajeIGV" value="0.00" readonly />
                     <input class="form-control text-end monto" type="text"
                            id="txtMontoIGVCredito" readonly />
                 </div>
             </div>
-            <div class="col-md-3 d-none" id="MontoTotal">
+            <div class="col-md-2 d-none" id="MontoTotal">
                 <input type="hidden" id="txtMontoTotalCampo" />
                 <input type="hidden" id="txtMontoTotalCalculo" />
                 <input type="hidden" id="txtMontoTotalIndDetalle" />
                 <input type="hidden" id="txtMontoTotalTipDes" />
-                <label id="lblMontoTotal" class="form-label"></label>
+                <label id="lblMontoTotal" class="form-label">Total</label>
                 <div class="input-group input-group-sm">
-                    <input class="form-control text-end d-none" type="text"
-                           id="txtMontoTotalPorcentajeIGV" value="0.00" readonly />
                     <input class="form-control text-end monto" type="text"
                            id="txtMontoTotal" readonly />
                 </div>
             </div>
-            <div class="col-md-3 d-none" id="MontoBruto">
-                <input type="hidden" id="txtMontoBrutoCampo" />
-                <input type="hidden" id="txtMontoBrutoCalculo" />
-                <input type="hidden" id="txtMontoBrutoIndDetalle" />
-                <input type="hidden" id="txtMontoBrutoTipDes" />
-                <label id="lblMontoBruto" class="form-label"></label>
-                <div class="input-group input-group-sm">
-                    <input class="form-control text-end d-none" type="text"
-                           id="txtMontoBrutoPorcentajeIGV" value="0.00" readonly />
-                    <input class="form-control text-end monto" type="text"
-                           id="txtMontoBruto" readonly />
-                </div>
-            </div>
-            <div class="col-md-3 d-none" id="MontoRetencion">
+            <div class="col-md-2 d-none" id="MontoRetencion">
                 <input type="hidden" id="txtMontoRetencionCampo" />
                 <input type="hidden" id="txtMontoRetencionCalculo" />
                 <input type="hidden" id="txtMontoRetencionIndDetalle" />
                 <input type="hidden" id="txtMontoRetencionTipDes" />
-                <label id="lblMontoRetencion" class="form-label"></label>
+                <label id="lblMontoRetencion" class="form-label">Retención</label>
                 <div class="input-group input-group-sm">
                     <select class="form-select form-select-sm d-none"
                             id="ddlTipoRetencion" disabled></select>
                     <input class="form-control text-end monto" type="text"
                            id="txtMontoRetencion" readonly />
+                </div>
+            </div>
+            <div class="col-md-2 d-none" id="MontoBruto">
+                <input type="hidden" id="txtMontoBrutoCampo" />
+                <input type="hidden" id="txtMontoBrutoCalculo" />
+                <input type="hidden" id="txtMontoBrutoIndDetalle" />
+                <input type="hidden" id="txtMontoBrutoTipDes" />
+                <label id="lblMontoBruto" class="form-label">Total a Pagar</label>
+                <div class="input-group input-group-sm">
+                    <input class="form-control text-end monto" type="text"
+                           id="txtMontoBruto" readonly />
                 </div>
             </div>
             <div class="col-md-3 d-none" id="MontoMultas">
