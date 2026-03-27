@@ -537,30 +537,36 @@ function poblarCamposDesdeXml(datos) {
     esperarComboYAsignar('#ddlMoneda', datos.moneda);
     esperarComboYAsignar('#dldLugarPago', '04');
 
+    const montoNeto      = datos.montoNeto      || 0;
+    const montoExento    = datos.montoExento    || 0;
+    const montoIGV       = datos.montoIGVCredito || datos.montoIGV || 0;
+    const montoTotal     = datos.montoTotal     || 0;
+    const montoRetencion = datos.montoRetencion || 0;
+    const montoBruto     = datos.montoBruto     || 0;
+
     $('#MontoNeto').removeClass('d-none');
-    $('#lblMontoNeto').text('Valor Venta');
-    $('#txtMontoNeto').val(CorporativoCore.formatearMonto(datos.montoNeto || 0));
+    $('#txtMontoNeto').val(CorporativoCore.formatearMonto(montoNeto));
 
     $('#MontoExento').removeClass('d-none');
-    $('#lblMontoExento').text('Monto Exento');
-    $('#txtMontoExento').val(CorporativoCore.formatearMonto(datos.montoExento || 0));
+    $('#txtMontoExento').val(CorporativoCore.formatearMonto(montoExento));
+
+    // Subtotal = Monto Neto + Exento
+    $('#MontoSubtotal').removeClass('d-none');
+    $('#txtMontoSubtotal').val(CorporativoCore.formatearMonto(montoNeto + montoExento));
 
     $('#MontoIGVCredito').removeClass('d-none');
-    $('#lblMontoIGVCredito').text('IGV Cred. Fiscal');
-    $('#txtMontoIGVCredito').val(
-        CorporativoCore.formatearMonto(datos.montoIGVCredito || datos.montoIGV || 0));
+    $('#txtMontoIGVCredito').val(CorporativoCore.formatearMonto(montoIGV));
+    const pctIGV = montoNeto > 0 ? (montoIGV / montoNeto * 100).toFixed(2) : '0.00';
+    $('#txtMontoIGVCreditoPorcentajeIGV').val(pctIGV);
 
     $('#MontoTotal').removeClass('d-none');
-    $('#lblMontoTotal').text('Total');
-    $('#txtMontoTotal').val(CorporativoCore.formatearMonto(datos.montoTotal || 0));
-
-    $('#MontoBruto').removeClass('d-none');
-    $('#lblMontoBruto').text('Total a Pagar');
-    $('#txtMontoBruto').val(CorporativoCore.formatearMonto(datos.montoBruto || 0));
+    $('#txtMontoTotal').val(CorporativoCore.formatearMonto(montoTotal));
 
     $('#MontoRetencion').removeClass('d-none');
-    $('#lblMontoRetencion').text('Retención');
-    $('#txtMontoRetencion').val(CorporativoCore.formatearMonto(datos.montoRetencion || 0));
+    $('#txtMontoRetencion').val(CorporativoCore.formatearMonto(montoRetencion));
+
+    $('#MontoBruto').removeClass('d-none');
+    $('#txtMontoBruto').val(CorporativoCore.formatearMonto(montoBruto));
 
     if (datos.plazoPago) {
         $('#txtPlazoPago').val(datos.plazoPago);
