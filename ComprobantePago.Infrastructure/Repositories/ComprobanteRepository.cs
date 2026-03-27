@@ -92,6 +92,12 @@ namespace ComprobantePago.Infrastructure.Repositories
                 existente.FechaDeposito = ParseFechaNullable(dto.FechaDeposito);
                 existente.EsDocumentoElectronico =
                     dto.EsDocumentoElectronico == "S";
+                existente.MontoNeto = dto.MontoNeto;
+                existente.MontoExento = dto.MontoExento;
+                existente.MontoIGVCredito = dto.MontoIGVCredito;
+                existente.MontoTotal = dto.MontoTotal;
+                existente.MontoBruto = dto.MontoBruto;
+                existente.MontoRetencion = dto.MontoRetencion;
                 existente.CodigoEstado = "REGISTRADO";
                 existente.UsuarioAct = "SYSTEM";
                 existente.FechaAct = DateTime.Now;
@@ -130,6 +136,12 @@ namespace ComprobantePago.Infrastructure.Repositories
                     FechaDeposito = ParseFechaNullable(dto.FechaDeposito),
                     EsDocumentoElectronico =
                         dto.EsDocumentoElectronico == "S",
+                    MontoNeto = dto.MontoNeto,
+                    MontoExento = dto.MontoExento,
+                    MontoIGVCredito = dto.MontoIGVCredito,
+                    MontoTotal = dto.MontoTotal,
+                    MontoBruto = dto.MontoBruto,
+                    MontoRetencion = dto.MontoRetencion,
                     CodigoEstado = "REGISTRADO",
                     UsuarioReg = "SYSTEM",
                     FechaReg = DateTime.Now

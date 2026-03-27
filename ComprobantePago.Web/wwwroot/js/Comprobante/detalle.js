@@ -377,7 +377,13 @@ function obtenerDatosCabecera() {
         esDocumentoElectronico: $('#rdoFacturacionElectronica')
             .is(':checked') ? 'S' : 'N',
         aplicaIGV: $('#hdnAplicaIGV').val(),
-        origen: $('#hdnOrigen').val()
+        origen: $('#hdnOrigen').val(),
+        montoNeto: CorporativoCore.limpiarMonto($('#txtMontoNeto').val()),
+        montoExento: CorporativoCore.limpiarMonto($('#txtMontoExento').val()),
+        montoIGVCredito: CorporativoCore.limpiarMonto($('#txtMontoIGVCredito').val()),
+        montoTotal: CorporativoCore.limpiarMonto($('#txtMontoTotal').val()),
+        montoBruto: CorporativoCore.limpiarMonto($('#txtMontoBruto').val()),
+        montoRetencion: CorporativoCore.limpiarMonto($('#txtMontoRetencion').val())
     };
 }
 

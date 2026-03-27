@@ -31,5 +31,7 @@
         public decimal Tasa { get; set; }
         public decimal TotalDetraccion { get; set; }
         public decimal TotalDetLocal { get; set; }
+        public decimal MontoExento { get; set; }
+        public decimal MontoRetencion { get; set; }
     }
 }
