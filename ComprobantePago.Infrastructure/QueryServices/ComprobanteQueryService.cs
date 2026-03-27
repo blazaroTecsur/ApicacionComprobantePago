@@ -311,14 +311,18 @@ namespace ComprobantePago.Infrastructure.QueryServices
 
                 if (!imputaciones.Any()) continue;
 
-                var totalDist = imputaciones.Sum(i => i.Monto);
+                // La primera imputación va a la cabecera; las siguientes 3 van a la distribución
+                var imputacionesDistribucion = imputaciones.Skip(1).Take(3).ToList();
+                if (!imputacionesDistribucion.Any()) continue;
+
+                var totalDist = imputacionesDistribucion.Sum(i => i.Monto);
                 var fechaDist = c.FechaRecepcion.HasValue
                     ? c.FechaRecepcion.Value.ToString("d/MM/yyyy")
                     : c.FechaEmision.ToString("d/MM/yyyy");
 
-                for (int idx = 0; idx < imputaciones.Count; idx++)
+                for (int idx = 0; idx < imputacionesDistribucion.Count; idx++)
                 {
-                    var imp = imputaciones[idx];
+                    var imp = imputacionesDistribucion[idx];
                     int baseSeq = idx * 15;
 
                     // Subfila A — principal
@@ -488,6 +492,11 @@ namespace ComprobantePago.Infrastructure.QueryServices
                     CtaCP = primeraImp?.CuentaContable
                                         ?? string.Empty,
                     CtaCPUnid1 = primeraImp?.CodUnidad1Cuenta
+                                        ?? string.Empty,
+                    CtaCPUnid2 = string.Empty,
+                    CtaCPUnid3 = primeraImp?.CodUnidad3Cuenta
+                                        ?? string.Empty,
+                    CtaCPUnid4 = primeraImp?.CodUnidad4Cuenta
                                         ?? string.Empty,
                     DescripcionCuenta = primeraImp?.DescripcionCuenta
                                         ?? string.Empty,

@@ -21,6 +21,9 @@
         public decimal TipoCambio { get; set; }
         public string CtaCP { get; set; } = string.Empty;
         public string CtaCPUnid1 { get; set; } = string.Empty;
+        public string CtaCPUnid2 { get; set; } = string.Empty;
+        public string CtaCPUnid3 { get; set; } = string.Empty;
+        public string CtaCPUnid4 { get; set; } = string.Empty;
         public string DescripcionCuenta { get; set; } = string.Empty;
         public string Ref { get; set; } = string.Empty;
         public string EstadoAut { get; set; } = string.Empty;
