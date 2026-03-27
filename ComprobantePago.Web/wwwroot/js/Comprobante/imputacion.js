@@ -227,9 +227,10 @@ function validarFormularioImputacion() {
         return false;
     }
     // La primera cuenta contable (cabecera) no requiere monto > 0
+    const esEdicionPrimera = modoEdicion && listaImputaciones.length > 0 &&
+        secuenciaEditando == Math.min(...listaImputaciones.map(i => i.secuencia));
     const esPrimeraImputacion =
-        (!modoEdicion && listaImputaciones.length === 0) ||
-        (modoEdicion && secuenciaEditando == 1);
+        (!modoEdicion && listaImputaciones.length === 0) || esEdicionPrimera;
     if (!esPrimeraImputacion &&
         (CorporativoCore.esVacio($('#txtMonto').val()) ||
          CorporativoCore.limpiarMonto($('#txtMonto').val()) <= 0)) {
