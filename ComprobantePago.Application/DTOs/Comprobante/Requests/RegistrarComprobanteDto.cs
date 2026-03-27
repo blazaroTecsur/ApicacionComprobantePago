@@ -30,5 +30,12 @@
         public string EsDocumentoElectronico { get; set; } = null!;
         public string AplicaIGV { get; set; } = null!;
         public string Origen { get; set; } = null!;
+        // Montos
+        public decimal MontoNeto { get; set; }
+        public decimal MontoExento { get; set; }
+        public decimal MontoIGVCredito { get; set; }
+        public decimal MontoTotal { get; set; }
+        public decimal MontoBruto { get; set; }
+        public decimal MontoRetencion { get; set; }
     }
 }

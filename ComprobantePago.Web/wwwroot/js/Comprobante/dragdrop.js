@@ -547,10 +547,25 @@ function poblarCamposDesdeXml(datos) {
         $('#lblMontoNeto').text('Valor Venta');
         $('#txtMontoNeto').val(CorporativoCore.formatearMonto(datos.montoNeto));
     }
-    if (datos.montoIGV) {
+    if (datos.montoIGVCredito) {
         $('#MontoIGVCredito').removeClass('d-none');
         $('#lblMontoIGVCredito').text('IGV');
-        $('#txtMontoIGVCredito').val(CorporativoCore.formatearMonto(datos.montoIGV));
+        $('#txtMontoIGVCredito').val(CorporativoCore.formatearMonto(datos.montoIGVCredito));
+    }
+    if (datos.montoExento) {
+        $('#MontoExento').removeClass('d-none');
+        $('#lblMontoExento').text('Monto Exento');
+        $('#txtMontoExento').val(CorporativoCore.formatearMonto(datos.montoExento));
+    }
+    if (datos.montoRetencion) {
+        $('#MontoRetencion').removeClass('d-none');
+        $('#lblMontoRetencion').text('Retención');
+        $('#txtMontoRetencion').val(CorporativoCore.formatearMonto(datos.montoRetencion));
+    }
+    if (datos.montoBruto) {
+        $('#MontoBruto').removeClass('d-none');
+        $('#lblMontoBruto').text('Total a Pagar');
+        $('#txtMontoBruto').val(CorporativoCore.formatearMonto(datos.montoBruto));
     }
 
     if (datos.plazoPago) {

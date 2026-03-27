@@ -498,7 +498,9 @@ namespace ComprobantePago.Infrastructure.QueryServices
                     Detraccion = c.TipoDetraccion ?? string.Empty,
                     Tasa = c.PorcentajeDetraccion ?? 0,
                     TotalDetraccion = c.MontoDetraccion,
-                    TotalDetLocal = c.MontoDetraccion
+                    TotalDetLocal = c.MontoDetraccion,
+                    MontoExento = c.MontoExento,
+                    MontoRetencion = c.MontoRetencion
                 });
             }
 

@@ -109,6 +109,42 @@ namespace ComprobantePago.Infrastructure.Services
                     System.Globalization.CultureInfo.InvariantCulture,
                     out var igv) ? igv : 0;
 
+                // MontoExento: TaxSubtotal con TaxScheme "9997" (Exonerado) o "9998" (Inafecto)
+                datos.MontoExento = root?
+                    .Descendants(cac + "TaxSubtotal")
+                    .Where(ts => ts.Descendants(cbc + "ID")
+                        .Any(id => id.Value == "9997" || id.Value == "9998"))
+                    .Sum(ts => decimal.TryParse(
+                        ts.Element(cbc + "TaxableAmount")?.Value ?? "0",
+                        System.Globalization.NumberStyles.Any,
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        out var v) ? v : 0) ?? 0;
+
+                // MontoRetencion: TaxSubtotal con TaxScheme "2000" o "2001"
+                datos.MontoRetencion = root?
+                    .Descendants(cac + "TaxSubtotal")
+                    .Where(ts => ts.Descendants(cbc + "ID")
+                        .Any(id => id.Value == "2000" || id.Value == "2001"))
+                    .Sum(ts => decimal.TryParse(
+                        ts.Element(cbc + "TaxAmount")?.Value ?? "0",
+                        System.Globalization.NumberStyles.Any,
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        out var v) ? v : 0) ?? 0;
+
+                // MontoIGVCredito: TaxSubtotal con TaxScheme "1000" (IGV gravado)
+                datos.MontoIGVCredito = root?
+                    .Descendants(cac + "TaxSubtotal")
+                    .Where(ts => ts.Descendants(cbc + "ID")
+                        .Any(id => id.Value == "1000"))
+                    .Sum(ts => decimal.TryParse(
+                        ts.Element(cbc + "TaxAmount")?.Value ?? "0",
+                        System.Globalization.NumberStyles.Any,
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        out var v) ? v : 0) ?? 0;
+
+                // MontoBruto = MontoTotal - MontoRetencion
+                datos.MontoBruto = datos.MontoTotal - datos.MontoRetencion;
+
                 // Detracción
                 // El XML tiene dos <cac:PaymentTerms>:
                 //   - ID = "Detraccion"  → tiene PaymentPercent y Amount
