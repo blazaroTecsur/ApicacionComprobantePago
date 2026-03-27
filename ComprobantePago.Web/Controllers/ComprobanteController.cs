@@ -523,12 +523,11 @@ namespace ComprobantePago.Web.Controllers
             );
         }
 
-        [HttpGet]
-        [ValidateAntiForgeryToken]
+        [HttpPost]
         public async Task<IActionResult> ExportarCabeceraSyteline(
-            [FromBody] ExportarSytelineCommand command)
+            [FromForm] List<string> folios)
         {
-            if (command?.Folios == null || !command.Folios.Any())
+            if (folios == null || !folios.Any())
                 return Ok(new
                 {
                     exito = false,
@@ -536,7 +535,7 @@ namespace ComprobantePago.Web.Controllers
                 });
 
             var datos = await _queryService
-                .ObtenerCabecerasSytelineAsync(command.Folios);
+                .ObtenerCabecerasSytelineAsync(folios);
 
             if (!datos.Any())
                 return Ok(new

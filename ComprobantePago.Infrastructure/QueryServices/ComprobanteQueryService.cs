@@ -320,108 +320,77 @@ namespace ComprobantePago.Infrastructure.QueryServices
                     ? c.FechaRecepcion.Value.ToString("d/MM/yyyy")
                     : c.FechaEmision.ToString("d/MM/yyyy");
 
+                // Cada imputación de distribución genera exactamente 1 fila
                 for (int idx = 0; idx < imputacionesDistribucion.Count; idx++)
                 {
                     var imp = imputacionesDistribucion[idx];
-                    int baseSeq = idx * 15;
+                    int secDist = (idx + 1) * 5; // 5, 10, 15
 
-                    // Subfila A — principal
+                    string sistImpst, codImp, descCodImp;
+                    decimal baseImp, importe;
+
+                    switch (idx)
+                    {
+                        case 0: // Primera distribución — cuenta de gasto, sin código impuesto
+                            sistImpst  = string.Empty;
+                            codImp     = string.Empty;
+                            descCodImp = string.Empty;
+                            baseImp    = 0;
+                            importe    = imp.Monto;
+                            break;
+                        case 1: // Segunda — No Aplica Retención
+                            sistImpst  = "1";
+                            codImp     = "NR";
+                            descCodImp = "No Aplica Retención";
+                            baseImp    = c.MontoNeto;
+                            importe    = 0;
+                            break;
+                        case 2: // Tercera — IGV 18%
+                            sistImpst  = "2";
+                            codImp     = "IGV18";
+                            descCodImp = "IGV 18%";
+                            baseImp    = c.MontoNeto;
+                            importe    = c.MontoIGVCredito;
+                            break;
+                        default:
+                            sistImpst  = string.Empty;
+                            codImp     = string.Empty;
+                            descCodImp = string.Empty;
+                            baseImp    = 0;
+                            importe    = imp.Monto;
+                            break;
+                    }
+
                     resultado.Add(new SytelineDistribucionDto
                     {
-                        Proveedor = c.RucReceptor,
-                        Comprobante = c.IdComprobante,
-                        Nombre = c.RazonSocialReceptor,
+                        Proveedor         = c.RucReceptor,
+                        Comprobante       = c.IdComprobante,
+                        Nombre            = c.RazonSocialReceptor,
                         FechaDistribucion = fechaDist,
-                        Factura = $"{c.Serie}-{c.Numero}",
-                        FechaFactura = c.FechaEmision.ToString("d/MM/yyyy"),
-                        TasaCambio = c.TasaCambio,
-                        Moneda = c.Moneda,
-                        ImpoCompra = c.MontoNeto,
-                        IGV = c.MontoIGVCredito,
-                        MntoFactura = c.MontoBruto,
-                        TotalDistribucion = totalDist,
-                        NroProveedor = c.RucBeneficiario ?? string.Empty,
-                        NombreProv = c.RazonSocialBenef ?? string.Empty,
-                        NumRegFiscal = c.RucBeneficiario ?? string.Empty,
-                        SecDist = baseSeq + 5,
-                        Proyecto = imp.Proyecto ?? string.Empty,
-                        SistImpst = string.Empty,
-                        CodImp = string.Empty,
-                        DescCodImp = string.Empty,
-                        BaseImp = 0,
-                        Importe = imp.Monto,
-                        CuentaContable = imp.CuentaContable ?? string.Empty,
+                        Factura           = $"{c.Serie}-{c.Numero}",
+                        FechaFactura      = c.FechaEmision.ToString("d/MM/yyyy"),
+                        TasaCambio        = c.TasaCambio,
+                        Moneda            = c.Moneda,
+                        ImpoCompra        = c.MontoNeto,
+                        IGV               = c.MontoIGVCredito,
+                        MntoFactura       = c.MontoTotal,
+                        TotalDistribucion = c.MontoTotal,
+                        NroProveedor      = idx == 0 ? (c.RucBeneficiario ?? string.Empty) : string.Empty,
+                        NombreProv        = idx == 0 ? (c.RazonSocialBenef ?? string.Empty) : string.Empty,
+                        NumRegFiscal      = idx == 0 ? (c.RucBeneficiario ?? string.Empty) : string.Empty,
+                        SecDist           = secDist,
+                        Proyecto          = imp.Proyecto ?? string.Empty,
+                        SistImpst         = sistImpst,
+                        CodImp            = codImp,
+                        DescCodImp        = descCodImp,
+                        BaseImp           = baseImp,
+                        Importe           = importe,
+                        CuentaContable    = imp.CuentaContable ?? string.Empty,
                         DescripcionCuenta = imp.DescripcionCuenta ?? string.Empty,
-                        CodUnidad1 = imp.CodUnidad1Cuenta ?? string.Empty,
-                        CodUnidad3 = imp.CodUnidad3Cuenta ?? string.Empty,
-                        CodUnidad4 = imp.CodUnidad4Cuenta ?? string.Empty,
-                        EsLineaPrincipal = true
-                    });
-
-                    // Subfila B — NR
-                    resultado.Add(new SytelineDistribucionDto
-                    {
-                        Proveedor = c.RucReceptor,
-                        Comprobante = c.IdComprobante,
-                        Nombre = c.RazonSocialReceptor,
-                        FechaDistribucion = fechaDist,
-                        Factura = $"{c.Serie}-{c.Numero}",
-                        FechaFactura = c.FechaEmision.ToString("d/MM/yyyy"),
-                        TasaCambio = c.TasaCambio,
-                        Moneda = c.Moneda,
-                        ImpoCompra = c.MontoNeto,
-                        IGV = c.MontoIGVCredito,
-                        MntoFactura = c.MontoBruto,
-                        TotalDistribucion = totalDist,
-                        NroProveedor = string.Empty,
-                        NombreProv = string.Empty,
-                        NumRegFiscal = string.Empty,
-                        SecDist = baseSeq + 10,
-                        Proyecto = imp.Proyecto ?? string.Empty,
-                        SistImpst = "1",
-                        CodImp = "NR",
-                        DescCodImp = "No Aplica Retención",
-                        BaseImp = c.MontoNeto,
-                        Importe = 0,
-                        CuentaContable = imp.CuentaContable ?? string.Empty,
-                        DescripcionCuenta = imp.DescripcionCuenta ?? string.Empty,
-                        CodUnidad1 = imp.CodUnidad1Cuenta ?? string.Empty,
-                        CodUnidad3 = imp.CodUnidad3Cuenta ?? string.Empty,
-                        CodUnidad4 = imp.CodUnidad4Cuenta ?? string.Empty,
-                        EsLineaPrincipal = false
-                    });
-
-                    // Subfila C — IGV18
-                    resultado.Add(new SytelineDistribucionDto
-                    {
-                        Proveedor = c.RucReceptor,
-                        Comprobante = c.IdComprobante,
-                        Nombre = c.RazonSocialReceptor,
-                        FechaDistribucion = fechaDist,
-                        Factura = $"{c.Serie}-{c.Numero}",
-                        FechaFactura = c.FechaEmision.ToString("d/MM/yyyy"),
-                        TasaCambio = c.TasaCambio,
-                        Moneda = c.Moneda,
-                        ImpoCompra = c.MontoNeto,
-                        IGV = c.MontoIGVCredito,
-                        MntoFactura = c.MontoBruto,
-                        TotalDistribucion = totalDist,
-                        NroProveedor = string.Empty,
-                        NombreProv = string.Empty,
-                        NumRegFiscal = string.Empty,
-                        SecDist = baseSeq + 15,
-                        Proyecto = imp.Proyecto ?? string.Empty,
-                        SistImpst = "2",
-                        CodImp = "IGV18",
-                        DescCodImp = "IGV 18%",
-                        BaseImp = c.MontoNeto,
-                        Importe = c.MontoIGVCredito,
-                        CuentaContable = imp.CuentaContable ?? string.Empty,
-                        DescripcionCuenta = imp.DescripcionCuenta ?? string.Empty,
-                        CodUnidad1 = imp.CodUnidad1Cuenta ?? string.Empty,
-                        CodUnidad3 = imp.CodUnidad3Cuenta ?? string.Empty,
-                        CodUnidad4 = imp.CodUnidad4Cuenta ?? string.Empty,
-                        EsLineaPrincipal = false
+                        CodUnidad1        = imp.CodUnidad1Cuenta ?? string.Empty,
+                        CodUnidad3        = imp.CodUnidad3Cuenta ?? string.Empty,
+                        CodUnidad4        = imp.CodUnidad4Cuenta ?? string.Empty,
+                        EsLineaPrincipal  = idx == 0
                     });
                 }
             }
