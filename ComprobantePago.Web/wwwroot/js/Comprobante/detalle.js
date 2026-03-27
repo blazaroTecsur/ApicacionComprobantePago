@@ -227,49 +227,35 @@ function poblarCabecera(data) {
 
 // ── Poblar montos dinámicos ───────────────────
 function poblarMontos(data) {
-    if (data.montoNeto) {
-        $('#MontoNeto').removeClass('d-none');
-        $('#lblMontoNeto').text(data.lblMontoNeto || 'Valor Venta');
-        $('#txtMontoNeto').val(
-            CorporativoCore.formatearMonto(data.montoNeto));
-    }
-    if (data.montoExento) {
-        $('#MontoExento').removeClass('d-none');
-        $('#lblMontoExento').text(data.lblMontoExento || 'Monto Exento');
-        $('#txtMontoExento').val(
-            CorporativoCore.formatearMonto(data.montoExento));
-    }
+    $('#MontoNeto').removeClass('d-none');
+    $('#lblMontoNeto').text(data.lblMontoNeto || 'Valor Venta');
+    $('#txtMontoNeto').val(CorporativoCore.formatearMonto(data.montoNeto || 0));
+
+    $('#MontoExento').removeClass('d-none');
+    $('#lblMontoExento').text(data.lblMontoExento || 'Monto Exento');
+    $('#txtMontoExento').val(CorporativoCore.formatearMonto(data.montoExento || 0));
+
     if (data.montoIGVCosto) {
         $('#MontoIGVCosto').removeClass('d-none');
         $('#lblMontoIGVCosto').text(data.lblMontoIGVCosto || 'IGV Costo');
-        $('#txtMontoIGVCosto').val(
-            CorporativoCore.formatearMonto(data.montoIGVCosto));
+        $('#txtMontoIGVCosto').val(CorporativoCore.formatearMonto(data.montoIGVCosto));
     }
-    if (data.montoIGVCredito) {
-        $('#MontoIGVCredito').removeClass('d-none');
-        $('#lblMontoIGVCredito').text(data.lblMontoIGVCredito || 'IGV');
-        $('#txtMontoIGVCredito').val(
-            CorporativoCore.formatearMonto(data.montoIGVCredito));
-    }
-    if (data.montoTotal) {
-        $('#MontoTotal').removeClass('d-none');
-        $('#lblMontoTotal').text(data.lblMontoTotal || 'Total');
-        $('#txtMontoTotal').val(
-            CorporativoCore.formatearMonto(data.montoTotal));
-    }
-    if (data.montoBruto) {
-        $('#MontoBruto').removeClass('d-none');
-        $('#lblMontoBruto').text(data.lblMontoBruto || 'Total a Pagar');
-        $('#txtMontoBruto').val(
-            CorporativoCore.formatearMonto(data.montoBruto));
-    }
-    if (data.montoRetencion) {
-        $('#MontoRetencion').removeClass('d-none');
-        $('#lblMontoRetencion').text(
-            data.lblMontoRetencion || 'Retención');
-        $('#txtMontoRetencion').val(
-            CorporativoCore.formatearMonto(data.montoRetencion));
-    }
+
+    $('#MontoIGVCredito').removeClass('d-none');
+    $('#lblMontoIGVCredito').text(data.lblMontoIGVCredito || 'IGV Cred. Fiscal');
+    $('#txtMontoIGVCredito').val(CorporativoCore.formatearMonto(data.montoIGVCredito || 0));
+
+    $('#MontoTotal').removeClass('d-none');
+    $('#lblMontoTotal').text(data.lblMontoTotal || 'Total');
+    $('#txtMontoTotal').val(CorporativoCore.formatearMonto(data.montoTotal || 0));
+
+    $('#MontoBruto').removeClass('d-none');
+    $('#lblMontoBruto').text(data.lblMontoBruto || 'Total a Pagar');
+    $('#txtMontoBruto').val(CorporativoCore.formatearMonto(data.montoBruto || 0));
+
+    $('#MontoRetencion').removeClass('d-none');
+    $('#lblMontoRetencion').text(data.lblMontoRetencion || 'Retención');
+    $('#txtMontoRetencion').val(CorporativoCore.formatearMonto(data.montoRetencion || 0));
 }
 
 // ── Mostrar botones según estado ──────────────
