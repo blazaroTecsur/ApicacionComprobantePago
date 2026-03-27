@@ -43,6 +43,7 @@
         public decimal MontoExento { get; set; }
         public string LblMontoIGVCosto { get; set; }
         public decimal MontoIGVCosto { get; set; }
+        public decimal PorcentajeIGV { get; set; }
         public string LblMontoIGVCredito { get; set; }
         public decimal MontoIGVCredito { get; set; }
         public string LblMontoTotal { get; set; }

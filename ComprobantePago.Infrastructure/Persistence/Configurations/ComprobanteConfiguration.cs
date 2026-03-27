@@ -23,6 +23,7 @@ namespace ComprobantePago.Infrastructure.Persistence.Configurations
             builder.Property(x => x.TasaCambio).HasColumnType("decimal(10,4)");
             builder.Property(x => x.MontoNeto).HasColumnType("decimal(18,2)");
             builder.Property(x => x.MontoExento).HasColumnType("decimal(18,2)");
+            builder.Property(x => x.PorcentajeIGV).HasColumnType("decimal(5,2)");
             builder.Property(x => x.MontoIGVCosto).HasColumnType("decimal(18,2)");
             builder.Property(x => x.MontoIGVCredito).HasColumnType("decimal(18,2)");
             builder.Property(x => x.MontoTotal).HasColumnType("decimal(18,2)");

@@ -94,6 +94,7 @@ namespace ComprobantePago.Infrastructure.Repositories
                     dto.EsDocumentoElectronico == "S";
                 existente.MontoNeto = dto.MontoNeto;
                 existente.MontoExento = dto.MontoExento;
+                existente.PorcentajeIGV = dto.PorcentajeIGV;
                 existente.MontoIGVCredito = dto.MontoIGVCredito;
                 existente.MontoTotal = dto.MontoTotal;
                 existente.MontoBruto = dto.MontoBruto;
@@ -138,6 +139,7 @@ namespace ComprobantePago.Infrastructure.Repositories
                         dto.EsDocumentoElectronico == "S",
                     MontoNeto = dto.MontoNeto,
                     MontoExento = dto.MontoExento,
+                    PorcentajeIGV = dto.PorcentajeIGV,
                     MontoIGVCredito = dto.MontoIGVCredito,
                     MontoTotal = dto.MontoTotal,
                     MontoBruto = dto.MontoBruto,
