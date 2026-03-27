@@ -1,6 +1,8 @@
-﻿using ComprobantePago.Application.Commands.Comprobante;
+﻿using AutoMapper;
+using ComprobantePago.Application.Commands.Comprobante;
 using ComprobantePago.Application.Commands.Imputacion;
 using ComprobantePago.Application.DTOs.Comprobante.Response;
+using ComprobantePago.Application.Exceptions;
 using ComprobantePago.Application.Interfaces.Repositories;
 using ComprobantePago.Application.Interfaces.Services;
 using ComprobantePago.Domain.Entities;
@@ -8,6 +10,7 @@ using ComprobantePago.Infrastructure.Persistence;
 using ComprobantePago.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.IO.Compression;
 
 namespace ComprobantePago.Infrastructure.Repositories
@@ -16,12 +19,16 @@ namespace ComprobantePago.Infrastructure.Repositories
         AppDbContext contexto,
         ISunatService sunatService,
         XmlComprobanteService xmlService,
-        PdfComprobanteService pdfService)
+        PdfComprobanteService pdfService,
+        IMapper mapper,
+        ILogger<ComprobanteRepository> logger)
         : RepositorioBase<Comprobante>(contexto), IComprobanteRepository
     {
         private readonly ISunatService _sunatService = sunatService;
         private readonly XmlComprobanteService _xmlService = xmlService;
         private readonly PdfComprobanteService _pdfService = pdfService;
+        private readonly IMapper _mapper = mapper;
+        private readonly ILogger<ComprobanteRepository> _logger = logger;
 
         // ── Generar Folio ─────────────────────────
         public async Task<string> GenerarFolioAsync()
@@ -59,6 +66,7 @@ namespace ComprobantePago.Infrastructure.Repositories
         {
             var dto = command.Comprobante;
             var folio = dto.Folio;
+            _logger.LogInformation("Guardando comprobante folio {Folio}", folio);
 
             var existente = await _contexto.Comprobantes
                 .FirstOrDefaultAsync(x => x.Folio == folio);
@@ -307,14 +315,26 @@ namespace ComprobantePago.Infrastructure.Repositories
             AgregarImputacionCommand command)
         {
             var dto = command.Imputacion;
+            _logger.LogInformation(
+                "Agregando imputación para folio {Folio}", dto.Folio);
+
             var maxSec = await _contexto.ImputacionesContables
                 .Where(x => x.Folio == dto.Folio)
                 .MaxAsync(x => (int?)x.Secuencia) ?? 0;
 
-            var entidad = MapearDtoAEntidad(dto, maxSec + 1);
+            var entidad = _mapper.Map<ImputacionContable>(dto);
+            entidad.Secuencia = maxSec + 1;
+            entidad.UsuarioReg = "SYSTEM";
+            entidad.FechaReg = DateTime.Now;
+
             await _contexto.ImputacionesContables.AddAsync(entidad);
             await _contexto.SaveChangesAsync();
-            return MapearEntidadADto(entidad);
+
+            _logger.LogInformation(
+                "Imputación {Sec} agregada para folio {Folio}",
+                entidad.Secuencia, dto.Folio);
+
+            return _mapper.Map<ImputacionDetalleDto>(entidad);
         }
 
         public async Task<ImputacionDetalleDto> EditarImputacionAsync(
@@ -323,26 +343,29 @@ namespace ComprobantePago.Infrastructure.Repositories
             var dto = command.Imputacion;
             var secuencia = int.TryParse(dto.Secuencia, out var s) ? s : 0;
 
+            _logger.LogInformation(
+                "Editando imputación {Sec} del folio {Folio}",
+                secuencia, dto.Folio);
+
             var entidad = await _contexto.ImputacionesContables
                 .FirstOrDefaultAsync(x => x.Folio == dto.Folio
                                        && x.Secuencia == secuencia)
-                ?? throw new Exception(
-                    $"Imputación {dto.Folio}/{secuencia} no encontrada.");
+                ?? throw new ImputacionNotFoundException(dto.Folio, secuencia);
 
-            entidad.AliasCuenta = dto.AliasCuenta;
-            entidad.CuentaContable = dto.CuentaContable;
+            entidad.AliasCuenta     = dto.AliasCuenta;
+            entidad.CuentaContable  = dto.CuentaContable;
             entidad.DescripcionCuenta = dto.DescripcionCuenta;
-            entidad.Monto = dto.Monto;
-            entidad.Descripcion = dto.Descripcion;
-            entidad.Proyecto = dto.Proyecto;
+            entidad.Monto           = dto.Monto;
+            entidad.Descripcion     = dto.Descripcion;
+            entidad.Proyecto        = dto.Proyecto;
             entidad.CodUnidad1Cuenta = dto.CodUnidad1Cuenta;
             entidad.CodUnidad3Cuenta = dto.CodUnidad3Cuenta;
             entidad.CodUnidad4Cuenta = dto.CodUnidad4Cuenta;
-            entidad.UsuarioAct = "SYSTEM";
-            entidad.FechaAct = DateTime.Now;
+            entidad.UsuarioAct      = "SYSTEM";
+            entidad.FechaAct        = DateTime.Now;
 
             await _contexto.SaveChangesAsync();
-            return MapearEntidadADto(entidad);
+            return _mapper.Map<ImputacionDetalleDto>(entidad);
         }
 
         public async Task EliminarImputacionAsync(
@@ -355,6 +378,9 @@ namespace ComprobantePago.Infrastructure.Repositories
             {
                 _contexto.ImputacionesContables.Remove(entidad);
                 await _contexto.SaveChangesAsync();
+                _logger.LogInformation(
+                    "Imputación {Sec} eliminada del folio {Folio}",
+                    command.Secuencia, command.Folio);
             }
         }
 
@@ -362,42 +388,6 @@ namespace ComprobantePago.Infrastructure.Repositories
             CargarImputacionMasivaAsync(IFormFile file)
             => Task.FromResult<IEnumerable<ImputacionDetalleDto>>(
                 new List<ImputacionDetalleDto>());
-
-        // ── Helpers imputación ────────────────────
-        private static ImputacionContable MapearDtoAEntidad(
-            Application.DTOs.Comprobante.Requests.ImputacionDto dto,
-            int secuencia) => new()
-        {
-            Folio = dto.Folio,
-            Secuencia = secuencia,
-            AliasCuenta = dto.AliasCuenta,
-            CuentaContable = dto.CuentaContable,
-            DescripcionCuenta = dto.DescripcionCuenta,
-            Monto = dto.Monto,
-            Descripcion = dto.Descripcion,
-            Proyecto = dto.Proyecto,
-            CodUnidad1Cuenta = dto.CodUnidad1Cuenta,
-            CodUnidad3Cuenta = dto.CodUnidad3Cuenta,
-            CodUnidad4Cuenta = dto.CodUnidad4Cuenta,
-            UsuarioReg = "SYSTEM",
-            FechaReg = DateTime.Now
-        };
-
-        private static ImputacionDetalleDto MapearEntidadADto(
-            ImputacionContable e) => new()
-        {
-            Secuencia = e.Secuencia,
-            Folio = e.Folio,
-            AliasCuenta = e.AliasCuenta ?? string.Empty,
-            CuentaContable = e.CuentaContable ?? string.Empty,
-            DescripcionCuenta = e.DescripcionCuenta ?? string.Empty,
-            Monto = e.Monto,
-            Descripcion = e.Descripcion ?? string.Empty,
-            Proyecto = e.Proyecto ?? string.Empty,
-            CodUnidad1Cuenta = e.CodUnidad1Cuenta ?? string.Empty,
-            CodUnidad3Cuenta = e.CodUnidad3Cuenta ?? string.Empty,
-            CodUnidad4Cuenta = e.CodUnidad4Cuenta ?? string.Empty
-        };
 
         // ── Validar ZIP SUNAT ─────────────────────
         public async Task<ValidacionSunatDto> ValidarZipSunatAsync(

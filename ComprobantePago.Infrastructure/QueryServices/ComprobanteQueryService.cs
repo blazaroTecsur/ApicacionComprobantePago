@@ -1,17 +1,24 @@
-﻿using ComprobantePago.Application.DTOs.Comprobante.Common;
+﻿using AutoMapper;
+using ComprobantePago.Application.DTOs.Comprobante.Common;
 using ComprobantePago.Application.DTOs.Comprobante.Requests;
 using ComprobantePago.Application.DTOs.Comprobante.Response;
 using ComprobantePago.Application.DTOs.Responses;
 using ComprobantePago.Application.Interfaces.QueryServices;
 using ComprobantePago.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace ComprobantePago.Infrastructure.QueryServices
 {
-    public class ComprobanteQueryService(AppDbContext contexto)
+    public class ComprobanteQueryService(
+        AppDbContext contexto,
+        IMapper mapper,
+        ILogger<ComprobanteQueryService> logger)
         : IComprobanteQueryService
     {
         private readonly AppDbContext _contexto = contexto;
+        private readonly IMapper _mapper = mapper;
+        private readonly ILogger<ComprobanteQueryService> _logger = logger;
 
         #region Combos
         public async Task<IEnumerable<ComboDto>> ObtenerTiposDocumentoAsync()
@@ -132,6 +139,7 @@ namespace ComprobantePago.Infrastructure.QueryServices
         public async Task<IEnumerable<ComprobanteDto>> BuscarAsync(
             BuscarComprobanteDto filtros)
         {
+            _logger.LogInformation("Buscando comprobantes con filtros: {@Filtros}", filtros);
             var query = _contexto.Comprobantes.AsQueryable();
 
             if (!string.IsNullOrEmpty(filtros.Tipo))
@@ -261,25 +269,14 @@ namespace ComprobantePago.Infrastructure.QueryServices
         public async Task<IEnumerable<ImputacionDetalleDto>>
             ObtenerImputacionesAsync(string folio)
         {
+            _logger.LogInformation("Obteniendo imputaciones para folio {Folio}", folio);
+
             var lista = await _contexto.ImputacionesContables
                 .Where(x => x.Folio == folio)
                 .OrderBy(x => x.Secuencia)
                 .ToListAsync();
 
-            return lista.Select(e => new ImputacionDetalleDto
-            {
-                Secuencia = e.Secuencia,
-                Folio = e.Folio,
-                AliasCuenta = e.AliasCuenta ?? string.Empty,
-                CuentaContable = e.CuentaContable ?? string.Empty,
-                DescripcionCuenta = e.DescripcionCuenta ?? string.Empty,
-                Monto = e.Monto,
-                Descripcion = e.Descripcion ?? string.Empty,
-                Proyecto = e.Proyecto ?? string.Empty,
-                CodUnidad1Cuenta = e.CodUnidad1Cuenta ?? string.Empty,
-                CodUnidad3Cuenta = e.CodUnidad3Cuenta ?? string.Empty,
-                CodUnidad4Cuenta = e.CodUnidad4Cuenta ?? string.Empty
-            });
+            return _mapper.Map<IEnumerable<ImputacionDetalleDto>>(lista);
         }
 
         public Task<byte[]> ObtenerPlantillaImputacionAsync()
