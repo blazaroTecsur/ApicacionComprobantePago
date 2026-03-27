@@ -1,6 +1,8 @@
 using ComprobantePago.Application.Exceptions;
+using ComprobantePago.Web.Models;
 using FluentValidation;
-using System.Text.Json;
+using Serilog.Context;
+using System.Diagnostics;
 
 namespace ComprobantePago.Web.Middlewares
 {
@@ -15,9 +17,9 @@ namespace ComprobantePago.Web.Middlewares
             ILogger<ExceptionMiddleware> logger,
             IHostEnvironment env)
         {
-            _next = next;
+            _next  = next;
             _logger = logger;
-            _env = env;
+            _env   = env;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -28,54 +30,93 @@ namespace ComprobantePago.Web.Middlewares
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,
-                    "Error no manejado en {Method} {Path}: {Message}",
-                    context.Request.Method,
-                    context.Request.Path,
-                    ex.Message);
-
-                await ManejarExcepcionAsync(context, ex);
+                await HandleExceptionAsync(context, ex);
             }
         }
 
-        private async Task ManejarExcepcionAsync(HttpContext context, Exception ex)
+        private async Task HandleExceptionAsync(HttpContext context, Exception ex)
         {
-            var (statusCode, mensaje) = ex switch
+            var traceId = Activity.Current?.Id ?? context.TraceIdentifier;
+
+            bool isApiRequest =
+                context.Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
+                context.Request.Path.StartsWithSegments("/api")                  ||
+                (context.Request.Headers["Accept"].ToString()
+                    .Contains("application/json"));
+
+            var (statusCode, errorDetail) = ex switch
             {
-                ComprobanteNotFoundException  => (StatusCodes.Status404NotFound, ex.Message),
-                ImputacionNotFoundException   => (StatusCodes.Status404NotFound, ex.Message),
-                ValidationException ve        => (StatusCodes.Status400BadRequest,
-                    string.Join(" | ", ve.Errors.Select(e => e.ErrorMessage))),
-                ArgumentException             => (StatusCodes.Status400BadRequest, ex.Message),
-                UnauthorizedAccessException   => (StatusCodes.Status401Unauthorized, "No autorizado."),
-                _                            => (StatusCodes.Status500InternalServerError,
-                    _env.IsDevelopment() ? ex.ToString() : "Error interno del servidor.")
+                // Errores de validación FluentValidation → 400 con errores por propiedad
+                ValidationException fluentEx => (400, new ErrorDetail
+                {
+                    Code             = "VALIDATION_ERROR",
+                    UserMessage      = "Por favor corrige los errores en el formulario.",
+                    ValidationErrors = fluentEx.Errors
+                        .GroupBy(e => e.PropertyName)
+                        .ToDictionary(
+                            g => g.Key,
+                            g => g.Select(e => e.ErrorMessage).ToArray()),
+                    TraceId = traceId
+                }),
+
+                // Excepciones de dominio (AppException y sus derivadas: 404, 400, etc.)
+                AppException appEx => (appEx.StatusCode, new ErrorDetail
+                {
+                    Code             = appEx.Code,
+                    UserMessage      = appEx.UserMessage,
+                    TechnicalMessage = _env.IsDevelopment() ? appEx.Message : null,
+                    TraceId          = traceId
+                }),
+
+                // Sin autorización → 401
+                UnauthorizedAccessException => (401, new ErrorDetail
+                {
+                    Code        = "UNAUTHORIZED",
+                    UserMessage = "No tienes permisos para realizar esta acción.",
+                    TraceId     = traceId
+                }),
+
+                // Cualquier otro → 500
+                _ => (500, new ErrorDetail
+                {
+                    Code             = "INTERNAL_ERROR",
+                    UserMessage      = "Ocurrió un error inesperado. Por favor intenta de nuevo.",
+                    TechnicalMessage = _env.IsDevelopment() ? ex.ToString() : null,
+                    TraceId          = traceId
+                })
             };
 
-            // Solicitudes AJAX / API → responder JSON
-            if (EsAjax(context.Request))
+            // Enriquecer contexto Serilog con campos estructurados
+            using (LogContext.PushProperty("TraceId", traceId))
+            using (LogContext.PushProperty("Path",    context.Request.Path))
+            using (LogContext.PushProperty("Method",  context.Request.Method))
             {
-                context.Response.StatusCode = statusCode;
-                context.Response.ContentType = "application/json";
-
-                var body = JsonSerializer.Serialize(new
-                {
-                    exito   = false,
-                    mensaje,
-                    status  = statusCode
-                });
-
-                await context.Response.WriteAsync(body);
-                return;
+                if (statusCode >= 500)
+                    _logger.LogError(ex,
+                        "Error interno | Code: {ErrorCode} | Usuario: {User}",
+                        errorDetail.Code,
+                        context.User?.Identity?.Name ?? "anónimo");
+                else
+                    _logger.LogWarning(
+                        "Error controlado | Code: {ErrorCode} | Status: {StatusCode} | Usuario: {User}",
+                        errorDetail.Code,
+                        statusCode,
+                        context.User?.Identity?.Name ?? "anónimo");
             }
 
-            // Navegación MVC normal → redirigir a página de error
-            context.Response.Redirect("/Home/Error");
-        }
+            context.Response.StatusCode = statusCode;
 
-        private static bool EsAjax(HttpRequest request) =>
-            request.Headers.XRequestedWith == "XMLHttpRequest" ||
-            (request.ContentType?.Contains("application/json") ?? false) ||
-            request.Path.StartsWithSegments("/api");
+            if (isApiRequest)
+            {
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsJsonAsync(
+                    ApiResponse<object>.Fail(errorDetail));
+            }
+            else
+            {
+                context.Response.Redirect(
+                    $"/Home/Error?code={statusCode}&traceId={traceId}");
+            }
+        }
     }
 }
