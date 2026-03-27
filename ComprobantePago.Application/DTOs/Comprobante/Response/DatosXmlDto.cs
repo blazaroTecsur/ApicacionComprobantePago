@@ -22,6 +22,7 @@
         public decimal MontoRetencion { get; set; }
         public decimal MontoIGVCredito { get; set; }
         public decimal MontoBruto { get; set; }
+        public decimal PorcentajeIGV { get; set; }
         // ── Detracción ── NUEVO ───────────────────────────────────
         public bool TieneDetraccion { get; set; }
         public string CodigoDetraccion { get; set; } // ej: "030"

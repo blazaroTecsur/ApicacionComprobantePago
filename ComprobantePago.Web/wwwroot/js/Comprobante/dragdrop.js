@@ -556,7 +556,10 @@ function poblarCamposDesdeXml(datos) {
 
     $('#MontoIGVCredito').removeClass('d-none');
     $('#txtMontoIGVCredito').val(CorporativoCore.formatearMonto(montoIGV));
-    const pctIGV = montoNeto > 0 ? (montoIGV / montoNeto * 100).toFixed(2) : '0.00';
+    // Porcentaje IGV directo del XML
+    const pctIGV = (datos.porcentajeIGV && datos.porcentajeIGV > 0)
+        ? parseFloat(datos.porcentajeIGV).toFixed(2)
+        : '0.00';
     $('#txtMontoIGVCreditoPorcentajeIGV').val(pctIGV);
 
     $('#MontoTotal').removeClass('d-none');
@@ -564,6 +567,8 @@ function poblarCamposDesdeXml(datos) {
 
     $('#MontoRetencion').removeClass('d-none');
     $('#txtMontoRetencion').val(CorporativoCore.formatearMonto(montoRetencion));
+    // Editable si retención es 0
+    $('#txtMontoRetencion').prop('readonly', montoRetencion !== 0);
 
     $('#MontoBruto').removeClass('d-none');
     $('#txtMontoBruto').val(CorporativoCore.formatearMonto(montoBruto));

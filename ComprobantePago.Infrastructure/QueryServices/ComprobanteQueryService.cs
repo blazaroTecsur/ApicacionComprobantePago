@@ -211,6 +211,7 @@ namespace ComprobantePago.Infrastructure.QueryServices
                 MontoNeto = c.MontoNeto,
                 MontoExento = c.MontoExento,
                 MontoIGVCosto = c.MontoIGVCosto,
+                PorcentajeIGV = c.PorcentajeIGV,
                 MontoIGVCredito = c.MontoIGVCredito,
                 MontoTotal = c.MontoTotal,
                 MontoBruto = c.MontoBruto,

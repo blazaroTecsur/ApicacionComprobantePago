@@ -252,7 +252,10 @@ function poblarMontos(data) {
 
     $('#MontoIGVCredito').removeClass('d-none');
     $('#txtMontoIGVCredito').val(CorporativoCore.formatearMonto(montoIGV));
-    const pctIGV = montoNeto > 0 ? (montoIGV / montoNeto * 100).toFixed(2) : '0.00';
+    // Porcentaje IGV directo del XML/BD; si es 0 no mostrar nada
+    const pctIGV = (data.porcentajeIGV && data.porcentajeIGV > 0)
+        ? parseFloat(data.porcentajeIGV).toFixed(2)
+        : '0.00';
     $('#txtMontoIGVCreditoPorcentajeIGV').val(pctIGV);
 
     $('#MontoTotal').removeClass('d-none');
@@ -260,6 +263,8 @@ function poblarMontos(data) {
 
     $('#MontoRetencion').removeClass('d-none');
     $('#txtMontoRetencion').val(CorporativoCore.formatearMonto(montoRetencion));
+    // Editable solo si la retención es 0 (el usuario la ingresará manualmente)
+    $('#txtMontoRetencion').prop('readonly', montoRetencion !== 0);
 
     $('#MontoBruto').removeClass('d-none');
     $('#txtMontoBruto').val(CorporativoCore.formatearMonto(montoBruto));
@@ -373,6 +378,7 @@ function obtenerDatosCabecera() {
         origen: $('#hdnOrigen').val(),
         montoNeto: CorporativoCore.limpiarMonto($('#txtMontoNeto').val()),
         montoExento: CorporativoCore.limpiarMonto($('#txtMontoExento').val()),
+        porcentajeIGV: parseFloat($('#txtMontoIGVCreditoPorcentajeIGV').val()) || 0,
         montoIGVCredito: CorporativoCore.limpiarMonto($('#txtMontoIGVCredito').val()),
         montoTotal: CorporativoCore.limpiarMonto($('#txtMontoTotal').val()),
         montoBruto: CorporativoCore.limpiarMonto($('#txtMontoBruto').val()),

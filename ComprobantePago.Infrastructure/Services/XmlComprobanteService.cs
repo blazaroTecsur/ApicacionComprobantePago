@@ -131,16 +131,23 @@ namespace ComprobantePago.Infrastructure.Services
                         System.Globalization.CultureInfo.InvariantCulture,
                         out var v) ? v : 0) ?? 0;
 
-                // MontoIGVCredito: TaxSubtotal con TaxScheme "1000" (IGV gravado)
-                datos.MontoIGVCredito = root?
+                // MontoIGVCredito y PorcentajeIGV: TaxSubtotal con TaxScheme "1000" (IGV gravado)
+                var taxSubtotalIGV = root?
                     .Descendants(cac + "TaxSubtotal")
-                    .Where(ts => ts.Descendants(cbc + "ID")
-                        .Any(id => id.Value == "1000"))
-                    .Sum(ts => decimal.TryParse(
-                        ts.Element(cbc + "TaxAmount")?.Value ?? "0",
-                        System.Globalization.NumberStyles.Any,
-                        System.Globalization.CultureInfo.InvariantCulture,
-                        out var v) ? v : 0) ?? 0;
+                    .FirstOrDefault(ts => ts.Descendants(cbc + "ID")
+                        .Any(id => id.Value == "1000"));
+
+                datos.MontoIGVCredito = taxSubtotalIGV != null && decimal.TryParse(
+                    taxSubtotalIGV.Element(cbc + "TaxAmount")?.Value ?? "0",
+                    System.Globalization.NumberStyles.Any,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    out var igvCred) ? igvCred : 0;
+
+                datos.PorcentajeIGV = taxSubtotalIGV != null && decimal.TryParse(
+                    taxSubtotalIGV.Descendants(cbc + "Percent").FirstOrDefault()?.Value ?? "0",
+                    System.Globalization.NumberStyles.Any,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    out var pct) ? pct : 0;
 
                 // MontoBruto = MontoTotal - MontoRetencion
                 datos.MontoBruto = datos.MontoTotal - datos.MontoRetencion;

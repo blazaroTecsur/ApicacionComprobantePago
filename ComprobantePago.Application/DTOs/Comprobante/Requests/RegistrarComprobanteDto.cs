@@ -33,6 +33,7 @@
         // Montos
         public decimal MontoNeto { get; set; }
         public decimal MontoExento { get; set; }
+        public decimal PorcentajeIGV { get; set; }
         public decimal MontoIGVCredito { get; set; }
         public decimal MontoTotal { get; set; }
         public decimal MontoBruto { get; set; }
