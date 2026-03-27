@@ -18,6 +18,10 @@
         public decimal MontoTotal { get; set; }
         public decimal MontoNeto { get; set; }
         public decimal MontoIGV { get; set; }
+        public decimal MontoExento { get; set; }
+        public decimal MontoRetencion { get; set; }
+        public decimal MontoIGVCredito { get; set; }
+        public decimal MontoBruto { get; set; }
         // ── Detracción ── NUEVO ───────────────────────────────────
         public bool TieneDetraccion { get; set; }
         public string CodigoDetraccion { get; set; } // ej: "030"
