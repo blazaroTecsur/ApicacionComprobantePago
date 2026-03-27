@@ -13,7 +13,7 @@ namespace ComprobantePago.Infrastructure.Services
         private static readonly XNamespace ext =
             "urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2";
         private static readonly XNamespace biz =
-            "urn:pe:gob:sunat:cpe:see:gem:extensiones:1.0";
+            "urn:bizlinks:names:specification:ubl:peru:schema:xsd:BizlinksAggregateComponents-1";
 
         public DatosXmlDto LeerDatosXml(Stream stream)
         {
