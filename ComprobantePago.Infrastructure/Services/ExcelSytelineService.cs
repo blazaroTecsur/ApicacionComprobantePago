@@ -156,12 +156,12 @@ namespace ComprobantePago.Infrastructure.Services
                 ws.Cell(row, col++).Value = d.CtaCP;
                 // 39-Cta CP unid 1
                 ws.Cell(row, col++).Value = d.CtaCPUnid1;
-                // 40-Cta CP unid 2 (fijo)
-                ws.Cell(row, col++).Value = "";
-                // 41-Cta CP unid 3 (fijo)
-                ws.Cell(row, col++).Value = "";
-                // 42-Cta CP unid 4 (fijo)
-                ws.Cell(row, col++).Value = "";
+                // 40-Cta CP unid 2
+                ws.Cell(row, col++).Value = d.CtaCPUnid2;
+                // 41-Cta CP unid 3
+                ws.Cell(row, col++).Value = d.CtaCPUnid3;
+                // 42-Cta CP unid 4
+                ws.Cell(row, col++).Value = d.CtaCPUnid4;
                 // 43-Descripción cuenta
                 ws.Cell(row, col++).Value = ""; // d.DescripcionCuenta; // ← opcional, puede causar problemas si tiene comas o saltos de línea
                 // 44-Ref
