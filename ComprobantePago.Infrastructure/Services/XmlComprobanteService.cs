@@ -12,6 +12,8 @@ namespace ComprobantePago.Infrastructure.Services
             "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2";
         private static readonly XNamespace ext =
             "urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2";
+        private static readonly XNamespace biz =
+            "urn:pe:gob:sunat:cpe:see:gem:extensiones:1.0";
 
         public DatosXmlDto LeerDatosXml(Stream stream)
         {
@@ -143,11 +145,16 @@ namespace ComprobantePago.Infrastructure.Services
                     System.Globalization.CultureInfo.InvariantCulture,
                     out var igvCred) ? igvCred : 0;
 
-                datos.PorcentajeIGV = taxSubtotalIGV != null && decimal.TryParse(
-                    taxSubtotalIGV.Descendants(cbc + "Percent").FirstOrDefault()?.Value ?? "0",
+                // PorcentajeIGV: AdditionalProperty con ID "9163" (ej: "18.00%")
+                var pctRaw = root?
+                    .Descendants(biz + "AdditionalProperty")
+                    .FirstOrDefault(ap => ap.Element(cbc + "ID")?.Value == "9163")?
+                    .Element(cbc + "Value")?.Value ?? "";
+                datos.PorcentajeIGV = decimal.TryParse(
+                    pctRaw.Replace("%", "").Trim(),
                     System.Globalization.NumberStyles.Any,
                     System.Globalization.CultureInfo.InvariantCulture,
-                    out var pct) ? pct : 0;
+                    out var pctIGV) ? pctIGV : 0;
 
                 // MontoBruto = MontoTotal - MontoRetencion
                 datos.MontoBruto = datos.MontoTotal - datos.MontoRetencion;
