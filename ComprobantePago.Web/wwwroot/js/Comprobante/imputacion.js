@@ -226,8 +226,13 @@ function validarFormularioImputacion() {
         $('#txtAliasCuenta').focus();
         return false;
     }
-    if (CorporativoCore.esVacio($('#txtMonto').val()) ||
-        CorporativoCore.limpiarMonto($('#txtMonto').val()) <= 0) {
+    // La primera cuenta contable (cabecera) no requiere monto > 0
+    const esPrimeraImputacion =
+        (!modoEdicion && listaImputaciones.length === 0) ||
+        (modoEdicion && secuenciaEditando == 1);
+    if (!esPrimeraImputacion &&
+        (CorporativoCore.esVacio($('#txtMonto').val()) ||
+         CorporativoCore.limpiarMonto($('#txtMonto').val()) <= 0)) {
         CorporativoCore.notificarAdvertencia('El monto debe ser mayor a 0.');
         $('#txtMonto').focus();
         return false;
