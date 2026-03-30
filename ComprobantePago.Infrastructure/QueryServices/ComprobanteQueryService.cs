@@ -310,7 +310,7 @@ namespace ComprobantePago.Infrastructure.QueryServices
 
                 // Imputación 1 → cabecera; imputación 2 → base imponible;
                 // imputación 3 → IGV; imputación 4 → exento (solo si aplica)
-                var tieneExento = c.MontoExento > 0 && c.PorcentajeIGV > 0;
+                var tieneExento = c.MontoExento > 0;
                 var cantDist    = tieneExento ? 3 : 2;
 
                 var imputacionesDistribucion = imputaciones.Skip(1).Take(cantDist).ToList();
