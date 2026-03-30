@@ -36,5 +36,6 @@
         public decimal TotalDetLocal { get; set; }
         public decimal MontoExento { get; set; }
         public decimal MontoRetencion { get; set; }
+        public decimal PorcentajeIGV { get; set; }
     }
 }
