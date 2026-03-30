@@ -36,6 +36,8 @@ namespace ComprobantePago.Infrastructure.Persistence.Configurations
             builder.Property(x => x.CodigoEstado).HasMaxLength(20).IsRequired();
             builder.Property(x => x.UsuarioReg).HasMaxLength(50).IsRequired();
             builder.Property(x => x.UsuarioAct).HasMaxLength(50);
+            builder.Property(x => x.EmpleadoCodigo).HasMaxLength(20);
+            builder.Property(x => x.EmpleadoNombre).HasMaxLength(200);
 
             // Relación
             builder.HasMany(x => x.Imputaciones)

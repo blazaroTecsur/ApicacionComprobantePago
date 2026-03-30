@@ -38,5 +38,9 @@
         public decimal MontoTotal { get; set; }
         public decimal MontoBruto { get; set; }
         public decimal MontoRetencion { get; set; }
+        // Empleado
+        public bool EsEmpleado { get; set; }
+        public string? EmpleadoCodigo { get; set; }
+        public string? EmpleadoNombre { get; set; }
     }
 }
