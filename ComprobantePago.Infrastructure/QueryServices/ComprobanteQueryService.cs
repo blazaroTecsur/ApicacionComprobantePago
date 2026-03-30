@@ -88,6 +88,17 @@ namespace ComprobantePago.Infrastructure.QueryServices
                 })
                 .ToListAsync();
 
+        public async Task<IEnumerable<ComboDto>> ObtenerEmpleadosAsync(string filtro = "")
+        {
+            var query = _contexto.Empleados.Where(x => x.Activo);
+            if (!string.IsNullOrWhiteSpace(filtro))
+                query = query.Where(x => x.Codigo.Contains(filtro) || x.Nombre.Contains(filtro));
+            return await query
+                .OrderBy(x => x.Nombre)
+                .Select(x => new ComboDto { Codigo = x.Codigo, Descripcion = $"{x.Codigo} - {x.Nombre}" })
+                .ToListAsync();
+        }
+
         public async Task<IEnumerable<ComboDto>> ObtenerCuentasContablesAsync(string filtro = "")
         {
             var query = _contexto.CuentasContables
@@ -236,6 +247,9 @@ namespace ComprobantePago.Infrastructure.QueryServices
                 FechaAnulacion = c.FechaAnulacion?
                                         .ToString("yyyy-MM-dd"),
                 Mensaje = c.Mensaje,
+                EsEmpleado     = c.EsEmpleado,
+                EmpleadoCodigo = c.EmpleadoCodigo ?? string.Empty,
+                EmpleadoNombre = c.EmpleadoNombre ?? string.Empty,
                 RequiereAduana = c.RequiereAduana,
                 RequiereDetraccion = c.RequiereDetraccion,
                 EsDocumentoElectronico =
@@ -336,7 +350,7 @@ namespace ComprobantePago.Infrastructure.QueryServices
                             codImp     = string.Empty;
                             descCodImp = string.Empty;
                             baseImp    = 0;
-                            importe    = imp.Monto;
+                            importe    = c.MontoNeto;
                             break;
                         case 1: // IGV
                             sistImpst  = "2";
@@ -361,11 +375,21 @@ namespace ComprobantePago.Infrastructure.QueryServices
                             break;
                     }
 
+                    // When employee is selected, use employee code/name as proveedor/nombre
+                    // and XML provider data fills the "Is Third Party?" fields
+                    var proveedorExport = c.EsEmpleado ? (c.EmpleadoCodigo ?? string.Empty) : c.RucReceptor;
+                    var nombreExport    = c.EsEmpleado ? (c.EmpleadoNombre ?? string.Empty) : c.RazonSocialReceptor;
+
+                    // Is Third Party / Nro proveedor: from XML provider when EsEmpleado, else from beneficiario
+                    var nroProvDist   = c.EsEmpleado && idx == 0 ? c.RucReceptor        : (idx == 0 ? (c.RucBeneficiario ?? string.Empty) : string.Empty);
+                    var nomProvDist   = c.EsEmpleado && idx == 0 ? c.RazonSocialReceptor : (idx == 0 ? (c.RazonSocialBenef ?? string.Empty) : string.Empty);
+                    var numRegFiscDist = c.EsEmpleado && idx == 0 ? c.RucReceptor        : (idx == 0 ? (c.RucBeneficiario ?? string.Empty) : string.Empty);
+
                     resultado.Add(new SytelineDistribucionDto
                     {
-                        Proveedor         = c.RucReceptor,
+                        Proveedor         = proveedorExport,
                         Comprobante       = c.IdComprobante,
-                        Nombre            = c.RazonSocialReceptor,
+                        Nombre            = nombreExport,
                         FechaDistribucion = fechaDist,
                         Factura           = $"{c.Serie}-{c.Numero}",
                         FechaFactura      = c.FechaEmision.ToString("d/MM/yyyy"),
@@ -375,9 +399,9 @@ namespace ComprobantePago.Infrastructure.QueryServices
                         IGV               = c.MontoIGVCredito,
                         MntoFactura       = c.MontoTotal,
                         TotalDistribucion = c.MontoTotal,
-                        NroProveedor      = idx == 0 ? (c.RucBeneficiario ?? string.Empty) : string.Empty,
-                        NombreProv        = idx == 0 ? (c.RazonSocialBenef ?? string.Empty) : string.Empty,
-                        NumRegFiscal      = idx == 0 ? (c.RucBeneficiario ?? string.Empty) : string.Empty,
+                        NroProveedor      = nroProvDist,
+                        NombreProv        = nomProvDist,
+                        NumRegFiscal      = numRegFiscDist,
                         SecDist           = secDist,
                         Proyecto          = imp.Proyecto ?? string.Empty,
                         SistImpst         = sistImpst,
@@ -390,7 +414,8 @@ namespace ComprobantePago.Infrastructure.QueryServices
                         CodUnidad1        = imp.CodUnidad1Cuenta ?? string.Empty,
                         CodUnidad3        = imp.CodUnidad3Cuenta ?? string.Empty,
                         CodUnidad4        = imp.CodUnidad4Cuenta ?? string.Empty,
-                        EsLineaPrincipal  = idx == 0
+                        EsLineaPrincipal  = idx == 0,
+                        TipoDoc           = c.TipoSunat
                     });
                 }
             }
@@ -432,8 +457,8 @@ namespace ComprobantePago.Infrastructure.QueryServices
 
                 result.Add(new SytelineCabeceraDto
                 {
-                    Proveedor = c.RucReceptor,
-                    Nombre = c.RazonSocialReceptor,
+                    Proveedor = c.EsEmpleado ? (c.EmpleadoCodigo ?? string.Empty) : c.RucReceptor,
+                    Nombre    = c.EsEmpleado ? (c.EmpleadoNombre ?? string.Empty) : c.RazonSocialReceptor,
                     Comprobante = c.IdComprobante,
                     Factura = $"{c.Serie}-{c.Numero}",
                     FechaFactura = c.FechaEmision

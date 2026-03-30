@@ -33,5 +33,6 @@ namespace ComprobantePago.Application.DTOs.Responses
         public string CodUnidad3 { get; set; } = string.Empty;
         public string CodUnidad4 { get; set; } = string.Empty;
         public bool EsLineaPrincipal { get; set; }
+        public string TipoDoc { get; set; } = string.Empty;
     }
 }

@@ -67,6 +67,10 @@
         public string RolAnulacion { get; set; }
         public string FechaAnulacion { get; set; }
         public string Mensaje { get; set; }
+        // Empleado
+        public bool EsEmpleado { get; set; }
+        public string EmpleadoCodigo { get; set; } = string.Empty;
+        public string EmpleadoNombre { get; set; } = string.Empty;
 
         // Flags
         public string RequiereAduana { get; set; }

@@ -15,6 +15,7 @@ namespace ComprobantePago.Application.Interfaces.QueryServices
         Task<IEnumerable<ComboDto>> ObtenerLugaresPagoAsync();
         Task<IEnumerable<ComboDto>> ObtenerTiposDetraccionAsync();
         Task<IEnumerable<ComboDto>> ObtenerEstadosAsync();
+        Task<IEnumerable<ComboDto>> ObtenerEmpleadosAsync(string filtro = "");
 
         // ── Consultas Comprobante ─────────────────
         Task<IEnumerable<ComprobanteDto>> BuscarAsync(

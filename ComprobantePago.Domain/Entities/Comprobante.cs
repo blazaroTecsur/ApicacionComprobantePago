@@ -65,6 +65,10 @@
         public string? UsuarioAct { get; set; }
         public DateTime? FechaAct { get; set; }
 
+        public bool EsEmpleado { get; set; }
+        public string? EmpleadoCodigo { get; set; }
+        public string? EmpleadoNombre { get; set; }
+
         // Navegación
         public ICollection<ImputacionContable> Imputaciones { get; set; }
             = new List<ImputacionContable>();

@@ -107,6 +107,9 @@ namespace ComprobantePago.Infrastructure.Repositories
                 existente.MontoTotal = dto.MontoTotal;
                 existente.MontoBruto = dto.MontoBruto;
                 existente.MontoRetencion = dto.MontoRetencion;
+                existente.EsEmpleado = dto.EsEmpleado;
+                existente.EmpleadoCodigo = dto.EmpleadoCodigo;
+                existente.EmpleadoNombre = dto.EmpleadoNombre;
                 existente.CodigoEstado = "REGISTRADO";
                 existente.UsuarioAct = "SYSTEM";
                 existente.FechaAct = DateTime.Now;
@@ -152,6 +155,9 @@ namespace ComprobantePago.Infrastructure.Repositories
                     MontoTotal = dto.MontoTotal,
                     MontoBruto = dto.MontoBruto,
                     MontoRetencion = dto.MontoRetencion,
+                    EsEmpleado = dto.EsEmpleado,
+                    EmpleadoCodigo = dto.EmpleadoCodigo,
+                    EmpleadoNombre = dto.EmpleadoNombre,
                     CodigoEstado = "REGISTRADO",
                     UsuarioReg = "SYSTEM",
                     FechaReg = DateTime.Now
