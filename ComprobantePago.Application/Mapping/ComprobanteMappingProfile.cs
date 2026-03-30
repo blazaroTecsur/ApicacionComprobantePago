@@ -48,13 +48,14 @@ namespace ComprobantePago.Application.Mapping
                 .ForMember(d => d.Secuencia,
                     opt => opt.MapFrom(s => ParseInt(s.Secuencia)))
                 .ForMember(d => d.IdImputacionContable, opt => opt.Ignore())
-                .ForMember(d => d.UsuarioReg,          opt => opt.Ignore())
-                .ForMember(d => d.FechaReg,            opt => opt.Ignore())
-                .ForMember(d => d.UsuarioAct,          opt => opt.Ignore())
-                .ForMember(d => d.FechaAct,            opt => opt.Ignore())
-                .ForMember(d => d.Comprobante,         opt => opt.Ignore());
+                .ForMember(d => d.UsuarioReg, opt => opt.Ignore())
+                .ForMember(d => d.FechaReg, opt => opt.Ignore())
+                .ForMember(d => d.UsuarioAct, opt => opt.Ignore())
+                .ForMember(d => d.FechaAct, opt => opt.Ignore())
+                .ForMember(d => d.Comprobante, opt => opt.Ignore());
         }
 
         private static int ParseInt(string value) =>
             int.TryParse(value, out var n) ? n : 0;
+    }
 }
