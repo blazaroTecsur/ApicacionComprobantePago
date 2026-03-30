@@ -166,8 +166,8 @@ namespace ComprobantePago.Infrastructure.Services
                 ws.Cell(row, col++).Value = ""; // d.DescripcionCuenta; // ← opcional, puede causar problemas si tiene comas o saltos de línea
                 // 44-Ref
                 ws.Cell(row, col++).Value = d.Ref;
-                // 45-Tax Code (fijo)
-                ws.Cell(row, col++).Value = "NR";
+                // 45-Tax Code: NR si afecto a IGV, Exento si no tiene IGV
+                ws.Cell(row, col++).Value = d.PorcentajeIGV > 0 ? "NR" : "Exento";
                 // 46-Descripción cód imp 1 (fijo)
                 ws.Cell(row, col++).Value = "";
                 // 47-IGV (fijo)

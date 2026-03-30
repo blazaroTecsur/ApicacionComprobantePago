@@ -308,16 +308,19 @@ namespace ComprobantePago.Infrastructure.QueryServices
 
                 if (!imputaciones.Any()) continue;
 
-                // La primera imputación va a la cabecera; las siguientes 3 van a la distribución
-                var imputacionesDistribucion = imputaciones.Skip(1).Take(3).ToList();
-                if (!imputacionesDistribucion.Any()) continue;
+                // Imputación 1 → cabecera; imputación 2 → base imponible;
+                // imputación 3 → IGV; imputación 4 → exento (solo si aplica)
+                var tieneExento = c.MontoExento > 0 && c.PorcentajeIGV > 0;
+                var cantDist    = tieneExento ? 3 : 2;
 
-                var totalDist = imputacionesDistribucion.Sum(i => i.Monto);
+                var imputacionesDistribucion = imputaciones.Skip(1).Take(cantDist).ToList();
+                if (imputacionesDistribucion.Count < 2) continue; // mínimo base + IGV
+
                 var fechaDist = c.FechaRecepcion.HasValue
                     ? c.FechaRecepcion.Value.ToString("d/MM/yyyy")
                     : c.FechaEmision.ToString("d/MM/yyyy");
 
-                // Cada imputación de distribución genera exactamente 1 fila
+                // Cada imputación genera exactamente 1 fila
                 for (int idx = 0; idx < imputacionesDistribucion.Count; idx++)
                 {
                     var imp = imputacionesDistribucion[idx];
@@ -328,26 +331,26 @@ namespace ComprobantePago.Infrastructure.QueryServices
 
                     switch (idx)
                     {
-                        case 0: // Primera distribución — cuenta de gasto, sin código impuesto
+                        case 0: // Base imponible — cuenta de gasto/costo
                             sistImpst  = string.Empty;
                             codImp     = string.Empty;
                             descCodImp = string.Empty;
                             baseImp    = 0;
                             importe    = imp.Monto;
                             break;
-                        case 1: // Segunda — No Aplica Retención
-                            sistImpst  = "1";
-                            codImp     = "NR";
-                            descCodImp = "No Aplica Retención";
-                            baseImp    = c.MontoNeto;
-                            importe    = 0;
-                            break;
-                        case 2: // Tercera — IGV 18%
+                        case 1: // IGV
                             sistImpst  = "2";
                             codImp     = "IGV18";
                             descCodImp = "IGV 18%";
                             baseImp    = c.MontoNeto;
                             importe    = c.MontoIGVCredito;
+                            break;
+                        case 2: // Exento (solo cuando MontoExento > 0 y PorcentajeIGV > 0)
+                            sistImpst  = string.Empty;
+                            codImp     = "EXO";
+                            descCodImp = "Exento";
+                            baseImp    = c.MontoExento;
+                            importe    = c.MontoExento;
                             break;
                         default:
                             sistImpst  = string.Empty;
@@ -475,8 +478,9 @@ namespace ComprobantePago.Infrastructure.QueryServices
                     Tasa = c.PorcentajeDetraccion ?? 0,
                     TotalDetraccion = c.MontoDetraccion,
                     TotalDetLocal = c.MontoDetraccion,
-                    MontoExento = c.MontoExento,
-                    MontoRetencion = c.MontoRetencion
+                    MontoExento    = c.MontoExento,
+                    MontoRetencion = c.MontoRetencion,
+                    PorcentajeIGV  = c.PorcentajeIGV
                 });
             }
 
