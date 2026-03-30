@@ -398,8 +398,16 @@ namespace ComprobantePago.Infrastructure.Services
                 ws.Cell(row, col++).Value = d.NombreProv;
                 // 45-Núm reg fiscal
                 ws.Cell(row, col++).Value = d.NumRegFiscal;
-                // 46-64: campos fijos vacíos
-                for (int f = 46; f <= 64; f++)
+                // 46-Dígito cheque (fijo)
+                ws.Cell(row, col++).Value = "";
+                // 47-Nacional (fijo)
+                ws.Cell(row, col++).Value = "";
+                // 48-Doc.Soporte (fijo)
+                ws.Cell(row, col++).Value = "";
+                // 49-Tipo doc (SUNAT)
+                ws.Cell(row, col++).Value = d.TipoDoc;
+                // 50-64: campos fijos vacíos
+                for (int f = 50; f <= 64; f++)
                     ws.Cell(row, col++).Value = "";
 
                 if (row % 2 == 0)

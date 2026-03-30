@@ -221,6 +221,15 @@ function poblarCabecera(data) {
         $('#rdoFacturacionElectronica').prop('checked', false);
     }
 
+    // Empleado
+    if (data.esEmpleado) {
+        $('#chkEsEmpleado').prop('checked', true);
+        $('#hdnEmpleadoCodigo').val(data.empleadoCodigo);
+        $('#hdnEmpleadoNombre').val(data.empleadoNombre);
+        cargarEmpleadosYSeleccionar(data.empleadoCodigo);
+        $('#divSelectorEmpleado').removeClass('d-none');
+    }
+
     // Habilitar campos post-folio
     habilitarCamposManuales();
 }
@@ -324,6 +333,13 @@ function ocultarTodosLosBotones() {
 function guardarComprobante() {
     if (!validarCabecera()) return;
 
+    // Validar mínimo 3 líneas de imputación
+    if (typeof listaImputaciones !== 'undefined' && listaImputaciones.length < 3) {
+        CorporativoCore.notificarAdvertencia(
+            'Debe registrar al menos 3 líneas de imputación contable antes de guardar.');
+        return;
+    }
+
     CorporativoQuery.ajaxPost(
         '/Comprobante/Guardar',
         { comprobante: obtenerDatosCabecera() },
@@ -382,7 +398,10 @@ function obtenerDatosCabecera() {
         montoIGVCredito: CorporativoCore.limpiarMonto($('#txtMontoIGVCredito').val()),
         montoTotal: CorporativoCore.limpiarMonto($('#txtMontoTotal').val()),
         montoBruto: CorporativoCore.limpiarMonto($('#txtMontoBruto').val()),
-        montoRetencion: CorporativoCore.limpiarMonto($('#txtMontoRetencion').val())
+        montoRetencion: CorporativoCore.limpiarMonto($('#txtMontoRetencion').val()),
+        esEmpleado: $('#chkEsEmpleado').is(':checked'),
+        empleadoCodigo: $('#hdnEmpleadoCodigo').val(),
+        empleadoNombre: $('#hdnEmpleadoNombre').val()
     };
 }
 
@@ -521,6 +540,7 @@ function habilitarCamposManual() {
     $('#TieneDetraccion').prop('disabled', false);
     $('#NoTieneDetraccion').prop('disabled', false);
     $('.monto').prop('readonly', false);
+    $('#txtMontoIGVCreditoPorcentajeIGV').prop('readonly', false);
     habilitarCamposDetraccion($('#TieneDetraccion').is(':checked'));
 }
 
@@ -590,6 +610,46 @@ function esperarComboYAsignar(selector, valor) {
 // ── Utilidades ────────────────────────────────
 function obtenerParametroUrl(nombre) {
     return new URLSearchParams(window.location.search).get(nombre);
+}
+
+// ── Cargar empleados en combo ─────────────────
+function cargarEmpleados(filtro) {
+    CorporativoQuery.ajaxGet(
+        `/Comprobante/ObtenerEmpleados?filtro=${encodeURIComponent(filtro || '')}`,
+        function (data) {
+            let options = '<option value="">-- Seleccione empleado --</option>';
+            data.forEach(e =>
+                options += `<option value="${e.codigo}" data-nombre="${e.descripcion}">${e.descripcion}</option>`);
+            $('#ddlEmpleado').html(options);
+        });
+}
+
+function cargarEmpleadosYSeleccionar(codigo) {
+    CorporativoQuery.ajaxGet(
+        `/Comprobante/ObtenerEmpleados`,
+        function (data) {
+            let options = '<option value="">-- Seleccione empleado --</option>';
+            data.forEach(e =>
+                options += `<option value="${e.codigo}" data-nombre="${e.descripcion}">${e.descripcion}</option>`);
+            $('#ddlEmpleado').html(options).val(codigo);
+        });
+}
+
+// ── Recalcular montos en modo manual ──────────
+function recalcularMontos() {
+    const neto     = CorporativoCore.limpiarMonto($('#txtMontoNeto').val()) || 0;
+    const exento   = CorporativoCore.limpiarMonto($('#txtMontoExento').val()) || 0;
+    const pct      = parseFloat($('#txtMontoIGVCreditoPorcentajeIGV').val()) || 0;
+    const ret      = CorporativoCore.limpiarMonto($('#txtMontoRetencion').val()) || 0;
+    const igv      = Math.round(neto * pct / 100 * 100) / 100;
+    const subtotal = neto + exento;
+    const total    = subtotal + igv;
+    const bruto    = total - ret;
+
+    $('#txtMontoIGVCredito').val(CorporativoCore.formatearMonto(igv));
+    $('#txtMontoSubtotal').val(CorporativoCore.formatearMonto(subtotal));
+    $('#txtMontoTotal').val(CorporativoCore.formatearMonto(total));
+    $('#txtMontoBruto').val(CorporativoCore.formatearMonto(bruto));
 }
 
 // ── Bind de eventos ───────────────────────────
@@ -762,6 +822,45 @@ function bindEventos() {
             $('a[href="#tabImpresion"]').tab('show');
             $('#pdfComprobante').attr('src',
                 `/Comprobante/ObtenerPdf?folio=${folio}`);
+        }
+    });
+
+    // ── ¿Es empleado? ────────────────────────
+    $('#chkEsEmpleado').on('change', function () {
+        if ($(this).is(':checked')) {
+            cargarEmpleados('');
+            $('#divSelectorEmpleado').removeClass('d-none');
+        } else {
+            $('#divSelectorEmpleado').addClass('d-none');
+            $('#ddlEmpleado').val('');
+            $('#hdnEmpleadoCodigo').val('');
+            $('#hdnEmpleadoNombre').val('');
+        }
+    });
+
+    $('#ddlEmpleado').on('change', function () {
+        const selected = $(this).find('option:selected');
+        const codigo = selected.val();
+        const descripcion = selected.text();
+        $('#hdnEmpleadoCodigo').val(codigo);
+        // Nombre is the part after " - " in "CODIGO - NOMBRE"
+        const nombre = descripcion.includes(' - ')
+            ? descripcion.split(' - ').slice(1).join(' - ')
+            : descripcion;
+        $('#hdnEmpleadoNombre').val(nombre);
+    });
+
+    // ── Facturación manual: auto-calcular montos ──
+    $('#txtMontoNeto, #txtMontoIGVCreditoPorcentajeIGV, #txtMontoExento')
+        .on('change', function () {
+            if ($('#rdoFacturacionManual').is(':checked')) recalcularMontos();
+        });
+
+    $('#txtMontoRetencion').on('change', function () {
+        if ($('#rdoFacturacionManual').is(':checked')) {
+            const total = CorporativoCore.limpiarMonto($('#txtMontoTotal').val()) || 0;
+            const ret   = CorporativoCore.limpiarMonto($(this).val()) || 0;
+            $('#txtMontoBruto').val(CorporativoCore.formatearMonto(total - ret));
         }
     });
 }

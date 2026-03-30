@@ -91,6 +91,13 @@ namespace ComprobantePago.Web.Controllers
             return Ok(data);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> ObtenerEmpleados(string filtro = "")
+        {
+            var data = await _queryService.ObtenerEmpleadosAsync(filtro);
+            return Ok(data);
+        }
+
         #endregion
 
         // ══════════════════════════════════════

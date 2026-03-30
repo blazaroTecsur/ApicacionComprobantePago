@@ -26,11 +26,23 @@
                     <input type="hidden" id="txtFechaProveedorEmiteElectronicas" />
                     <input type="hidden" id="txtPeriodoAbierto" />
                     <input type="hidden" id="txtTipoDocumentoIdentidad" />
+                    <input type="hidden" id="hdnEmpleadoCodigo" />
+                    <input type="hidden" id="hdnEmpleadoNombre" />
                     <button class="btn btn-outline-secondary" type="button"
                             id="btnBuscarProveedorPrincipal" disabled>
                         ...
                     </button>
                 </div>
+                <div class="form-check mt-1">
+                    <input class="form-check-input" type="checkbox" id="chkEsEmpleado" />
+                    <label class="form-check-label small" for="chkEsEmpleado">¿Es empleado?</label>
+                </div>
+            </div>
+            <div class="col-md-3 d-none" id="divSelectorEmpleado">
+                <label class="form-label">Empleado</label>
+                <select class="form-select form-select-sm" id="ddlEmpleado">
+                    <option value="">-- Seleccione empleado --</option>
+                </select>
             </div>
             <div class="col-md-4">
                 <label class="form-label">Razón Social</label>
