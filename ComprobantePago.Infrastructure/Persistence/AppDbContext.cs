@@ -14,6 +14,7 @@ namespace ComprobantePago.Infrastructure.Persistence
         public DbSet<TipoDetraccion> TiposDetraccion { get; set; }
         public DbSet<EstadoComprobante> EstadosComprobante { get; set; }
         public DbSet<Empleado> Empleados { get; set; }
+        public DbSet<Proveedor> Proveedores { get; set; }
         public DbSet<CuentaContable> CuentasContables { get; set; }
         public DbSet<CodigoUnidad1> CodigosUnidad1 { get; set; }
         public DbSet<CodigoUnidad3> CodigosUnidad3 { get; set; }

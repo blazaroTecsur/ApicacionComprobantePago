@@ -9,7 +9,7 @@ namespace ComprobantePago.Infrastructure.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<CodigoUnidad4> builder)
         {
-            builder.ToTable("rcocodigounidad4");
+            builder.ToTable("tmacodigounidad4");
             builder.HasKey(x => x.IdCodigoUnidad4);
             builder.Property(x => x.Codigo).HasMaxLength(10).IsRequired();
             builder.Property(x => x.Descripcion).HasMaxLength(200).IsRequired();

@@ -4,6 +4,7 @@ using ComprobantePago.Application.DTOs.Comprobante.Requests;
 using ComprobantePago.Application.DTOs.Comprobante.Response;
 using ComprobantePago.Application.DTOs.Responses;
 using ComprobantePago.Application.Interfaces.QueryServices;
+using ComprobantePago.Application.Interfaces.Services.Maestros;
 using ComprobantePago.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -13,12 +14,18 @@ namespace ComprobantePago.Infrastructure.QueryServices
     public class ComprobanteQueryService(
         AppDbContext contexto,
         IMapper mapper,
-        ILogger<ComprobanteQueryService> logger)
+        ILogger<ComprobanteQueryService> logger,
+        IEmpleadoService empleadoService,
+        ICatalogoUnidadService cataloService,
+        ICuentaContableService cuentaService)
         : IComprobanteQueryService
     {
         private readonly AppDbContext _contexto = contexto;
         private readonly IMapper _mapper = mapper;
         private readonly ILogger<ComprobanteQueryService> _logger = logger;
+        private readonly IEmpleadoService _empleadoService = empleadoService;
+        private readonly ICatalogoUnidadService _cataloService = cataloService;
+        private readonly ICuentaContableService _cuentaService = cuentaService;
 
         #region Combos
         public async Task<IEnumerable<ComboDto>> ObtenerTiposDocumentoAsync()
@@ -88,67 +95,16 @@ namespace ComprobantePago.Infrastructure.QueryServices
                 })
                 .ToListAsync();
 
-        public async Task<IEnumerable<ComboDto>> ObtenerEmpleadosAsync(string filtro = "")
-        {
-            var query = _contexto.Empleados
-                .Where(x => x.Estado == null || x.Estado.ToUpper() != "INACTIVO");
-            if (!string.IsNullOrWhiteSpace(filtro))
-                query = query.Where(x =>
-                    x.Codigo.Contains(filtro) ||
-                    x.NombreCompleto.Contains(filtro));
-            return await query
-                .OrderBy(x => x.NombreCompleto)
-                .Select(x => new ComboDto
-                {
-                    Codigo = x.Codigo,
-                    Descripcion = $"{x.Codigo} - {x.NombreCompleto}"
-                })
-                .ToListAsync();
-        }
+        public Task<IEnumerable<ComboDto>> ObtenerEmpleadosAsync(string filtro = "")
+            => _empleadoService.ObtenerEmpleadosAsync(filtro);
 
-        public async Task<IEnumerable<ComboDto>> ObtenerCuentasContablesAsync(string filtro = "")
-        {
-            var query = _contexto.CuentasContables
-                .Where(x => x.Activo);
-            if (!string.IsNullOrWhiteSpace(filtro))
-                query = query.Where(x =>
-                    x.Codigo.Contains(filtro) || x.Descripcion.Contains(filtro));
-            return await query
-                .OrderBy(x => x.Codigo)
-                .Select(x => new ComboDto { Codigo = x.Codigo, Descripcion = x.Descripcion })
-                .ToListAsync();
-        }
+        public Task<IEnumerable<ComboDto>> ObtenerCuentasContablesAsync(string filtro = "")
+            => _cuentaService.ObtenerCuentasContablesAsync(filtro);
 
-        public async Task<IEnumerable<ComboDto>> ObtenerCodigosUnidadAsync(
+        public Task<IEnumerable<ComboDto>> ObtenerCodigosUnidadAsync(
             string campo, int unidad, string codigo, string filtro = "")
-        {
-            bool tieneFiltro = !string.IsNullOrWhiteSpace(filtro);
-            return unidad switch
-            {
-                1 => await _contexto.CodigosUnidad1
-                    .Where(x => x.Activo &&
-                        (!tieneFiltro || x.Codigo.Contains(filtro) || x.Descripcion.Contains(filtro)))
-                    .OrderBy(x => x.Codigo)
-                    .Select(x => new ComboDto { Codigo = x.Codigo, Descripcion = x.Descripcion })
-                    .ToListAsync(),
+            => _cataloService.ObtenerCodigosUnidadAsync(unidad, filtro);
 
-                3 => await _contexto.CodigosUnidad3
-                    .Where(x => x.Activo &&
-                        (!tieneFiltro || x.Codigo.Contains(filtro) || x.Descripcion.Contains(filtro)))
-                    .OrderBy(x => x.Codigo)
-                    .Select(x => new ComboDto { Codigo = x.Codigo, Descripcion = x.Descripcion })
-                    .ToListAsync(),
-
-                4 => await _contexto.CodigosUnidad4
-                    .Where(x => x.Activo &&
-                        (!tieneFiltro || x.Codigo.Contains(filtro) || x.Descripcion.Contains(filtro)))
-                    .OrderBy(x => x.Codigo)
-                    .Select(x => new ComboDto { Codigo = x.Codigo, Descripcion = x.Descripcion })
-                    .ToListAsync(),
-
-                _ => new List<ComboDto>()
-            };
-        }
         #endregion
 
         #region Buscar y Detalle
