@@ -40,9 +40,13 @@
             </div>
             <div class="col-md-3 d-none" id="divSelectorEmpleado">
                 <label class="form-label">Empleado</label>
-                <select class="form-select form-select-sm" id="ddlEmpleado">
-                    <option value="">-- Seleccione empleado --</option>
-                </select>
+                <div class="input-group input-group-sm">
+                    <input type="text" class="form-control" id="txtEmpleadoDisplay"
+                           placeholder="Buscar por código o nombre..." readonly />
+                    <button class="btn btn-outline-secondary" type="button" id="btnBuscarEmpleado">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
             </div>
             <div class="col-md-4">
                 <label class="form-label">Razón Social</label>
