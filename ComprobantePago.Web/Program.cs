@@ -67,16 +67,7 @@ try
             Version     = "v1",
             Description = "API REST para la gestión de comprobantes de pago."
         });
-        c.EnableAnnotations();
     });
-
-    // ── API Versioning ────────────────────────────────────────────────────────
-    builder.Services.AddApiVersioning(options =>
-    {
-        options.DefaultApiVersion               = new ApiVersion(1, 0);
-        options.AssumeDefaultVersionWhenUnspecified = true;
-        options.ReportApiVersions               = true;
-    }).AddMvc();
 
     // ── Base de datos MySQL ───────────────────────────────────────────────────
     builder.Services.AddDbContext<AppDbContext>(options =>
