@@ -1,15 +1,15 @@
-﻿namespace ComprobantePago.Application.DTOs.Comprobante.Response
+namespace ComprobantePago.Application.DTOs.Comprobante.Response
 {
-    public class ComprobanteDto
+    public sealed class ComprobanteDto
     {
-        public string Folio { get; set; }
-        public string TipoComprobante { get; set; }
-        public string Serie { get; set; }
-        public string Numero { get; set; }
-        public string Proveedor { get; set; }
-        public string Fecha { get; set; }
-        public string Moneda { get; set; }
-        public decimal MontoTotal { get; set; }
-        public string Estado { get; set; }
+        public string Folio          { get; init; } = string.Empty;
+        public string TipoComprobante{ get; init; } = string.Empty;
+        public string Serie          { get; init; } = string.Empty;
+        public string Numero         { get; init; } = string.Empty;
+        public string Proveedor      { get; init; } = string.Empty;
+        public string Fecha          { get; init; } = string.Empty;
+        public string Moneda         { get; init; } = string.Empty;
+        public decimal MontoTotal    { get; init; }
+        public string Estado         { get; init; } = string.Empty;
     }
 }

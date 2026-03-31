@@ -1,6 +1,9 @@
+using Asp.Versioning;
 using ComprobantePago.Application.Commands.Comprobante;
 using ComprobantePago.Application.Commands.Imputacion;
+using ComprobantePago.Application.Common;
 using ComprobantePago.Application.DTOs.Comprobante.Requests;
+using ComprobantePago.Application.Exceptions;
 using ComprobantePago.Application.Interfaces.QueryServices;
 using ComprobantePago.Application.Interfaces.Repositories;
 using ComprobantePago.Application.Interfaces.Services;
@@ -9,574 +12,348 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ComprobantePago.Web.Controllers
 {
+    /// <summary>Gestión de comprobantes de pago.</summary>
+    [ApiVersion("1.0")]
+    [Route("[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     public class ComprobanteController : Controller
     {
         private readonly IComprobanteQueryService _queryService;
-        private readonly ISytelineQueryService _sytelineService;
-        private readonly IMaestrosQueryService _maestrosService;
-        private readonly IComprobanteRepository _repository;
-        private readonly IExcelSytelineService _excelService;
-        private readonly IProveedorService _proveedorService;
+        private readonly ISytelineQueryService    _sytelineService;
+        private readonly IMaestrosQueryService    _maestrosService;
+        private readonly IComprobanteRepository  _repository;
+        private readonly IExcelSytelineService   _excelService;
+        private readonly IProveedorService       _proveedorService;
 
         public ComprobanteController(
             IComprobanteQueryService queryService,
-            ISytelineQueryService sytelineService,
-            IMaestrosQueryService maestrosService,
-            IComprobanteRepository repository,
-            IExcelSytelineService excelService,
-            IProveedorService proveedorService)
+            ISytelineQueryService    sytelineService,
+            IMaestrosQueryService    maestrosService,
+            IComprobanteRepository  repository,
+            IExcelSytelineService   excelService,
+            IProveedorService       proveedorService)
         {
-            _queryService = queryService;
-            _sytelineService = sytelineService;
-            _maestrosService = maestrosService;
-            _repository = repository;
-            _excelService = excelService;
+            _queryService     = queryService;
+            _sytelineService  = sytelineService;
+            _maestrosService  = maestrosService;
+            _repository       = repository;
+            _excelService     = excelService;
             _proveedorService = proveedorService;
         }
 
         // ══════════════════════════════════════
-        // VISTAS
+        // VISTAS MVC
         // ══════════════════════════════════════
 
-        // GET: /Comprobante/Index
-        public IActionResult Index()
-        {
-            return View();
-        }
+        [HttpGet("Index")]
+        public IActionResult Index() => View();
 
-        // GET: /Comprobante/Detalle
-        public IActionResult Detalle()
-        {
-            return View();
-        }
+        [HttpGet("Detalle")]
+        public IActionResult Detalle() => View();
 
-        #region COMBOS
+        // ══════════════════════════════════════
+        // COMBOS
+        // ══════════════════════════════════════
 
-        [HttpGet]
+        /// <summary>Devuelve los tipos de documento disponibles.</summary>
+        [HttpGet("ObtenerTiposDocumento")]
         public async Task<IActionResult> ObtenerTiposDocumento()
-        {
-            var data = await _maestrosService.ObtenerTiposDocumentoAsync();
-            return Ok(data);
-        }
+            => Ok(await _maestrosService.ObtenerTiposDocumentoAsync());
 
-        [HttpGet]
+        /// <summary>Devuelve los tipos SUNAT disponibles.</summary>
+        [HttpGet("ObtenerTiposSunat")]
         public async Task<IActionResult> ObtenerTiposSunat()
-        {
-            var data = await _maestrosService.ObtenerTiposSunatAsync();
-            return Ok(data);
-        }
+            => Ok(await _maestrosService.ObtenerTiposSunatAsync());
 
-        [HttpGet]
+        /// <summary>Devuelve las monedas disponibles.</summary>
+        [HttpGet("ObtenerMonedas")]
         public async Task<IActionResult> ObtenerMonedas()
-        {
-            var data = await _maestrosService.ObtenerMonedasAsync();
-            return Ok(data);
-        }
+            => Ok(await _maestrosService.ObtenerMonedasAsync());
 
-        [HttpGet]
+        /// <summary>Devuelve los lugares de pago disponibles.</summary>
+        [HttpGet("ObtenerLugaresPago")]
         public async Task<IActionResult> ObtenerLugaresPago()
-        {
-            var data = await _maestrosService.ObtenerLugaresPagoAsync();
-            return Ok(data);
-        }
+            => Ok(await _maestrosService.ObtenerLugaresPagoAsync());
 
-        [HttpGet]
+        /// <summary>Devuelve los tipos de detracción disponibles.</summary>
+        [HttpGet("ObtenerTiposDetraccion")]
         public async Task<IActionResult> ObtenerTiposDetraccion()
-        {
-            var data = await _maestrosService.ObtenerTiposDetraccionAsync();
-            return Ok(data);
-        }
+            => Ok(await _maestrosService.ObtenerTiposDetraccionAsync());
 
-        [HttpGet]
+        /// <summary>Alias para ObtenerTiposDocumento.</summary>
+        [HttpGet("ObtenerTipos")]
         public async Task<IActionResult> ObtenerTipos()
-        {
-            var data = await _maestrosService.ObtenerTiposDocumentoAsync();
-            return Ok(data);
-        }
+            => Ok(await _maestrosService.ObtenerTiposDocumentoAsync());
 
-        [HttpGet]
+        /// <summary>Devuelve los estados de comprobante disponibles.</summary>
+        [HttpGet("ObtenerEstados")]
         public async Task<IActionResult> ObtenerEstados()
-        {
-            var data = await _maestrosService.ObtenerEstadosAsync();
-            return Ok(data);
-        }
+            => Ok(await _maestrosService.ObtenerEstadosAsync());
 
-        [HttpGet]
-        public async Task<IActionResult> ObtenerEmpleados(string filtro = "")
-        {
-            var data = await _maestrosService.ObtenerEmpleadosAsync(filtro);
-            return Ok(data);
-        }
+        /// <summary>Busca empleados por filtro de código o nombre.</summary>
+        [HttpGet("ObtenerEmpleados")]
+        public async Task<IActionResult> ObtenerEmpleados([FromQuery] string filtro = "")
+            => Ok(await _maestrosService.ObtenerEmpleadosAsync(filtro));
 
-        [HttpGet]
-        public async Task<IActionResult> ObtenerProveedores(string filtro = "")
-        {
-            var data = await _proveedorService.ObtenerProveedoresAsync(filtro);
-            return Ok(data);
-        }
-
-        #endregion
+        /// <summary>Busca proveedores por filtro de RUC o razón social.</summary>
+        [HttpGet("ObtenerProveedores")]
+        public async Task<IActionResult> ObtenerProveedores([FromQuery] string filtro = "")
+            => Ok(await _proveedorService.ObtenerProveedoresAsync(filtro));
 
         // ══════════════════════════════════════
         // CONSULTAS COMPROBANTE
         // ══════════════════════════════════════
 
-        [HttpPost]
-        public async Task<IActionResult> Buscar(
-            [FromBody] BuscarComprobanteDto filtros)
-        {
-            var data = await _queryService.BuscarAsync(filtros);
-            return Ok(data);
-        }
+        /// <summary>Busca comprobantes aplicando los filtros indicados.</summary>
+        [HttpPost("Buscar")]
+        public async Task<IActionResult> Buscar([FromBody] BuscarComprobanteDto filtros)
+            => Ok(await _queryService.BuscarAsync(filtros));
 
-        [HttpGet]
-        public async Task<IActionResult> ObtenerDetalle(string folio)
+        /// <summary>Devuelve el detalle completo de un comprobante por folio.</summary>
+        [HttpGet("ObtenerDetalle")]
+        public async Task<IActionResult> ObtenerDetalle([FromQuery] string folio)
         {
             var data = await _queryService.ObtenerDetalleAsync(folio);
-            if (data == null)
-                return Ok(new
-                {
-                    exito = false,
-                    mensaje = "Comprobante no encontrado."
-                });
-            return Ok(data);
+            return data is null
+                ? Ok(BaseResponse.Error("Comprobante no encontrado."))
+                : Ok(data);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> ObtenerPdf(string folio)
+        /// <summary>Descarga el PDF del comprobante.</summary>
+        [HttpGet("ObtenerPdf")]
+        public async Task<IActionResult> ObtenerPdf([FromQuery] string folio)
         {
             var pdf = await _queryService.ObtenerPdfAsync(folio);
-            if (pdf == null) return NotFound();
-            return File(pdf, "application/pdf");
+            return pdf is null ? NotFound() : File(pdf, "application/pdf");
         }
 
-        [HttpGet]
-        public async Task<IActionResult> DocumentosElectronicos(string folio)
-        {
-            var data = await _queryService
-                .ObtenerDocumentosElectronicosAsync(folio);
-            return Ok(data);
-        }
+        /// <summary>Lista los documentos electrónicos adjuntos a un comprobante.</summary>
+        [HttpGet("DocumentosElectronicos")]
+        public async Task<IActionResult> DocumentosElectronicos([FromQuery] string folio)
+            => Ok(await _queryService.ObtenerDocumentosElectronicosAsync(folio));
 
         // ══════════════════════════════════════
         // COMANDOS COMPROBANTE
         // ══════════════════════════════════════
 
-        [HttpPost]
+        /// <summary>Registra o actualiza un comprobante.</summary>
+        [HttpPost("Guardar")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Guardar(
-            [FromBody] RegistrarComprobanteCommand command)
+        public async Task<IActionResult> Guardar([FromBody] RegistrarComprobanteCommand command)
         {
-            try
-            {
-                var folio = await _repository.GuardarAsync(command);
-                return Ok(new { exito = true, folio });
-            }
-            catch (Exception ex)
-            {
-                return Ok(new { exito = false, mensaje = ex.Message });
-            }
+            var folio = await _repository.GuardarAsync(command);
+            return Ok(new { exito = true, folio });
         }
 
-        [HttpPost]
+        /// <summary>Envía el comprobante al siguiente estado.</summary>
+        [HttpPost("Enviar")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Enviar(
-            [FromBody] EnviarComprobanteCommand command)
+        public async Task<IActionResult> Enviar([FromBody] EnviarComprobanteCommand command)
         {
-            try
-            {
-                await _repository.EnviarAsync(command);
-                return Ok(new { exito = true });
-            }
-            catch (Exception ex)
-            {
-                return Ok(new { exito = false, mensaje = ex.Message });
-            }
+            await _repository.EnviarAsync(command);
+            return Ok(BaseResponse.Ok());
         }
 
-        [HttpPost]
+        /// <summary>Firma (autoriza) el comprobante.</summary>
+        [HttpPost("Firmar")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Firmar(
-            [FromBody] FirmarComprobanteCommand command)
+        public async Task<IActionResult> Firmar([FromBody] FirmarComprobanteCommand command)
         {
-            try
-            {
-                await _repository.FirmarAsync(command);
-                return Ok(new { exito = true });
-            }
-            catch (Exception ex)
-            {
-                return Ok(new { exito = false, mensaje = ex.Message });
-            }
+            await _repository.FirmarAsync(command);
+            return Ok(BaseResponse.Ok());
         }
 
-        [HttpPost]
+        /// <summary>Aprueba el comprobante.</summary>
+        [HttpPost("Aprobar")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Aprobar(
-            [FromBody] AprobarComprobanteCommand command)
+        public async Task<IActionResult> Aprobar([FromBody] AprobarComprobanteCommand command)
         {
-            try
-            {
-                await _repository.AprobarAsync(command);
-                return Ok(new { exito = true });
-            }
-            catch (Exception ex)
-            {
-                return Ok(new { exito = false, mensaje = ex.Message });
-            }
+            await _repository.AprobarAsync(command);
+            return Ok(BaseResponse.Ok());
         }
 
-        [HttpPost]
+        /// <summary>Anula el comprobante.</summary>
+        [HttpPost("Anular")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Anular(
-            [FromBody] AnularComprobanteCommand command)
+        public async Task<IActionResult> Anular([FromBody] AnularComprobanteCommand command)
         {
-            try
-            {
-                await _repository.AnularAsync(command);
-                return Ok(new { exito = true });
-            }
-            catch (Exception ex)
-            {
-                return Ok(new { exito = false, mensaje = ex.Message });
-            }
+            await _repository.AnularAsync(command);
+            return Ok(BaseResponse.Ok());
         }
 
-        [HttpPost]
+        /// <summary>Deriva el comprobante.</summary>
+        [HttpPost("Derivar")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Derivar(
-            [FromBody] DerivarComprobanteCommand command)
+        public async Task<IActionResult> Derivar([FromBody] DerivarComprobanteCommand command)
         {
-            try
-            {
-                await _repository.DerivarAsync(command);
-                return Ok(new { exito = true });
-            }
-            catch (Exception ex)
-            {
-                return Ok(new { exito = false, mensaje = ex.Message });
-            }
+            await _repository.DerivarAsync(command);
+            return Ok(BaseResponse.Ok());
         }
 
         // ══════════════════════════════════════
         // CONSULTAS IMPUTACIÓN
         // ══════════════════════════════════════
 
-        [HttpGet]
-        public async Task<IActionResult> ObtenerImputaciones(string folio)
-        {
-            var data = await _queryService.ObtenerImputacionesAsync(folio);
-            return Ok(data);
-        }
+        /// <summary>Lista las imputaciones contables de un comprobante.</summary>
+        [HttpGet("ObtenerImputaciones")]
+        public async Task<IActionResult> ObtenerImputaciones([FromQuery] string folio)
+            => Ok(await _queryService.ObtenerImputacionesAsync(folio));
 
-        [HttpGet]
-        public async Task<IActionResult> ObtenerCuentasContables(string filtro = "")
-        {
-            var data = await _maestrosService.ObtenerCuentasContablesAsync(filtro);
-            return Ok(data);
-        }
+        /// <summary>Busca cuentas contables por filtro.</summary>
+        [HttpGet("ObtenerCuentasContables")]
+        public async Task<IActionResult> ObtenerCuentasContables([FromQuery] string filtro = "")
+            => Ok(await _maestrosService.ObtenerCuentasContablesAsync(filtro));
 
-        [HttpGet]
+        /// <summary>Busca códigos de unidad por campo/unidad/código/filtro.</summary>
+        [HttpGet("ObtenerCodigosUnidad")]
         public async Task<IActionResult> ObtenerCodigosUnidad(
-            string campo, int unidad, string codigo, string filtro = "")
-        {
-            var data = await _maestrosService
-                .ObtenerCodigosUnidadAsync(campo, unidad, codigo, filtro);
-            return Ok(data);
-        }
+            [FromQuery] string campo, [FromQuery] int unidad,
+            [FromQuery] string codigo, [FromQuery] string filtro = "")
+            => Ok(await _maestrosService.ObtenerCodigosUnidadAsync(campo, unidad, codigo, filtro));
 
-        [HttpGet]
+        /// <summary>Descarga la plantilla Excel para carga masiva de imputaciones.</summary>
+        [HttpGet("DescargarPlantillaImputacion")]
         public async Task<IActionResult> DescargarPlantillaImputacion()
         {
-            var archivo = await _queryService
-                .ObtenerPlantillaImputacionAsync();
-            return File(
-                archivo,
-                "application/vnd.openxmlformats-officedocument" +
-                ".spreadsheetml.sheet",
-                "PlantillaImputacion.xlsx"
-            );
+            var archivo = await _queryService.ObtenerPlantillaImputacionAsync();
+            return File(archivo,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "PlantillaImputacion.xlsx");
         }
 
         // ══════════════════════════════════════
         // COMANDOS IMPUTACIÓN
         // ══════════════════════════════════════
 
-        [HttpPost]
+        /// <summary>Agrega una línea de imputación contable.</summary>
+        [HttpPost("AgregarImputacion")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AgregarImputacion(
-            [FromBody] AgregarImputacionCommand command)
+        public async Task<IActionResult> AgregarImputacion([FromBody] AgregarImputacionCommand command)
         {
-            try
-            {
-                var imputacion = await _repository
-                    .AgregarImputacionAsync(command);
-                return Ok(new { exito = true, imputacion });
-            }
-            catch (Exception ex)
-            {
-                return Ok(new { exito = false, mensaje = ex.Message });
-            }
+            var imputacion = await _repository.AgregarImputacionAsync(command);
+            return Ok(new { exito = true, imputacion });
         }
 
-        [HttpPost]
+        /// <summary>Edita una línea de imputación contable existente.</summary>
+        [HttpPost("EditarImputacion")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditarImputacion(
-            [FromBody] EditarImputacionCommand command)
+        public async Task<IActionResult> EditarImputacion([FromBody] EditarImputacionCommand command)
         {
-            try
-            {
-                var imputacion = await _repository
-                    .EditarImputacionAsync(command);
-                return Ok(new { exito = true, imputacion });
-            }
-            catch (Exception ex)
-            {
-                return Ok(new { exito = false, mensaje = ex.Message });
-            }
+            var imputacion = await _repository.EditarImputacionAsync(command);
+            return Ok(new { exito = true, imputacion });
         }
 
-        [HttpPost]
+        /// <summary>Elimina una línea de imputación contable.</summary>
+        [HttpPost("EliminarImputacion")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EliminarImputacion(
-            [FromBody] EliminarImputacionCommand command)
+        public async Task<IActionResult> EliminarImputacion([FromBody] EliminarImputacionCommand command)
         {
-            try
-            {
-                await _repository.EliminarImputacionAsync(command);
-                return Ok(new { exito = true });
-            }
-            catch (Exception ex)
-            {
-                return Ok(new { exito = false, mensaje = ex.Message });
-            }
+            await _repository.EliminarImputacionAsync(command);
+            return Ok(BaseResponse.Ok());
         }
 
-        [HttpPost]
+        /// <summary>Carga masiva de imputaciones desde un archivo Excel.</summary>
+        [HttpPost("CargarImputacionMasiva")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CargarImputacionMasiva(
-            IFormFile file)
+        public async Task<IActionResult> CargarImputacionMasiva(IFormFile file)
         {
-            try
-            {
-                if (file == null || file.Length == 0)
-                    return Ok(new
-                    {
-                        exito = false,
-                        mensaje = "Archivo inválido."
-                    });
-
-                var imputaciones = await _repository
-                    .CargarImputacionMasivaAsync(file);
-                return Ok(new { exito = true, imputaciones });
-            }
-            catch (Exception ex)
-            {
-                return Ok(new { exito = false, mensaje = ex.Message });
-            }
+            var imputaciones = await _repository.CargarImputacionMasivaAsync(file);
+            return Ok(new { exito = true, imputaciones });
         }
 
-        // POST: /Comprobante/ValidarXmlSunat
-        [HttpPost]
+        // ══════════════════════════════════════
+        // VALIDACIÓN SUNAT
+        // ══════════════════════════════════════
+
+        /// <summary>Valida un comprobante electrónico mediante su archivo XML SUNAT.</summary>
+        [HttpPost("ValidarXmlSunat")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ValidarXmlSunat(IFormFile archivo)
-        {
-            try
-            {
-                if (archivo == null || archivo.Length == 0)
-                    return Ok(new
-                    {
-                        exito = false,
-                        mensaje = "Archivo inválido."
-                    });
+            => Ok(await _repository.ValidarXmlSunatAsync(archivo));
 
-                var resultado = await _repository.ValidarXmlSunatAsync(archivo);
-                return Ok(resultado);
-            }
-            catch (Exception ex)
-            {
-                return Ok(new { exito = false, mensaje = ex.Message });
-            }
-        }
-
-        // POST: /Comprobante/ValidarPdfSunat
-        [HttpPost]
+        /// <summary>Valida un comprobante electrónico mediante su archivo PDF.</summary>
+        [HttpPost("ValidarPdfSunat")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ValidarPdfSunat(IFormFile archivo)
-        {
-            try
-            {
-                if (archivo == null || archivo.Length == 0)
-                    return Ok(new
-                    {
-                        exito = false,
-                        mensaje = "Archivo inválido."
-                    });
+            => Ok(await _repository.ValidarPdfSunatAsync(archivo));
 
-                var resultado = await _repository.ValidarPdfSunatAsync(archivo);
-                return Ok(resultado);
-            }
-            catch (Exception ex)
-            {
-                return Ok(new { exito = false, mensaje = ex.Message });
-            }
-        }
-
-        // POST: /Comprobante/ValidarZipSunat
-        [HttpPost]
+        /// <summary>Valida un comprobante electrónico mediante un archivo ZIP (XML + CDR + PDF).</summary>
+        [HttpPost("ValidarZipSunat")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ValidarZipSunat(IFormFile archivo)
-        {
-            try
-            {
-                if (archivo == null || archivo.Length == 0)
-                    return Ok(new
-                    {
-                        exito = false,
-                        mensaje = "Archivo inválido."
-                    });
+            => Ok(await _repository.ValidarZipSunatAsync(archivo));
 
-                var resultado = await _repository.ValidarZipSunatAsync(archivo);
-                return Ok(resultado);
-            }
-            catch (Exception ex)
-            {
-                return Ok(new { exito = false, mensaje = ex.Message });
-            }
-        }
+        // ══════════════════════════════════════
+        // GESTIÓN DOCUMENTOS ADJUNTOS
+        // ══════════════════════════════════════
 
-        // POST: /Comprobante/SubirDocumentos
-        [HttpPost]
+        /// <summary>Sube documentos adjuntos a un comprobante.</summary>
+        [HttpPost("SubirDocumentos")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubirDocumentos(
-            string folio, string subTipo, IFormFileCollection archivos)
+            [FromForm] string folio, [FromForm] string subTipo, IFormFileCollection archivos)
         {
-            try
+            var lista = new List<(byte[], string, string, string)>();
+            foreach (var archivo in archivos.Where(a => a.Length > 0))
             {
-                if (string.IsNullOrEmpty(folio))
-                    return Ok(new { exito = false, mensaje = "Folio requerido." });
-                if (string.IsNullOrEmpty(subTipo))
-                    return Ok(new { exito = false, mensaje = "Tipo de documento requerido." });
-                if (archivos == null || archivos.Count == 0)
-                    return Ok(new { exito = false, mensaje = "No se recibieron archivos." });
-
-                var lista = new List<(byte[] contenido, string nombre, string tipo, string subTipo)>();
-                foreach (var archivo in archivos)
-                {
-                    if (archivo.Length == 0) continue;
-                    var ext = Path.GetExtension(archivo.FileName)
-                        .TrimStart('.').ToLowerInvariant();
-                    var tipo = ext == "pdf" ? "PDF" : ext.ToUpper();
-
-                    using var ms = new MemoryStream();
-                    await archivo.CopyToAsync(ms);
-                    lista.Add((ms.ToArray(), archivo.FileName, tipo, subTipo));
-                }
-
-                if (lista.Count > 0)
-                    await _repository.GuardarDocumentosAsync(folio, lista);
-
-                var docs = await _queryService.ObtenerDocumentosElectronicosAsync(folio);
-                return Ok(new { exito = true, documentos = docs });
+                var ext  = Path.GetExtension(archivo.FileName).TrimStart('.').ToLowerInvariant();
+                var tipo = ext == "pdf" ? "PDF" : ext.ToUpper();
+                using var ms = new MemoryStream();
+                await archivo.CopyToAsync(ms);
+                lista.Add((ms.ToArray(), archivo.FileName, tipo, subTipo));
             }
-            catch (Exception ex)
-            {
-                return Ok(new { exito = false, mensaje = ex.Message });
-            }
+
+            if (lista.Count > 0)
+                await _repository.GuardarDocumentosAsync(folio, lista);
+
+            var docs = await _queryService.ObtenerDocumentosElectronicosAsync(folio);
+            return Ok(new { exito = true, documentos = docs });
         }
 
-        // GET: /Comprobante/DescargarDocumento?id={id}
-        [HttpGet]
-        public async Task<IActionResult> DescargarDocumento(int id)
+        /// <summary>Descarga un documento adjunto por su ID.</summary>
+        [HttpGet("DescargarDocumento")]
+        public async Task<IActionResult> DescargarDocumento([FromQuery] int id)
         {
             var doc = await _repository.DescargarDocumentoAsync(id);
-            if (doc == null) return NotFound();
-
-            var ext = Path.GetExtension(doc.NombreArchivo)
-                .TrimStart('.').ToLowerInvariant();
+            if (doc is null) return NotFound();
+            var ext = Path.GetExtension(doc.NombreArchivo).TrimStart('.').ToLowerInvariant();
             var contentType = ext == "pdf" ? "application/pdf" : "application/octet-stream";
-
             return File(doc.Contenido, contentType, doc.NombreArchivo);
         }
 
-        // POST: /Comprobante/EliminarDocumento
-        [HttpPost]
+        /// <summary>Elimina un documento adjunto por su ID.</summary>
+        [HttpPost("EliminarDocumento")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EliminarDocumento([FromBody] int id)
         {
-            try
-            {
-                await _repository.EliminarDocumentoAsync(id);
-                return Ok(new { exito = true });
-            }
-            catch (Exception ex)
-            {
-                return Ok(new { exito = false, mensaje = ex.Message });
-            }
+            await _repository.EliminarDocumentoAsync(id);
+            return Ok(BaseResponse.Ok());
         }
 
-        [HttpPost]
-        public async Task<IActionResult> ExportarDistribucionSyteline(
-            [FromForm] List<string> folios)
+        // ══════════════════════════════════════
+        // EXPORTACIÓN SYTELINE
+        // ══════════════════════════════════════
+
+        /// <summary>Exporta la distribución SyteLine en formato Excel para los folios indicados.</summary>
+        [HttpPost("ExportarDistribucionSyteline")]
+        public async Task<IActionResult> ExportarDistribucionSyteline([FromForm] List<string> folios)
         {
-            if (folios == null || !folios.Any())
-                return Ok(new
-                {
-                    exito = false,
-                    mensaje = "No hay comprobantes seleccionados."
-                });
-
-            var datos = await _sytelineService
-                .ObtenerDistribucionSytelineAsync(folios);
-
-            if (!datos.Any())
-                return Ok(new
-                {
-                    exito = false,
-                    mensaje = "No hay imputaciones para exportar."
-                });
-
+            var datos = await _sytelineService.ObtenerDistribucionSytelineAsync(folios);
             var excel = _excelService.GenerarDistribucion(datos);
-            var fecha = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-
-            return File(
-                excel,
-                "application/vnd.openxmlformats-officedocument" +
-                ".spreadsheetml.sheet",
-                $"Distribucion_Syteline_{fecha}.xlsx"
-            );
+            return File(excel,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"Distribucion_Syteline_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
         }
 
-        [HttpPost]
-        public async Task<IActionResult> ExportarCabeceraSyteline(
-            [FromForm] List<string> folios)
+        /// <summary>Exporta la cabecera SyteLine en formato Excel para los folios indicados.</summary>
+        [HttpPost("ExportarCabeceraSyteline")]
+        public async Task<IActionResult> ExportarCabeceraSyteline([FromForm] List<string> folios)
         {
-            if (folios == null || !folios.Any())
-                return Ok(new
-                {
-                    exito = false,
-                    mensaje = "No hay comprobantes seleccionados."
-                });
-
-            var datos = await _sytelineService
-                .ObtenerCabecerasSytelineAsync(folios);
-
-            if (!datos.Any())
-                return Ok(new
-                {
-                    exito = false,
-                    mensaje = "No hay comprobantes aprobados para exportar."
-                });
-
+            var datos = await _sytelineService.ObtenerCabecerasSytelineAsync(folios);
             var excel = _excelService.GenerarCabecera(datos);
-            var fecha = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-
-            return File(
-                excel,
-                "application/vnd.openxmlformats-officedocument" +
-                ".spreadsheetml.sheet",
-                $"Cabecera_Syteline_{fecha}.xlsx"
-            );
+            return File(excel,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"Cabecera_Syteline_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
         }
     }
 }

@@ -2,8 +2,8 @@
 
 namespace ComprobantePago.Application.Commands.Comprobante
 {
-    public class AprobarComprobanteCommand
+    public sealed class AprobarComprobanteCommand
     {
-        public AccionComprobanteDto Comprobante { get; set; } = new();
+        public AccionComprobanteDto Comprobante { get; init; } = new();
     }
 }

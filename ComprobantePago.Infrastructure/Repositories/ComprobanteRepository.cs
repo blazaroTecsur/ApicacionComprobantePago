@@ -1,13 +1,14 @@
-﻿using AutoMapper;
 using ComprobantePago.Application.Commands.Comprobante;
 using ComprobantePago.Application.Commands.Imputacion;
 using ComprobantePago.Application.DTOs.Comprobante.Response;
 using ComprobantePago.Application.Exceptions;
+using ComprobantePago.Application.Interfaces;
 using ComprobantePago.Application.Interfaces.Repositories;
 using ComprobantePago.Application.Interfaces.Services;
 using ComprobantePago.Domain.Entities;
 using ComprobantePago.Infrastructure.Persistence;
 using ComprobantePago.Infrastructure.Services;
+using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -17,17 +18,17 @@ namespace ComprobantePago.Infrastructure.Repositories
 {
     public class ComprobanteRepository(
         AppDbContext contexto,
+        IUnitOfWork unitOfWork,
         ISunatService sunatService,
         XmlComprobanteService xmlService,
         PdfComprobanteService pdfService,
-        IMapper mapper,
         ILogger<ComprobanteRepository> logger)
         : RepositorioBase<Comprobante>(contexto), IComprobanteRepository
     {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly ISunatService _sunatService = sunatService;
         private readonly XmlComprobanteService _xmlService = xmlService;
         private readonly PdfComprobanteService _pdfService = pdfService;
-        private readonly IMapper _mapper = mapper;
         private readonly ILogger<ComprobanteRepository> _logger = logger;
 
         // ── Generar Folio ─────────────────────────
@@ -39,8 +40,7 @@ namespace ComprobantePago.Infrastructure.Repositories
             return $"{anio}{mes}{correlativo}";
         }
 
-        private async Task<string> ObtenerCorrelativoAsync(
-            string anio, string mes)
+        private async Task<string> ObtenerCorrelativoAsync(string anio, string mes)
         {
             var prefijo = $"{anio}{mes}";
 
@@ -61,185 +61,176 @@ namespace ComprobantePago.Infrastructure.Repositories
         }
 
         // ── Guardar Comprobante ───────────────────
-        public async Task<string> GuardarAsync(
-            RegistrarComprobanteCommand command)
+        public async Task<string> GuardarAsync(RegistrarComprobanteCommand command)
         {
             var dto = command.Comprobante;
             var folio = dto.Folio;
             _logger.LogInformation("Guardando comprobante folio {Folio}", folio);
 
-            var existente = await _contexto.Comprobantes
-                .FirstOrDefaultAsync(x => x.Folio == folio);
-
-            if (existente != null)
+            await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                // ── Actualizar ────────────────────
-                existente.RucReceptor = dto.Ruc;
-                existente.RazonSocialReceptor = dto.RazonSocial;
-                existente.TipoDocumento = dto.TipoDocumento;
-                existente.TipoSunat = dto.TipoSunat;
-                existente.Serie = dto.Serie;
-                existente.Numero = dto.Numero;
-                existente.FechaEmision = ParseFecha(dto.FechaEmision);
-                existente.FechaRecepcion = ParseFechaNullable(dto.FechaRecepcion);
-                existente.FechaVencimiento = ParseFechaNullable(dto.FechaVencimiento);
-                existente.Moneda = dto.Moneda;
-                existente.TasaCambio = dto.TasaCambio;
-                existente.LugarPago = dto.LugarPago;
-                existente.PlazoPago = dto.PlazoPago;
-                existente.RucBeneficiario = dto.RucBenef;
-                existente.RazonSocialBenef = dto.RazonSocial;
-                existente.Observacion = dto.Observacion;
-                existente.OrdenCompra = dto.OrdenCompra;
-                existente.FactMultiple = dto.FactMultiple;
-                existente.TieneDetraccion = dto.TieneDetraccion;
-                existente.TipoDetraccion = dto.TipoDetraccion;
-                existente.PorcentajeDetraccion = dto.PorcentajeDetraccion;
-                existente.MontoDetraccion = dto.MontoDetraccion;
-                existente.ConstanciaDeposito = dto.ConstanciaDeposito;
-                existente.FechaDeposito = ParseFechaNullable(dto.FechaDeposito);
-                existente.EsDocumentoElectronico =
-                    dto.EsDocumentoElectronico == "S";
-                existente.MontoNeto = dto.MontoNeto;
-                existente.MontoExento = dto.MontoExento;
-                existente.PorcentajeIGV = dto.PorcentajeIGV;
-                existente.MontoIGVCredito = dto.MontoIGVCredito;
-                existente.MontoTotal = dto.MontoTotal;
-                existente.MontoBruto = dto.MontoBruto;
-                existente.MontoRetencion = dto.MontoRetencion;
-                existente.EsEmpleado = dto.EsEmpleado;
-                existente.EmpleadoCodigo = dto.EmpleadoCodigo;
-                existente.EmpleadoNombre = dto.EmpleadoNombre;
-                existente.CodigoEstado = "REGISTRADO";
-                existente.UsuarioAct = "SYSTEM";
-                existente.FechaAct = DateTime.Now;
+                var existente = await _contexto.Comprobantes
+                    .FirstOrDefaultAsync(x => x.Folio == folio);
 
-                await _contexto.SaveChangesAsync();
-            }
-            else
-            {
-                // ── Crear nuevo ───────────────────
-                var comprobante = new Comprobante
+                if (existente != null)
                 {
-                    Folio = folio,
-                    RucReceptor = dto.Ruc,
-                    RazonSocialReceptor = dto.RazonSocial,
-                    TipoDocumento = dto.TipoDocumento,
-                    TipoSunat = dto.TipoSunat,
-                    Serie = dto.Serie,
-                    Numero = dto.Numero,
-                    FechaEmision = ParseFecha(dto.FechaEmision),
-                    FechaRecepcion = ParseFechaNullable(dto.FechaRecepcion),
-                    FechaVencimiento = ParseFechaNullable(dto.FechaVencimiento),
-                    Moneda = dto.Moneda,
-                    TasaCambio = dto.TasaCambio,
-                    LugarPago = dto.LugarPago,
-                    PlazoPago = dto.PlazoPago,
-                    RucBeneficiario = dto.RucBenef,
-                    RazonSocialBenef = dto.RazonSocial,
-                    Observacion = dto.Observacion,
-                    OrdenCompra = dto.OrdenCompra,
-                    FactMultiple = dto.FactMultiple,
-                    TieneDetraccion = dto.TieneDetraccion,
-                    TipoDetraccion = dto.TipoDetraccion,
-                    PorcentajeDetraccion = dto.PorcentajeDetraccion,
-                    MontoDetraccion = dto.MontoDetraccion,
-                    ConstanciaDeposito = dto.ConstanciaDeposito,
-                    FechaDeposito = ParseFechaNullable(dto.FechaDeposito),
-                    EsDocumentoElectronico =
-                        dto.EsDocumentoElectronico == "S",
-                    MontoNeto = dto.MontoNeto,
-                    MontoExento = dto.MontoExento,
-                    PorcentajeIGV = dto.PorcentajeIGV,
-                    MontoIGVCredito = dto.MontoIGVCredito,
-                    MontoTotal = dto.MontoTotal,
-                    MontoBruto = dto.MontoBruto,
-                    MontoRetencion = dto.MontoRetencion,
-                    EsEmpleado = dto.EsEmpleado,
-                    EmpleadoCodigo = dto.EmpleadoCodigo,
-                    EmpleadoNombre = dto.EmpleadoNombre,
-                    CodigoEstado = "REGISTRADO",
-                    UsuarioReg = "SYSTEM",
-                    FechaReg = DateTime.Now
-                };
+                    existente.RucReceptor          = dto.Ruc;
+                    existente.RazonSocialReceptor  = dto.RazonSocial;
+                    existente.TipoDocumento        = dto.TipoDocumento;
+                    existente.TipoSunat            = dto.TipoSunat;
+                    existente.Serie                = dto.Serie;
+                    existente.Numero               = dto.Numero;
+                    existente.FechaEmision         = ParseFecha(dto.FechaEmision);
+                    existente.FechaRecepcion       = ParseFechaNullable(dto.FechaRecepcion);
+                    existente.FechaVencimiento     = ParseFechaNullable(dto.FechaVencimiento);
+                    existente.Moneda               = dto.Moneda;
+                    existente.TasaCambio           = dto.TasaCambio;
+                    existente.LugarPago            = dto.LugarPago;
+                    existente.PlazoPago            = dto.PlazoPago;
+                    existente.RucBeneficiario      = dto.RucBenef;
+                    existente.RazonSocialBenef     = dto.RazonSocial;
+                    existente.Observacion          = dto.Observacion;
+                    existente.OrdenCompra          = dto.OrdenCompra;
+                    existente.FactMultiple         = dto.FactMultiple;
+                    existente.TieneDetraccion      = dto.TieneDetraccion;
+                    existente.TipoDetraccion       = dto.TipoDetraccion;
+                    existente.PorcentajeDetraccion = dto.PorcentajeDetraccion;
+                    existente.MontoDetraccion      = dto.MontoDetraccion;
+                    existente.ConstanciaDeposito   = dto.ConstanciaDeposito;
+                    existente.FechaDeposito        = ParseFechaNullable(dto.FechaDeposito);
+                    existente.EsDocumentoElectronico = dto.EsDocumentoElectronico == "S";
+                    existente.MontoNeto            = dto.MontoNeto;
+                    existente.MontoExento          = dto.MontoExento;
+                    existente.PorcentajeIGV        = dto.PorcentajeIGV;
+                    existente.MontoIGVCredito      = dto.MontoIGVCredito;
+                    existente.MontoTotal           = dto.MontoTotal;
+                    existente.MontoBruto           = dto.MontoBruto;
+                    existente.MontoRetencion       = dto.MontoRetencion;
+                    existente.EsEmpleado           = dto.EsEmpleado;
+                    existente.EmpleadoCodigo       = dto.EmpleadoCodigo;
+                    existente.EmpleadoNombre       = dto.EmpleadoNombre;
+                    existente.CodigoEstado         = "REGISTRADO";
+                    existente.UsuarioAct           = "SYSTEM";
+                    existente.FechaAct             = DateTime.Now;
+                }
+                else
+                {
+                    var comprobante = new Comprobante
+                    {
+                        Folio                  = folio,
+                        RucReceptor            = dto.Ruc,
+                        RazonSocialReceptor    = dto.RazonSocial,
+                        TipoDocumento          = dto.TipoDocumento,
+                        TipoSunat              = dto.TipoSunat,
+                        Serie                  = dto.Serie,
+                        Numero                 = dto.Numero,
+                        FechaEmision           = ParseFecha(dto.FechaEmision),
+                        FechaRecepcion         = ParseFechaNullable(dto.FechaRecepcion),
+                        FechaVencimiento       = ParseFechaNullable(dto.FechaVencimiento),
+                        Moneda                 = dto.Moneda,
+                        TasaCambio             = dto.TasaCambio,
+                        LugarPago              = dto.LugarPago,
+                        PlazoPago              = dto.PlazoPago,
+                        RucBeneficiario        = dto.RucBenef,
+                        RazonSocialBenef       = dto.RazonSocial,
+                        Observacion            = dto.Observacion,
+                        OrdenCompra            = dto.OrdenCompra,
+                        FactMultiple           = dto.FactMultiple,
+                        TieneDetraccion        = dto.TieneDetraccion,
+                        TipoDetraccion         = dto.TipoDetraccion,
+                        PorcentajeDetraccion   = dto.PorcentajeDetraccion,
+                        MontoDetraccion        = dto.MontoDetraccion,
+                        ConstanciaDeposito     = dto.ConstanciaDeposito,
+                        FechaDeposito          = ParseFechaNullable(dto.FechaDeposito),
+                        EsDocumentoElectronico = dto.EsDocumentoElectronico == "S",
+                        MontoNeto              = dto.MontoNeto,
+                        MontoExento            = dto.MontoExento,
+                        PorcentajeIGV          = dto.PorcentajeIGV,
+                        MontoIGVCredito        = dto.MontoIGVCredito,
+                        MontoTotal             = dto.MontoTotal,
+                        MontoBruto             = dto.MontoBruto,
+                        MontoRetencion         = dto.MontoRetencion,
+                        EsEmpleado             = dto.EsEmpleado,
+                        EmpleadoCodigo         = dto.EmpleadoCodigo,
+                        EmpleadoNombre         = dto.EmpleadoNombre,
+                        CodigoEstado           = "REGISTRADO",
+                        UsuarioReg             = "SYSTEM",
+                        FechaReg               = DateTime.Now
+                    };
+                    await _entidades.AddAsync(comprobante);
+                }
 
-                await _entidades.AddAsync(comprobante);
-                await _contexto.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
             }
 
             return folio;
         }
 
         // ── Enviar ────────────────────────────────
-        public async Task EnviarAsync(
-            EnviarComprobanteCommand command)
+        public async Task EnviarAsync(EnviarComprobanteCommand command)
         {
-            var c = await ObtenerPorFolioAsync(
-                command.Comprobante.Folio);
+            var c = await ObtenerPorFolioAsync(command.Comprobante.Folio);
             c.CodigoEstado = "ENVIADO";
-            c.UsuarioAct = "SYSTEM";
-            c.FechaAct = DateTime.Now;
-            await _contexto.SaveChangesAsync();
+            c.UsuarioAct   = "SYSTEM";
+            c.FechaAct     = DateTime.Now;
+            await _unitOfWork.SaveChangesAsync();
         }
 
         // ── Firmar ────────────────────────────────
-        public async Task FirmarAsync(
-            FirmarComprobanteCommand command)
+        public async Task FirmarAsync(FirmarComprobanteCommand command)
         {
-            var c = await ObtenerPorFolioAsync(
-                command.Comprobante.Folio);
-            c.CodigoEstado = "AUTORIZADO";
+            var c = await ObtenerPorFolioAsync(command.Comprobante.Folio);
+            c.CodigoEstado    = "AUTORIZADO";
             c.RolAutorizacion = "SYSTEM";
-            c.UsuarioAct = "SYSTEM";
-            c.FechaAct = DateTime.Now;
-            await _contexto.SaveChangesAsync();
+            c.UsuarioAct      = "SYSTEM";
+            c.FechaAct        = DateTime.Now;
+            await _unitOfWork.SaveChangesAsync();
         }
 
         // ── Aprobar ───────────────────────────────
-        public async Task AprobarAsync(
-            AprobarComprobanteCommand command)
+        public async Task AprobarAsync(AprobarComprobanteCommand command)
         {
-            var c = await ObtenerPorFolioAsync(
-                command.Comprobante.Folio);
-            c.CodigoEstado = "APROBADO";
+            var c = await ObtenerPorFolioAsync(command.Comprobante.Folio);
+            c.CodigoEstado  = "APROBADO";
             c.RolAprobacion = "SYSTEM";
             c.FechaAprobacion = DateTime.Now;
-            c.UsuarioAct = "SYSTEM";
-            c.FechaAct = DateTime.Now;
-            await _contexto.SaveChangesAsync();
+            c.UsuarioAct    = "SYSTEM";
+            c.FechaAct      = DateTime.Now;
+            await _unitOfWork.SaveChangesAsync();
         }
 
         // ── Anular ────────────────────────────────
-        public async Task AnularAsync(
-            AnularComprobanteCommand command)
+        public async Task AnularAsync(AnularComprobanteCommand command)
         {
-            var c = await ObtenerPorFolioAsync(
-                command.Comprobante.Folio);
-            c.CodigoEstado = "ANULADO";
-            c.RolAnulacion = "SYSTEM";
+            var c = await ObtenerPorFolioAsync(command.Comprobante.Folio);
+            c.CodigoEstado  = "ANULADO";
+            c.RolAnulacion  = "SYSTEM";
             c.FechaAnulacion = DateTime.Now;
-            c.UsuarioAct = "SYSTEM";
-            c.FechaAct = DateTime.Now;
-            await _contexto.SaveChangesAsync();
+            c.UsuarioAct    = "SYSTEM";
+            c.FechaAct      = DateTime.Now;
+            await _unitOfWork.SaveChangesAsync();
         }
 
         // ── Derivar ───────────────────────────────
-        public async Task DerivarAsync(
-            DerivarComprobanteCommand command)
+        public async Task DerivarAsync(DerivarComprobanteCommand command)
         {
-            var c = await ObtenerPorFolioAsync(
-                command.Comprobante.Folio);
+            var c = await ObtenerPorFolioAsync(command.Comprobante.Folio);
             c.EstaDerivado = true;
-            c.UsuarioAct = "SYSTEM";
-            c.FechaAct = DateTime.Now;
-            await _contexto.SaveChangesAsync();
+            c.UsuarioAct   = "SYSTEM";
+            c.FechaAct     = DateTime.Now;
+            await _unitOfWork.SaveChangesAsync();
         }
 
         // ── Validar XML SUNAT ─────────────────────
-        public async Task<ValidacionSunatDto> ValidarXmlSunatAsync(
-            IFormFile archivo)
+        public async Task<ValidacionSunatDto> ValidarXmlSunatAsync(IFormFile archivo)
         {
-            // Leer contenido para poder guardarlo después
             using var ms = new MemoryStream();
             await archivo.CopyToAsync(ms);
             var contenidoXml = ms.ToArray();
@@ -248,66 +239,55 @@ namespace ComprobantePago.Infrastructure.Repositories
             var datos = _xmlService.LeerDatosXml(stream);
 
             var resultado = await _sunatService.ValidarComprobanteAsync(
-                numRuc: datos.RucProveedor,
-                codComp: datos.TipoSunat,
-                numeroSerie: datos.Serie,
-                numero: datos.Numero,
+                numRuc:       datos.RucProveedor,
+                codComp:      datos.TipoSunat,
+                numeroSerie:  datos.Serie,
+                numero:       datos.Numero,
                 fechaEmision: datos.FechaEmision,
-                monto: datos.MontoTotal
-            );
+                monto:        datos.MontoTotal);
 
-            if (resultado.CodigoEstado == "1" ||
-                resultado.CodigoEstado == "3")
+            if (resultado.CodigoEstado == "1" || resultado.CodigoEstado == "3")
             {
                 resultado.Datos = datos;
                 resultado.Folio = await GenerarFolioAsync();
-
-                // Guardar XML automáticamente al validar
                 await GuardarDocumentosAsync(resultado.Folio,
-                    new List<(byte[], string, string, string)>
-                    {
-                        (contenidoXml, archivo.FileName, "XML", "XML_SUNAT")
-                    });
+                    [(contenidoXml, archivo.FileName, "XML", "XML_SUNAT")]);
             }
 
             return resultado;
         }
 
         // ── Validar PDF SUNAT ─────────────────────
-        public async Task<ValidacionSunatDto> ValidarPdfSunatAsync(
-            IFormFile archivo)
+        public async Task<ValidacionSunatDto> ValidarPdfSunatAsync(IFormFile archivo)
         {
             var texto = await _pdfService.ExtraerTextoPdfAsync(archivo);
 
             if (string.IsNullOrWhiteSpace(texto))
                 return new ValidacionSunatDto
                 {
-                    Exito = false,
+                    Exito       = false,
                     EstadoSunat = "ERROR",
-                    Motivo = "No se pudo extraer texto del PDF."
+                    Motivo      = "No se pudo extraer texto del PDF."
                 };
 
             var datos = _pdfService.ExtraerDatosPdf(texto);
-
             if (datos == null)
                 return new ValidacionSunatDto
                 {
-                    Exito = false,
+                    Exito       = false,
                     EstadoSunat = "ERROR",
-                    Motivo = "No se pudieron identificar los datos."
+                    Motivo      = "No se pudieron identificar los datos."
                 };
 
             var resultado = await _sunatService.ValidarComprobanteAsync(
-                numRuc: datos.RucProveedor,
-                codComp: datos.TipoSunat,
-                numeroSerie: datos.Serie,
-                numero: datos.Numero,
+                numRuc:       datos.RucProveedor,
+                codComp:      datos.TipoSunat,
+                numeroSerie:  datos.Serie,
+                numero:       datos.Numero,
                 fechaEmision: datos.FechaEmision,
-                monto: datos.MontoTotal
-            );
+                monto:        datos.MontoTotal);
 
-            if (resultado.CodigoEstado == "1" ||
-                resultado.CodigoEstado == "3")
+            if (resultado.CodigoEstado == "1" || resultado.CodigoEstado == "3")
             {
                 resultado.Datos = datos;
                 resultado.Folio = await GenerarFolioAsync();
@@ -321,36 +301,33 @@ namespace ComprobantePago.Infrastructure.Repositories
             AgregarImputacionCommand command)
         {
             var dto = command.Imputacion;
-            _logger.LogInformation(
-                "Agregando imputación para folio {Folio}", dto.Folio);
+            _logger.LogInformation("Agregando imputación para folio {Folio}", dto.Folio);
 
             var maxSec = await _contexto.ImputacionesContables
                 .Where(x => x.Folio == dto.Folio)
                 .MaxAsync(x => (int?)x.Secuencia) ?? 0;
 
-            var entidad = _mapper.Map<ImputacionContable>(dto);
-            entidad.Secuencia = maxSec + 1;
+            var entidad = dto.Adapt<ImputacionContable>();
+            entidad.Secuencia  = maxSec + 1;
             entidad.UsuarioReg = "SYSTEM";
-            entidad.FechaReg = DateTime.Now;
+            entidad.FechaReg   = DateTime.Now;
 
             await _contexto.ImputacionesContables.AddAsync(entidad);
-            await _contexto.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
 
-            _logger.LogInformation(
-                "Imputación {Sec} agregada para folio {Folio}",
+            _logger.LogInformation("Imputación {Sec} agregada para folio {Folio}",
                 entidad.Secuencia, dto.Folio);
 
-            return _mapper.Map<ImputacionDetalleDto>(entidad);
+            return entidad.Adapt<ImputacionDetalleDto>();
         }
 
         public async Task<ImputacionDetalleDto> EditarImputacionAsync(
             EditarImputacionCommand command)
         {
-            var dto = command.Imputacion;
+            var dto      = command.Imputacion;
             var secuencia = int.TryParse(dto.Secuencia, out var s) ? s : 0;
 
-            _logger.LogInformation(
-                "Editando imputación {Sec} del folio {Folio}",
+            _logger.LogInformation("Editando imputación {Sec} del folio {Folio}",
                 secuencia, dto.Folio);
 
             var entidad = await _contexto.ImputacionesContables
@@ -358,24 +335,23 @@ namespace ComprobantePago.Infrastructure.Repositories
                                        && x.Secuencia == secuencia)
                 ?? throw new ImputacionNotFoundException(dto.Folio, secuencia);
 
-            entidad.AliasCuenta     = dto.AliasCuenta;
-            entidad.CuentaContable  = dto.CuentaContable;
+            entidad.AliasCuenta      = dto.AliasCuenta;
+            entidad.CuentaContable   = dto.CuentaContable;
             entidad.DescripcionCuenta = dto.DescripcionCuenta;
-            entidad.Monto           = dto.Monto;
-            entidad.Descripcion     = dto.Descripcion;
-            entidad.Proyecto        = dto.Proyecto;
+            entidad.Monto            = dto.Monto;
+            entidad.Descripcion      = dto.Descripcion;
+            entidad.Proyecto         = dto.Proyecto;
             entidad.CodUnidad1Cuenta = dto.CodUnidad1Cuenta;
             entidad.CodUnidad3Cuenta = dto.CodUnidad3Cuenta;
             entidad.CodUnidad4Cuenta = dto.CodUnidad4Cuenta;
-            entidad.UsuarioAct      = "SYSTEM";
-            entidad.FechaAct        = DateTime.Now;
+            entidad.UsuarioAct       = "SYSTEM";
+            entidad.FechaAct         = DateTime.Now;
 
-            await _contexto.SaveChangesAsync();
-            return _mapper.Map<ImputacionDetalleDto>(entidad);
+            await _unitOfWork.SaveChangesAsync();
+            return entidad.Adapt<ImputacionDetalleDto>();
         }
 
-        public async Task EliminarImputacionAsync(
-            EliminarImputacionCommand command)
+        public async Task EliminarImputacionAsync(EliminarImputacionCommand command)
         {
             var entidad = await _contexto.ImputacionesContables
                 .FirstOrDefaultAsync(x => x.Folio == command.Folio
@@ -383,26 +359,22 @@ namespace ComprobantePago.Infrastructure.Repositories
             if (entidad != null)
             {
                 _contexto.ImputacionesContables.Remove(entidad);
-                await _contexto.SaveChangesAsync();
-                _logger.LogInformation(
-                    "Imputación {Sec} eliminada del folio {Folio}",
+                await _unitOfWork.SaveChangesAsync();
+                _logger.LogInformation("Imputación {Sec} eliminada del folio {Folio}",
                     command.Secuencia, command.Folio);
             }
         }
 
-        public Task<IEnumerable<ImputacionDetalleDto>>
-            CargarImputacionMasivaAsync(IFormFile file)
-            => Task.FromResult<IEnumerable<ImputacionDetalleDto>>(
-                new List<ImputacionDetalleDto>());
+        public Task<IEnumerable<ImputacionDetalleDto>> CargarImputacionMasivaAsync(
+            IFormFile file)
+            => Task.FromResult<IEnumerable<ImputacionDetalleDto>>(new List<ImputacionDetalleDto>());
 
         // ── Validar ZIP SUNAT ─────────────────────
-        public async Task<ValidacionSunatDto> ValidarZipSunatAsync(
-            IFormFile archivo)
+        public async Task<ValidacionSunatDto> ValidarZipSunatAsync(IFormFile archivo)
         {
             using var zipStream = archivo.OpenReadStream();
             using var zip = new ZipArchive(zipStream, ZipArchiveMode.Read);
 
-            // Buscar XML que no sea CDR (nombre no empieza con R-)
             var entradaXml = zip.Entries.FirstOrDefault(e =>
                 e.Name.EndsWith(".xml", StringComparison.OrdinalIgnoreCase) &&
                 !e.Name.StartsWith("R-", StringComparison.OrdinalIgnoreCase));
@@ -410,30 +382,27 @@ namespace ComprobantePago.Infrastructure.Repositories
             if (entradaXml == null)
                 return new ValidacionSunatDto
                 {
-                    Exito = false,
+                    Exito       = false,
                     EstadoSunat = "ERROR",
-                    Motivo = "El ZIP no contiene un archivo XML de comprobante."
+                    Motivo      = "El ZIP no contiene un archivo XML de comprobante."
                 };
 
             using var xmlStream = entradaXml.Open();
             var datos = _xmlService.LeerDatosXml(xmlStream);
 
             var resultado = await _sunatService.ValidarComprobanteAsync(
-                numRuc: datos.RucProveedor,
-                codComp: datos.TipoSunat,
-                numeroSerie: datos.Serie,
-                numero: datos.Numero,
+                numRuc:       datos.RucProveedor,
+                codComp:      datos.TipoSunat,
+                numeroSerie:  datos.Serie,
+                numero:       datos.Numero,
                 fechaEmision: datos.FechaEmision,
-                monto: datos.MontoTotal
-            );
+                monto:        datos.MontoTotal);
 
-            if (resultado.CodigoEstado == "1" ||
-                resultado.CodigoEstado == "3")
+            if (resultado.CodigoEstado == "1" || resultado.CodigoEstado == "3")
             {
                 resultado.Datos = datos;
                 resultado.Folio = await GenerarFolioAsync();
 
-                // Guardar todos los archivos del ZIP automáticamente
                 var archivos = new List<(byte[] contenido, string nombre, string tipo, string subTipo)>();
                 foreach (var entrada in zip.Entries)
                 {
@@ -445,12 +414,11 @@ namespace ComprobantePago.Infrastructure.Repositories
                     using var entStream = entrada.Open();
                     await entStream.CopyToAsync(ms);
 
-                    var esCdr = entrada.Name.StartsWith("R-",
-                        StringComparison.OrdinalIgnoreCase);
+                    var esCdr = entrada.Name.StartsWith("R-", StringComparison.OrdinalIgnoreCase);
                     string tipo, subTipo;
-                    if (ext == "pdf")        { tipo = "PDF"; subTipo = "REPRESENTACION_IMPRESA"; }
-                    else if (esCdr)          { tipo = "XML"; subTipo = "XML_CDR"; }
-                    else                     { tipo = "XML"; subTipo = "XML_SUNAT"; }
+                    if (ext == "pdf")   { tipo = "PDF"; subTipo = "REPRESENTACION_IMPRESA"; }
+                    else if (esCdr)     { tipo = "XML"; subTipo = "XML_CDR"; }
+                    else                { tipo = "XML"; subTipo = "XML_SUNAT"; }
                     archivos.Add((ms.ToArray(), entrada.Name, tipo, subTipo));
                 }
                 await GuardarDocumentosAsync(resultado.Folio, archivos);
@@ -468,26 +436,23 @@ namespace ComprobantePago.Infrastructure.Repositories
             {
                 var doc = new DocumentoElectronico
                 {
-                    Folio = folio,
-                    TipoArchivo = tipo,
-                    SubTipo = subTipo,
+                    Folio         = folio,
+                    TipoArchivo   = tipo,
+                    SubTipo       = subTipo,
                     NombreArchivo = nombre,
-                    Contenido = contenido,
-                    FechaReg = DateTime.Now,
-                    UsuarioReg = "SYSTEM"
+                    Contenido     = contenido,
+                    FechaReg      = DateTime.Now,
+                    UsuarioReg    = "SYSTEM"
                 };
                 await _contexto.DocumentosElectronicos.AddAsync(doc);
             }
-            await _contexto.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
         }
 
         // ── Descargar Documento Electrónico ───────
-        public async Task<DocumentoElectronico?> DescargarDocumentoAsync(
-            int idDocumento)
-        {
-            return await _contexto.DocumentosElectronicos
+        public async Task<DocumentoElectronico?> DescargarDocumentoAsync(int idDocumento)
+            => await _contexto.DocumentosElectronicos
                 .FirstOrDefaultAsync(x => x.IdDocumento == idDocumento);
-        }
 
         // ── Eliminar Documento Electrónico ────────
         public async Task EliminarDocumentoAsync(int idDocumento)
@@ -497,31 +462,23 @@ namespace ComprobantePago.Infrastructure.Repositories
             if (doc != null)
             {
                 _contexto.DocumentosElectronicos.Remove(doc);
-                await _contexto.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
             }
         }
 
         // ── Helpers ───────────────────────────────
-        private async Task<Comprobante> ObtenerPorFolioAsync(
-            string folio)
-        {
-            return await _contexto.Comprobantes
+        private async Task<Comprobante> ObtenerPorFolioAsync(string folio)
+            => await _contexto.Comprobantes
                 .FirstOrDefaultAsync(x => x.Folio == folio)
-                ?? throw new Exception(
-                    $"Comprobante {folio} no encontrado.");
-        }
+                ?? throw new ComprobanteNotFoundException(folio);
 
         private static DateTime ParseFecha(string? fecha)
-        {
-            return DateTime.TryParse(fecha, out var result)
-                ? result : DateTime.Now;
-        }
+            => DateTime.TryParse(fecha, out var result) ? result : DateTime.Now;
 
         private static DateTime? ParseFechaNullable(string? fecha)
         {
             if (string.IsNullOrEmpty(fecha)) return null;
-            return DateTime.TryParse(fecha, out var result)
-                ? result : null;
+            return DateTime.TryParse(fecha, out var result) ? result : null;
         }
     }
 }

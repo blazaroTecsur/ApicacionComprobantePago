@@ -1,8 +1,8 @@
-﻿namespace ComprobantePago.Application.Commands.Imputacion
+namespace ComprobantePago.Application.Commands.Imputacion
 {
-    public class EliminarImputacionCommand
+    public sealed class EliminarImputacionCommand
     {
-        public string Folio { get; set; }
-        public int Secuencia { get; set; }
+        public string Folio { get; init; } = string.Empty;
+        public int Secuencia { get; init; }
     }
 }

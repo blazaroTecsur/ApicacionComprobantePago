@@ -1,4 +1,5 @@
-using ComprobantePago.Application.Common;
+using Asp.Versioning;
+using ComprobantePago.Application.Interfaces;
 using ComprobantePago.Application.Interfaces.QueryServices;
 using ComprobantePago.Application.Interfaces.Repositories;
 using ComprobantePago.Application.Interfaces.Services;
@@ -13,9 +14,11 @@ using ComprobantePago.Infrastructure.Services;
 using ComprobantePago.Infrastructure.Services.Maestros;
 using ComprobantePago.Web.Middlewares;
 using FluentValidation;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
+using System.Text.Json;
 
 // ── Serilog: configurar antes del builder ─────────────────────────────────────
 Log.Logger = new LoggerConfiguration()
@@ -42,13 +45,37 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
-    // ── Serilog como proveedor de logging ────────────────────────────────────
+    // ── Serilog ───────────────────────────────────────────────────────────────
     builder.Host.UseSerilog();
 
-    // ── MVC ──────────────────────────────────────────────────────────────────
+    // ── MVC + JSON camelCase ──────────────────────────────────────────────────
     builder.Services.AddControllersWithViews()
         .AddJsonOptions(options =>
-            options.JsonSerializerOptions.PropertyNameCaseInsensitive = true);
+        {
+            options.JsonSerializerOptions.PropertyNamingPolicy    = JsonNamingPolicy.CamelCase;
+            options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        });
+
+    // ── Swagger / OpenAPI ─────────────────────────────────────────────────────
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(c =>
+    {
+        c.SwaggerDoc("v1", new()
+        {
+            Title       = "ComprobantePago API",
+            Version     = "v1",
+            Description = "API REST para la gestión de comprobantes de pago."
+        });
+        c.EnableAnnotations();
+    });
+
+    // ── API Versioning ────────────────────────────────────────────────────────
+    builder.Services.AddApiVersioning(options =>
+    {
+        options.DefaultApiVersion               = new ApiVersion(1, 0);
+        options.AssumeDefaultVersionWhenUnspecified = true;
+        options.ReportApiVersions               = true;
+    }).AddMvc();
 
     // ── Base de datos MySQL ───────────────────────────────────────────────────
     builder.Services.AddDbContext<AppDbContext>(options =>
@@ -74,8 +101,8 @@ try
             }
         );
 
-    // ── AutoMapper ────────────────────────────────────────────────────────────
-    builder.Services.AddAutoMapper(typeof(ComprobanteMappingProfile).Assembly);
+    // ── Mapster: configurar mappings de la capa Application ──────────────────
+    MapsterConfig.Configure();
 
     // ── FluentValidation ──────────────────────────────────────────────────────
     builder.Services.AddValidatorsFromAssemblyContaining<RegistrarComprobanteValidator>();
@@ -89,7 +116,6 @@ try
 
     if (usarApiMaestros)
     {
-        // Fuente: API externa
         builder.Services.AddHttpClient<IEmpleadoService, ApiEmpleadoService>();
         builder.Services.AddHttpClient<IProveedorService, ApiProveedorService>();
         builder.Services.AddHttpClient<ICatalogoUnidadService, ApiCatalogoUnidadService>();
@@ -97,7 +123,6 @@ try
     }
     else
     {
-        // Fuente: base de datos local (tma* tables)
         builder.Services.AddScoped<IEmpleadoService, DbEmpleadoService>();
         builder.Services.AddScoped<IProveedorService, DbProveedorService>();
         builder.Services.AddScoped<ICatalogoUnidadService, DbCatalogoUnidadService>();
@@ -107,6 +132,7 @@ try
     // ── Servicios de aplicación ───────────────────────────────────────────────
     builder.Services.AddScoped<XmlComprobanteService>();
     builder.Services.AddScoped<PdfComprobanteService>();
+    builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
     builder.Services.AddScoped<IComprobanteQueryService, ComprobanteQueryService>();
     builder.Services.AddScoped<ISytelineQueryService, SytelineQueryService>();
     builder.Services.AddScoped<IMaestrosQueryService, MaestrosQueryService>();
@@ -116,7 +142,7 @@ try
     var app = builder.Build();
 
     // ── Pipeline de middlewares ───────────────────────────────────────────────
-    // 1. Manejo global de excepciones (debe ir primero)
+    // 1. Manejo global de excepciones (primero)
     app.UseMiddleware<ExceptionMiddleware>();
 
     // 2. Serilog request logging
@@ -131,6 +157,14 @@ try
         app.UseExceptionHandler("/Home/Error");
         app.UseHsts();
     }
+
+    // 3. Swagger UI (disponible en todos los entornos)
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "ComprobantePago API v1");
+        c.RoutePrefix = "swagger";
+    });
 
     app.UseHttpsRedirection();
     app.UseStaticFiles();
