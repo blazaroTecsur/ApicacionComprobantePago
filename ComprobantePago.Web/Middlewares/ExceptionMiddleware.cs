@@ -1,11 +1,16 @@
+using ComprobantePago.Application.Common;
 using ComprobantePago.Application.Exceptions;
-using ComprobantePago.Web.Models;
 using FluentValidation;
 using Serilog.Context;
 using System.Diagnostics;
 
 namespace ComprobantePago.Web.Middlewares
 {
+    /// <summary>
+    /// Manejo centralizado de excepciones.
+    /// Las solicitudes AJAX/API reciben BaseResponse con HTTP 200 para compatibilidad con cliente.
+    /// Las solicitudes de navegador son redirigidas a la página de error.
+    /// </summary>
     public class ExceptionMiddleware
     {
         private readonly RequestDelegate _next;
@@ -17,9 +22,9 @@ namespace ComprobantePago.Web.Middlewares
             ILogger<ExceptionMiddleware> logger,
             IHostEnvironment env)
         {
-            _next  = next;
+            _next   = next;
             _logger = logger;
-            _env   = env;
+            _env    = env;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -38,79 +43,53 @@ namespace ComprobantePago.Web.Middlewares
         {
             var traceId = Activity.Current?.Id ?? context.TraceIdentifier;
 
-            bool isApiRequest =
+            bool isAjaxRequest =
                 context.Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
                 context.Request.Path.StartsWithSegments("/api")                  ||
-                (context.Request.Headers["Accept"].ToString()
-                    .Contains("application/json"));
+                context.Request.Headers["Accept"].ToString().Contains("application/json");
 
-            var (statusCode, errorDetail) = ex switch
+            var (statusCode, mensajeUsuario) = ex switch
             {
-                // Errores de validación FluentValidation → 400 con errores por propiedad
-                ValidationException fluentEx => (400, new ErrorDetail
-                {
-                    Code             = "VALIDATION_ERROR",
-                    UserMessage      = "Por favor corrige los errores en el formulario.",
-                    ValidationErrors = fluentEx.Errors
-                        .GroupBy(e => e.PropertyName)
-                        .ToDictionary(
-                            g => g.Key,
-                            g => g.Select(e => e.ErrorMessage).ToArray()),
-                    TraceId = traceId
-                }),
+                ValidationException fluentEx =>
+                    (400, string.Join("; ", fluentEx.Errors.Select(e => e.ErrorMessage))),
 
-                // Excepciones de dominio (AppException y sus derivadas: 404, 400, etc.)
-                AppException appEx => (appEx.StatusCode, new ErrorDetail
-                {
-                    Code             = appEx.Code,
-                    UserMessage      = appEx.UserMessage,
-                    TechnicalMessage = _env.IsDevelopment() ? appEx.Message : null,
-                    TraceId          = traceId
-                }),
+                AppException appEx =>
+                    (appEx.StatusCode, appEx.UserMessage),
 
-                // Sin autorización → 401
-                UnauthorizedAccessException => (401, new ErrorDetail
-                {
-                    Code        = "UNAUTHORIZED",
-                    UserMessage = "No tienes permisos para realizar esta acción.",
-                    TraceId     = traceId
-                }),
+                UnauthorizedAccessException =>
+                    (401, "No tienes permisos para realizar esta acción."),
 
-                // Cualquier otro → 500
-                _ => (500, new ErrorDetail
-                {
-                    Code             = "INTERNAL_ERROR",
-                    UserMessage      = "Ocurrió un error inesperado. Por favor intenta de nuevo.",
-                    TechnicalMessage = _env.IsDevelopment() ? ex.ToString() : null,
-                    TraceId          = traceId
-                })
+                _ =>
+                    (500, "Ocurrió un error inesperado. Por favor intenta de nuevo.")
             };
 
-            // Enriquecer contexto Serilog con campos estructurados
             using (LogContext.PushProperty("TraceId", traceId))
             using (LogContext.PushProperty("Path",    context.Request.Path))
             using (LogContext.PushProperty("Method",  context.Request.Method))
             {
                 if (statusCode >= 500)
                     _logger.LogError(ex,
-                        "Error interno | Code: {ErrorCode} | Usuario: {User}",
-                        errorDetail.Code,
+                        "Error interno [{TraceId}] | Usuario: {User}",
+                        traceId,
                         context.User?.Identity?.Name ?? "anónimo");
                 else
                     _logger.LogWarning(
-                        "Error controlado | Code: {ErrorCode} | Status: {StatusCode} | Usuario: {User}",
-                        errorDetail.Code,
-                        statusCode,
-                        context.User?.Identity?.Name ?? "anónimo");
+                        "Error controlado [{TraceId}] | HTTP {StatusCode} | {Message}",
+                        traceId, statusCode, ex.Message);
             }
 
-            context.Response.StatusCode = statusCode;
-
-            if (isApiRequest)
+            if (isAjaxRequest)
             {
+                // Devuelve siempre HTTP 200 con BaseResponse para compatibilidad con cliente JS
+                context.Response.StatusCode  = 200;
                 context.Response.ContentType = "application/json";
+
+                var mensaje = _env.IsDevelopment()
+                    ? $"{mensajeUsuario} [TraceId: {traceId}]"
+                    : mensajeUsuario;
+
                 await context.Response.WriteAsJsonAsync(
-                    ApiResponse<object>.Fail(errorDetail));
+                    BaseResponse.Error(mensaje));
             }
             else
             {
