@@ -1,4 +1,3 @@
-using Asp.Versioning;
 using ComprobantePago.Application.Commands.Comprobante;
 using ComprobantePago.Application.Commands.Imputacion;
 using ComprobantePago.Application.Common;
@@ -13,9 +12,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace ComprobantePago.Web.Controllers
 {
     /// <summary>Gestión de comprobantes de pago.</summary>
-    [ApiVersion("1.0")]
-    [Route("[controller]")]
-    [Route("api/v{version:apiVersion}/[controller]")]
     public class ComprobanteController : Controller
     {
         private readonly IComprobanteQueryService _queryService;
