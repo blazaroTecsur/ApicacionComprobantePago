@@ -226,7 +226,7 @@ function poblarCabecera(data) {
         $('#chkEsEmpleado').prop('checked', true);
         $('#hdnEmpleadoCodigo').val(data.empleadoCodigo);
         $('#hdnEmpleadoNombre').val(data.empleadoNombre);
-        cargarEmpleadosYSeleccionar(data.empleadoCodigo);
+        $('#txtEmpleadoDisplay').val(`${data.empleadoCodigo} - ${data.empleadoNombre}`);
         $('#divSelectorEmpleado').removeClass('d-none');
     }
 
@@ -612,26 +612,15 @@ function obtenerParametroUrl(nombre) {
     return new URLSearchParams(window.location.search).get(nombre);
 }
 
-// ── Cargar empleados en combo ─────────────────
-function cargarEmpleados(filtro) {
-    CorporativoQuery.ajaxGet(
-        `/Comprobante/ObtenerEmpleados?filtro=${encodeURIComponent(filtro || '')}`,
+// ── Buscar empleado (modal) ───────────────────
+function buscarEmpleado() {
+    CorporativoQuery.ajaxGet('/Comprobante/ObtenerEmpleados',
         function (data) {
-            let options = '<option value="">-- Seleccione empleado --</option>';
-            data.forEach(e =>
-                options += `<option value="${e.codigo}" data-nombre="${e.descripcion}">${e.descripcion}</option>`);
-            $('#ddlEmpleado').html(options);
-        });
-}
-
-function cargarEmpleadosYSeleccionar(codigo) {
-    CorporativoQuery.ajaxGet(
-        `/Comprobante/ObtenerEmpleados`,
-        function (data) {
-            let options = '<option value="">-- Seleccione empleado --</option>';
-            data.forEach(e =>
-                options += `<option value="${e.codigo}" data-nombre="${e.descripcion}">${e.descripcion}</option>`);
-            $('#ddlEmpleado').html(options).val(codigo);
+            if (!data || data.length === 0) {
+                CorporativoCore.notificarInfo('No hay empleados disponibles.');
+                return;
+            }
+            mostrarModalBusqueda(data, 'Seleccionar Empleado', 'seleccionar-empleado');
         });
 }
 
@@ -825,29 +814,59 @@ function bindEventos() {
         }
     });
 
+    // ── Proveedor ─────────────────────────────
+    $('#btnBuscarProveedorPrincipal').on('click', function () {
+        CorporativoQuery.ajaxGet('/Comprobante/ObtenerProveedores',
+            function (data) {
+                if (!data || data.length === 0) {
+                    CorporativoCore.notificarInfo('No hay proveedores disponibles.');
+                    return;
+                }
+                mostrarModalBusqueda(data, 'Seleccionar Proveedor', 'seleccionar-proveedor');
+            });
+    });
+
+    $(document).on('click', '.seleccionar-proveedor', function (e) {
+        e.preventDefault();
+        const ruc = $(this).data('codigo');
+        // descripcion format: "RUC - NombreProveedor"
+        const desc = $(this).find('.text-muted').text().trim();
+        const nombre = desc.includes(' - ')
+            ? desc.split(' - ').slice(1).join(' - ')
+            : desc;
+        $('#txtNumeroDocumentoIdentidad').val(ruc);
+        $('#txtRazonSocial').val(nombre);
+        bootstrap.Modal.getInstance(
+            document.getElementById('modalBusqueda')).hide();
+    });
+
     // ── ¿Es empleado? ────────────────────────
     $('#chkEsEmpleado').on('change', function () {
         if ($(this).is(':checked')) {
-            cargarEmpleados('');
             $('#divSelectorEmpleado').removeClass('d-none');
         } else {
             $('#divSelectorEmpleado').addClass('d-none');
-            $('#ddlEmpleado').val('');
+            $('#txtEmpleadoDisplay').val('');
             $('#hdnEmpleadoCodigo').val('');
             $('#hdnEmpleadoNombre').val('');
         }
     });
 
-    $('#ddlEmpleado').on('change', function () {
-        const selected = $(this).find('option:selected');
-        const codigo = selected.val();
-        const descripcion = selected.text();
+    $('#btnBuscarEmpleado').on('click', buscarEmpleado);
+
+    $(document).on('click', '.seleccionar-empleado', function (e) {
+        e.preventDefault();
+        const codigo = $(this).data('codigo');
+        // descripcion format: "CODIGO - NombreCompleto"
+        const desc = $(this).find('.text-muted').text().trim();
+        const nombre = desc.includes(' - ')
+            ? desc.split(' - ').slice(1).join(' - ')
+            : desc;
         $('#hdnEmpleadoCodigo').val(codigo);
-        // Nombre is the part after " - " in "CODIGO - NOMBRE"
-        const nombre = descripcion.includes(' - ')
-            ? descripcion.split(' - ').slice(1).join(' - ')
-            : descripcion;
         $('#hdnEmpleadoNombre').val(nombre);
+        $('#txtEmpleadoDisplay').val(`${codigo} - ${nombre}`);
+        bootstrap.Modal.getInstance(
+            document.getElementById('modalBusqueda')).hide();
     });
 
     // ── Facturación manual: auto-calcular montos ──
