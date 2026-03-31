@@ -183,7 +183,7 @@ namespace ComprobantePago.Infrastructure.Services
                         pctStr,
                         System.Globalization.NumberStyles.Any,
                         System.Globalization.CultureInfo.InvariantCulture,
-                        out var pct) ? pct : 0;
+                        out var pctd) ? pctd : 0;
 
                     // Monto (ej: "466.00")
                     var montoDetStr = paymentTerms

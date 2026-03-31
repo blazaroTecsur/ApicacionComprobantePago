@@ -1,6 +1,7 @@
 ﻿using ComprobantePago.Application.Commands.Comprobante;
 using ComprobantePago.Application.Commands.Imputacion;
 using ComprobantePago.Application.DTOs.Comprobante.Response;
+using ComprobantePago.Domain.Entities;
 using Microsoft.AspNetCore.Http;
 
 namespace ComprobantePago.Application.Interfaces.Repositories
