@@ -4,6 +4,7 @@ using ComprobantePago.Application.DTOs.Comprobante.Requests;
 using ComprobantePago.Application.Interfaces.QueryServices;
 using ComprobantePago.Application.Interfaces.Repositories;
 using ComprobantePago.Application.Interfaces.Services;
+using ComprobantePago.Application.Interfaces.Services.Maestros;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ComprobantePago.Web.Controllers
@@ -13,15 +14,18 @@ namespace ComprobantePago.Web.Controllers
         private readonly IComprobanteQueryService _queryService;
         private readonly IComprobanteRepository _repository;
         private readonly IExcelSytelineService _excelService;
+        private readonly IProveedorService _proveedorService;
 
         public ComprobanteController(
             IComprobanteQueryService queryService,
             IComprobanteRepository repository,
-            IExcelSytelineService excelService)
+            IExcelSytelineService excelService,
+            IProveedorService proveedorService)
         {
             _queryService = queryService;
             _repository = repository;
             _excelService = excelService;
+            _proveedorService = proveedorService;
         }
 
         // ══════════════════════════════════════
@@ -95,6 +99,13 @@ namespace ComprobantePago.Web.Controllers
         public async Task<IActionResult> ObtenerEmpleados(string filtro = "")
         {
             var data = await _queryService.ObtenerEmpleadosAsync(filtro);
+            return Ok(data);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ObtenerProveedores(string filtro = "")
+        {
+            var data = await _proveedorService.ObtenerProveedoresAsync(filtro);
             return Ok(data);
         }
 
