@@ -1,38 +1,38 @@
 namespace ComprobantePago.Application.DTOs.Responses
 {
-    public class SytelineDistribucionDto
+    public sealed class SytelineDistribucionDto
     {
         // ── Cabecera (repetida en las 3 subfilas) ───
-        public string Proveedor { get; set; } = string.Empty;
-        public int Comprobante { get; set; }
-        public string Nombre { get; set; } = string.Empty;
-        public string FechaDistribucion { get; set; } = string.Empty;
-        public string Factura { get; set; } = string.Empty;
-        public string FechaFactura { get; set; } = string.Empty;
-        public decimal TasaCambio { get; set; }
-        public string Moneda { get; set; } = string.Empty;
-        public decimal ImpoCompra { get; set; }
-        public decimal IGV { get; set; }
-        public decimal MntoFactura { get; set; }
-        public decimal TotalDistribucion { get; set; }
-        public string NroProveedor { get; set; } = string.Empty;
-        public string NombreProv { get; set; } = string.Empty;
-        public string NumRegFiscal { get; set; } = string.Empty;
+        public string Proveedor          { get; init; } = string.Empty;
+        public int Comprobante           { get; init; }
+        public string Nombre             { get; init; } = string.Empty;
+        public string FechaDistribucion  { get; init; } = string.Empty;
+        public string Factura            { get; init; } = string.Empty;
+        public string FechaFactura       { get; init; } = string.Empty;
+        public decimal TasaCambio        { get; init; }
+        public string Moneda             { get; init; } = string.Empty;
+        public decimal ImpoCompra        { get; init; }
+        public decimal IGV               { get; init; }
+        public decimal MntoFactura       { get; init; }
+        public decimal TotalDistribucion { get; init; }
+        public string NroProveedor       { get; init; } = string.Empty;
+        public string NombreProv         { get; init; } = string.Empty;
+        public string NumRegFiscal       { get; init; } = string.Empty;
 
         // ── Por subfila ──────────────────────────────
-        public int SecDist { get; set; }
-        public string Proyecto { get; set; } = string.Empty;
-        public string SistImpst { get; set; } = string.Empty;   // "", "1", "2"
-        public string CodImp { get; set; } = string.Empty;      // "", "NR", "IGV18"
-        public string DescCodImp { get; set; } = string.Empty;
-        public decimal BaseImp { get; set; }
-        public decimal Importe { get; set; }
-        public string CuentaContable { get; set; } = string.Empty;
-        public string DescripcionCuenta { get; set; } = string.Empty;
-        public string CodUnidad1 { get; set; } = string.Empty;
-        public string CodUnidad3 { get; set; } = string.Empty;
-        public string CodUnidad4 { get; set; } = string.Empty;
-        public bool EsLineaPrincipal { get; set; }
-        public string TipoDoc { get; set; } = string.Empty;
+        public int SecDist               { get; init; }
+        public string Proyecto           { get; init; } = string.Empty;
+        public string SistImpst          { get; init; } = string.Empty;
+        public string CodImp             { get; init; } = string.Empty;
+        public string DescCodImp         { get; init; } = string.Empty;
+        public decimal BaseImp           { get; init; }
+        public decimal Importe           { get; init; }
+        public string CuentaContable     { get; init; } = string.Empty;
+        public string DescripcionCuenta  { get; init; } = string.Empty;
+        public string CodUnidad1         { get; init; } = string.Empty;
+        public string CodUnidad3         { get; init; } = string.Empty;
+        public string CodUnidad4         { get; init; } = string.Empty;
+        public bool EsLineaPrincipal     { get; init; }
+        public string TipoDoc            { get; init; } = string.Empty;
     }
 }

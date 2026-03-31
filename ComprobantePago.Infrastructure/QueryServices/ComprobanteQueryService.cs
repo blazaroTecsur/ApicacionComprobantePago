@@ -1,9 +1,9 @@
-using AutoMapper;
 using ComprobantePago.Application.DTOs.Comprobante.Requests;
 using ComprobantePago.Application.DTOs.Comprobante.Response;
 using ComprobantePago.Application.DTOs.Responses;
 using ComprobantePago.Application.Interfaces.QueryServices;
 using ComprobantePago.Infrastructure.Persistence;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -11,12 +11,10 @@ namespace ComprobantePago.Infrastructure.QueryServices
 {
     public class ComprobanteQueryService(
         AppDbContext contexto,
-        IMapper mapper,
         ILogger<ComprobanteQueryService> logger)
         : IComprobanteQueryService
     {
         private readonly AppDbContext _contexto = contexto;
-        private readonly IMapper _mapper = mapper;
         private readonly ILogger<ComprobanteQueryService> _logger = logger;
 
         // ── Buscar comprobantes ───────────────────
@@ -149,7 +147,7 @@ namespace ComprobantePago.Infrastructure.QueryServices
                 .OrderBy(x => x.Secuencia)
                 .ToListAsync();
 
-            return _mapper.Map<IEnumerable<ImputacionDetalleDto>>(lista);
+            return lista.Adapt<IEnumerable<ImputacionDetalleDto>>();
         }
 
         public Task<byte[]> ObtenerPlantillaImputacionAsync()

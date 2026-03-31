@@ -1,17 +1,17 @@
 namespace ComprobantePago.Application.DTOs.Comprobante.Response
 {
-    public class ImputacionDetalleDto
+    public sealed class ImputacionDetalleDto
     {
-        public int Secuencia { get; set; }
-        public string Folio { get; set; } = string.Empty;
-        public string AliasCuenta { get; set; } = string.Empty;
-        public string CuentaContable { get; set; } = string.Empty;
-        public string DescripcionCuenta { get; set; } = string.Empty;
-        public decimal Monto { get; set; }
-        public string Descripcion { get; set; } = string.Empty;
-        public string Proyecto { get; set; } = string.Empty;
-        public string CodUnidad1Cuenta { get; set; } = string.Empty;
-        public string CodUnidad3Cuenta { get; set; } = string.Empty;
-        public string CodUnidad4Cuenta { get; set; } = string.Empty;
+        public int Secuencia            { get; init; }
+        public string Folio             { get; init; } = string.Empty;
+        public string AliasCuenta       { get; init; } = string.Empty;
+        public string CuentaContable    { get; init; } = string.Empty;
+        public string DescripcionCuenta { get; init; } = string.Empty;
+        public decimal Monto            { get; init; }
+        public string Descripcion       { get; init; } = string.Empty;
+        public string Proyecto          { get; init; } = string.Empty;
+        public string CodUnidad1Cuenta  { get; init; } = string.Empty;
+        public string CodUnidad3Cuenta  { get; init; } = string.Empty;
+        public string CodUnidad4Cuenta  { get; init; } = string.Empty;
     }
 }

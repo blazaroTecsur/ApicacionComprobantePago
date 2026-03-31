@@ -2,8 +2,8 @@
 
 namespace ComprobantePago.Application.Commands.Comprobante
 {
-    public class DerivarComprobanteCommand
+    public sealed class DerivarComprobanteCommand
     {
-        public AccionComprobanteDto Comprobante { get; set; } = new();
+        public AccionComprobanteDto Comprobante { get; init; } = new();
     }
 }
