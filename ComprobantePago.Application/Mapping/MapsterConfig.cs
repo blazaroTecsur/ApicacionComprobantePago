@@ -29,7 +29,7 @@ namespace ComprobantePago.Application.Mapping
 
             // ── ImputacionDto → ImputacionContable (crear / editar) ────────────
             TypeAdapterConfig<ImputacionDto, ImputacionContable>.NewConfig()
-                .Map(d => d.Secuencia, s => int.TryParse(s.Secuencia, out var n) ? n : 0)
+                .Map(d => d.Secuencia, s => ParsearSecuencia(s.Secuencia))
                 .Ignore(d => d.IdImputacionContable)
                 .Ignore(d => d.UsuarioReg)
                 .Ignore(d => d.FechaReg)
@@ -37,5 +37,8 @@ namespace ComprobantePago.Application.Mapping
                 .Ignore(d => d.FechaAct)
                 .Ignore(d => d.Comprobante);
         }
+
+        private static int ParsearSecuencia(string value) =>
+            int.TryParse(value, out var n) ? n : 0;
     }
 }
