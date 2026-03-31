@@ -2,12 +2,15 @@ using ComprobantePago.Application.Common;
 using ComprobantePago.Application.Interfaces.QueryServices;
 using ComprobantePago.Application.Interfaces.Repositories;
 using ComprobantePago.Application.Interfaces.Services;
+using ComprobantePago.Application.Interfaces.Services.Maestros;
 using ComprobantePago.Application.Mapping;
+using ComprobantePago.Application.Settings;
 using ComprobantePago.Application.Validations;
 using ComprobantePago.Infrastructure.Persistence;
 using ComprobantePago.Infrastructure.QueryServices;
 using ComprobantePago.Infrastructure.Repositories;
 using ComprobantePago.Infrastructure.Services;
+using ComprobantePago.Infrastructure.Services.Maestros;
 using ComprobantePago.Web.Middlewares;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -76,6 +79,30 @@ try
 
     // ── FluentValidation ──────────────────────────────────────────────────────
     builder.Services.AddValidatorsFromAssemblyContaining<RegistrarComprobanteValidator>();
+
+    // ── Configuración ApiMaestros ─────────────────────────────────────────────
+    builder.Services.Configure<ApiMaestrosSettings>(
+        builder.Configuration.GetSection(ApiMaestrosSettings.Section));
+
+    var usarApiMaestros = builder.Configuration
+        .GetValue<bool>($"{ApiMaestrosSettings.Section}:UsarApi");
+
+    if (usarApiMaestros)
+    {
+        // Fuente: API externa
+        builder.Services.AddHttpClient<IEmpleadoService, ApiEmpleadoService>();
+        builder.Services.AddHttpClient<IProveedorService, ApiProveedorService>();
+        builder.Services.AddHttpClient<ICatalogoUnidadService, ApiCatalogoUnidadService>();
+        builder.Services.AddHttpClient<ICuentaContableService, ApiCuentaContableService>();
+    }
+    else
+    {
+        // Fuente: base de datos local (tma* tables)
+        builder.Services.AddScoped<IEmpleadoService, DbEmpleadoService>();
+        builder.Services.AddScoped<IProveedorService, DbProveedorService>();
+        builder.Services.AddScoped<ICatalogoUnidadService, DbCatalogoUnidadService>();
+        builder.Services.AddScoped<ICuentaContableService, DbCuentaContableService>();
+    }
 
     // ── Servicios de aplicación ───────────────────────────────────────────────
     builder.Services.AddScoped<XmlComprobanteService>();
