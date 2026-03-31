@@ -1,4 +1,4 @@
-﻿using ComprobantePago.Application.Commands.Comprobante;
+using ComprobantePago.Application.Commands.Comprobante;
 using ComprobantePago.Application.Commands.Imputacion;
 using ComprobantePago.Application.DTOs.Comprobante.Requests;
 using ComprobantePago.Application.Interfaces.QueryServices;
@@ -12,17 +12,23 @@ namespace ComprobantePago.Web.Controllers
     public class ComprobanteController : Controller
     {
         private readonly IComprobanteQueryService _queryService;
+        private readonly ISytelineQueryService _sytelineService;
+        private readonly IMaestrosQueryService _maestrosService;
         private readonly IComprobanteRepository _repository;
         private readonly IExcelSytelineService _excelService;
         private readonly IProveedorService _proveedorService;
 
         public ComprobanteController(
             IComprobanteQueryService queryService,
+            ISytelineQueryService sytelineService,
+            IMaestrosQueryService maestrosService,
             IComprobanteRepository repository,
             IExcelSytelineService excelService,
             IProveedorService proveedorService)
         {
             _queryService = queryService;
+            _sytelineService = sytelineService;
+            _maestrosService = maestrosService;
             _repository = repository;
             _excelService = excelService;
             _proveedorService = proveedorService;
@@ -49,56 +55,56 @@ namespace ComprobantePago.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> ObtenerTiposDocumento()
         {
-            var data = await _queryService.ObtenerTiposDocumentoAsync();
+            var data = await _maestrosService.ObtenerTiposDocumentoAsync();
             return Ok(data);
         }
 
         [HttpGet]
         public async Task<IActionResult> ObtenerTiposSunat()
         {
-            var data = await _queryService.ObtenerTiposSunatAsync();
+            var data = await _maestrosService.ObtenerTiposSunatAsync();
             return Ok(data);
         }
 
         [HttpGet]
         public async Task<IActionResult> ObtenerMonedas()
         {
-            var data = await _queryService.ObtenerMonedasAsync();
+            var data = await _maestrosService.ObtenerMonedasAsync();
             return Ok(data);
         }
 
         [HttpGet]
         public async Task<IActionResult> ObtenerLugaresPago()
         {
-            var data = await _queryService.ObtenerLugaresPagoAsync();
+            var data = await _maestrosService.ObtenerLugaresPagoAsync();
             return Ok(data);
         }
 
         [HttpGet]
         public async Task<IActionResult> ObtenerTiposDetraccion()
         {
-            var data = await _queryService.ObtenerTiposDetraccionAsync();
+            var data = await _maestrosService.ObtenerTiposDetraccionAsync();
             return Ok(data);
         }
 
         [HttpGet]
         public async Task<IActionResult> ObtenerTipos()
         {
-            var data = await _queryService.ObtenerTiposDocumentoAsync();
+            var data = await _maestrosService.ObtenerTiposDocumentoAsync();
             return Ok(data);
         }
 
         [HttpGet]
         public async Task<IActionResult> ObtenerEstados()
         {
-            var data = await _queryService.ObtenerEstadosAsync();
+            var data = await _maestrosService.ObtenerEstadosAsync();
             return Ok(data);
         }
 
         [HttpGet]
         public async Task<IActionResult> ObtenerEmpleados(string filtro = "")
         {
-            var data = await _queryService.ObtenerEmpleadosAsync(filtro);
+            var data = await _maestrosService.ObtenerEmpleadosAsync(filtro);
             return Ok(data);
         }
 
@@ -266,7 +272,7 @@ namespace ComprobantePago.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> ObtenerCuentasContables(string filtro = "")
         {
-            var data = await _queryService.ObtenerCuentasContablesAsync(filtro);
+            var data = await _maestrosService.ObtenerCuentasContablesAsync(filtro);
             return Ok(data);
         }
 
@@ -274,7 +280,7 @@ namespace ComprobantePago.Web.Controllers
         public async Task<IActionResult> ObtenerCodigosUnidad(
             string campo, int unidad, string codigo, string filtro = "")
         {
-            var data = await _queryService
+            var data = await _maestrosService
                 .ObtenerCodigosUnidadAsync(campo, unidad, codigo, filtro);
             return Ok(data);
         }
@@ -520,7 +526,7 @@ namespace ComprobantePago.Web.Controllers
                     mensaje = "No hay comprobantes seleccionados."
                 });
 
-            var datos = await _queryService
+            var datos = await _sytelineService
                 .ObtenerDistribucionSytelineAsync(folios);
 
             if (!datos.Any())
@@ -552,7 +558,7 @@ namespace ComprobantePago.Web.Controllers
                     mensaje = "No hay comprobantes seleccionados."
                 });
 
-            var datos = await _queryService
+            var datos = await _sytelineService
                 .ObtenerCabecerasSytelineAsync(folios);
 
             if (!datos.Any())
