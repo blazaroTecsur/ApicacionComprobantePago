@@ -108,6 +108,8 @@ try
     builder.Services.AddScoped<XmlComprobanteService>();
     builder.Services.AddScoped<PdfComprobanteService>();
     builder.Services.AddScoped<IComprobanteQueryService, ComprobanteQueryService>();
+    builder.Services.AddScoped<ISytelineQueryService, SytelineQueryService>();
+    builder.Services.AddScoped<IMaestrosQueryService, MaestrosQueryService>();
     builder.Services.AddScoped<IComprobanteRepository, ComprobanteRepository>();
     builder.Services.AddScoped<IExcelSytelineService, ExcelSytelineService>();
 
