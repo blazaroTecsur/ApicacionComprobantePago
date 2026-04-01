@@ -15,6 +15,7 @@
         public string TipoDocumento { get; set; }
         public string TipoSunat { get; set; }
         public string Moneda { get; set; }
+        public decimal TasaCambio { get; set; }
         public decimal MontoTotal { get; set; }
         public decimal MontoNeto { get; set; }
         public decimal MontoIGV { get; set; }

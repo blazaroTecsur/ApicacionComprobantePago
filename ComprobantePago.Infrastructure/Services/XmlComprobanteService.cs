@@ -54,6 +54,23 @@ namespace ComprobantePago.Infrastructure.Services
                 datos.Moneda = root?
                     .Element(cbc + "DocumentCurrencyCode")?.Value ?? "";
 
+                // Tipo de cambio: PEN/soles siempre es 1; otras monedas se leen del XML
+                if (datos.Moneda.Equals("PEN", StringComparison.OrdinalIgnoreCase))
+                {
+                    datos.TasaCambio = 1m;
+                }
+                else
+                {
+                    var tcRaw = root?
+                        .Element(cac + "PaymentExchangeRate")?
+                        .Element(cbc + "CalculationRate")?.Value ?? "";
+                    datos.TasaCambio = decimal.TryParse(
+                        tcRaw,
+                        System.Globalization.NumberStyles.Any,
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        out var tc) ? tc : 0m;
+                }
+
                 // También leer el proveedor (emisor) por separado
                 var supplier = root?.Element(cac + "AccountingSupplierParty");
                 var partySupplier = supplier?.Element(cac + "Party");

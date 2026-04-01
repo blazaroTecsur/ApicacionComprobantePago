@@ -537,6 +537,11 @@ function poblarCamposDesdeXml(datos) {
     esperarComboYAsignar('#ddlMoneda', datos.moneda);
     esperarComboYAsignar('#dldLugarPago', '04');
 
+    // Tipo de cambio: viene calculado desde el servidor (PEN=1, otras monedas del XML)
+    if (datos.tasaCambio && datos.tasaCambio > 0) {
+        $('#txtTasaCambio').val(datos.tasaCambio.toFixed(3));
+    }
+
     const montoNeto      = datos.montoNeto      || 0;
     const montoExento    = datos.montoExento    || 0;
     const montoIGV       = datos.montoIGVCredito || datos.montoIGV || 0;
