@@ -4,8 +4,8 @@ using System.Security.Claims;
 namespace ComprobantePago.Web.Middlewares
 {
     /// <summary>
-    /// Extrae los datos del usuario autenticado desde los claims del token OIDC de Azure Entra ID.
-    /// Cuando no hay token (desarrollo local / endpoints anónimos) todos los campos retornan string.Empty.
+    /// Extrae los datos del usuario desde los claims del token OIDC de Azure Entra ID.
+    /// En entornos sin token (desarrollo), usa el fallback configurado en UsuarioDesarrollo.
     /// </summary>
     public sealed class UsuarioContexto : IUsuarioContexto
     {
@@ -14,37 +14,35 @@ namespace ComprobantePago.Web.Middlewares
         public string Correo     { get; }
         public string Titulo     { get; }
 
-        public UsuarioContexto(IHttpContextAccessor contexto)
+        public UsuarioContexto(IHttpContextAccessor contexto, IConfiguration config)
         {
             var usuario = contexto.HttpContext?.User;
 
-            if (usuario is null)
-            {
-                CodTenant = CodUsuario = Correo = Titulo = string.Empty;
-                return;
-            }
+            string Dev(string clave) =>
+                config[$"UsuarioDesarrollo:{clave}"] ?? string.Empty;
 
             string ObtenerClaim(params string[] tipos) => tipos
-                .Select(t => usuario.FindFirst(t)?.Value)
+                .Select(t => usuario?.FindFirst(t)?.Value)
                 .FirstOrDefault(v => !string.IsNullOrWhiteSpace(v)) ?? string.Empty;
 
             CodTenant  = ObtenerClaim(
                 "tid",
-                "http://schemas.microsoft.com/identity/claims/tenantid");
+                "http://schemas.microsoft.com/identity/claims/tenantid")
+                .IfEmpty(Dev("CodTenant"));
 
             CodUsuario = ObtenerClaim(
                 "oid",
-                "http://schemas.microsoft.com/identity/claims/objectidentifier");
+                "http://schemas.microsoft.com/identity/claims/objectidentifier")
+                .IfEmpty(Dev("CodUsuario"));
 
             Correo = ObtenerClaim(
-                "preferred_username",
-                "upn",
-                "email",
-                ClaimTypes.Email,
-                ClaimTypes.Upn)
-                .IfEmpty(usuario.Identity?.Name ?? string.Empty);
+                "preferred_username", "upn", "email",
+                ClaimTypes.Email, ClaimTypes.Upn)
+                .IfEmpty(usuario?.Identity?.Name ?? string.Empty)
+                .IfEmpty(Dev("Correo"));
 
-            Titulo = ObtenerClaim("name", ClaimTypes.Name);
+            Titulo = ObtenerClaim("name", ClaimTypes.Name)
+                .IfEmpty(Dev("Titulo"));
         }
     }
 
