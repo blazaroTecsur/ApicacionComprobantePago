@@ -48,7 +48,9 @@ namespace ComprobantePago.Infrastructure.Repositories
 
             var maxFolio = await _contexto.Comprobantes
                 .Where(x => x.Folio.StartsWith(prefijo))
-                .MaxAsync(x => (string?)x.Folio);
+                .OrderByDescending(x => x.Folio)
+                .Select(x => x.Folio)
+                .FirstOrDefaultAsync();
 
             if (maxFolio is null)
                 return "0001";
