@@ -885,14 +885,19 @@ function bindEventos() {
 }
 
 // ── Acciones del flujo ────────────────────────
-function _accionComprobante(url, estadoDestino, mensajeExito) {
+function _accionComprobante(url, estadoDestino, mensajeExito, redirigir = false) {
     const folio = $('#hdnFolio').val();
     CorporativoQuery.ajaxPost(url,
         { comprobante: { folio } },
         function (response) {
             if (response.exito) {
-                mostrarBotonesSegunEstado(estadoDestino);
-                CorporativoCore.notificarExito(mensajeExito);
+                if (redirigir) {
+                    CorporativoCore.notificarExito(mensajeExito);
+                    setTimeout(() => window.location.href = '/Comprobante/Index', 1500);
+                } else {
+                    mostrarBotonesSegunEstado(estadoDestino);
+                    CorporativoCore.notificarExito(mensajeExito);
+                }
             } else {
                 CorporativoCore.notificarError(response.mensaje);
             }
@@ -902,19 +907,19 @@ function _accionComprobante(url, estadoDestino, mensajeExito) {
 
 function enviarComprobante() {
     _accionComprobante('/Comprobante/Enviar', 'ENVIADO',
-        'Comprobante enviado correctamente.');
+        'Comprobante enviado correctamente.', true);
 }
 function firmarComprobante() {
     _accionComprobante('/Comprobante/Firmar', 'AUTORIZADO',
-        'Comprobante autorizado correctamente.');
+        'Comprobante autorizado correctamente.', true);
 }
 function aprobarComprobante() {
     _accionComprobante('/Comprobante/Aprobar', 'APROBADO',
-        'Comprobante aprobado correctamente.');
+        'Comprobante aprobado correctamente.', true);
 }
 function anularComprobante() {
     _accionComprobante('/Comprobante/Anular', 'ANULADO',
-        'Comprobante anulado correctamente.');
+        'Comprobante anulado correctamente.', true);
 }
 function derivarComprobante() {
     _accionComprobante('/Comprobante/Derivar', 'REGISTRADO',
