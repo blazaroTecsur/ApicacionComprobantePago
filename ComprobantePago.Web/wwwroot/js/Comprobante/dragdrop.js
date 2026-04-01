@@ -79,6 +79,11 @@ function validarXmlSunat(archivo) {
         headers: { 'RequestVerificationToken': CorporativoCore.obtenerToken() },
         success: function (response) {
             CorporativoCore.hideLoading();
+            if (!response.codigoEstado) {
+                CorporativoCore.notificarError(
+                    response.mensaje || response.motivo || 'Error al validar el archivo XML.');
+                return;
+            }
             mostrarResultadoSunat(response, 'xml');
         },
         error: function (xhr) {
@@ -501,6 +506,17 @@ function mostrarResultadoSunat(response, tipo) {
                             Este comprobante no ha sido informado a SUNAT.
                             Verifique los datos del archivo.
                         </p>
+                    </div>
+                </div>`;
+            break;
+
+        case 'ERROR':
+            alerta = `
+                <div class="alert alert-danger d-flex align-items-center gap-2">
+                    <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                    <div>
+                        <strong>Error al consultar SUNAT</strong>
+                        <p class="mb-0 small">${response.motivo || 'No se pudo conectar con el servicio de validación.'}</p>
                     </div>
                 </div>`;
             break;

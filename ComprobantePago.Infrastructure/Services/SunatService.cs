@@ -109,9 +109,10 @@ namespace ComprobantePago.Infrastructure.Services
                 {
                     return new ValidacionSunatDto
                     {
-                        Exito = false,
-                        EstadoSunat = "RECHAZADO",
-                        Motivo = "Error al conectar con SUNAT."
+                        Exito        = false,
+                        EstadoSunat  = "ERROR",
+                        CodigoEstado = "ERROR",
+                        Motivo       = "Error al conectar con SUNAT."
                     };
                 }
 
@@ -147,9 +148,10 @@ namespace ComprobantePago.Infrastructure.Services
             {
                 return new ValidacionSunatDto
                 {
-                    Exito = false,
-                    EstadoSunat = "RECHAZADO",
-                    Motivo = $"Error: {ex.Message}"
+                    Exito        = false,
+                    EstadoSunat  = "ERROR",
+                    CodigoEstado = "ERROR",
+                    Motivo       = ex.Message
                 };
             }
         }
