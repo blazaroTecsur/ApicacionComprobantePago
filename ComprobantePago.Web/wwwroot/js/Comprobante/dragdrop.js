@@ -653,8 +653,8 @@ function habilitarCamposManuales() {
     $('#ddlMoneda').prop('disabled', false);
     $('#txtTasaCambio').prop('readonly', false);
     $('#txtObservacion').prop('readonly', false);
-    $('#btnBuscarProveedorPrincipal').prop('disabled', false);
     $('#btnBuscarCRPrincipal').prop('disabled', false);
+    // btnBuscarProveedorPrincipal queda bloqueado: proveedor viene del XML
 }
 
 // ── Bind eventos ──────────────────────────────
