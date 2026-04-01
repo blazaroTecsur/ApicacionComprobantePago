@@ -63,7 +63,9 @@ namespace ComprobantePago.Infrastructure.Repositories
         public async Task<string> GuardarAsync(RegistrarComprobanteCommand command)
         {
             var dto = command.Comprobante;
-            var folio = dto.Folio;
+            var folio = string.IsNullOrWhiteSpace(dto.Folio)
+                ? await GenerarFolioAsync()
+                : dto.Folio;
             _logger.LogInformation("Guardando comprobante folio {Folio}", folio);
 
             await _unitOfWork.BeginTransactionAsync();
