@@ -333,8 +333,9 @@ function ocultarTodosLosBotones() {
 function guardarComprobante() {
     if (!validarCabecera()) return;
 
-    // Validar mínimo 3 líneas de imputación
-    if (typeof listaImputaciones !== 'undefined' && listaImputaciones.length < 3) {
+    // Validar mínimo 3 líneas de imputación (solo si el comprobante ya tiene folio asignado)
+    const folioActual = $('#hdnFolio').val();
+    if (folioActual && typeof listaImputaciones !== 'undefined' && listaImputaciones.length < 3) {
         CorporativoCore.notificarAdvertencia(
             'Debe registrar al menos 3 líneas de imputación contable antes de guardar.');
         return;
