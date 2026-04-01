@@ -61,7 +61,9 @@
         public string CodigoEstado { get; set; }
         public string Estado { get; set; }
         public string RolDigitacion { get; set; }
+        public string FechaDigitacion { get; set; }
         public string RolAutorizacion { get; set; }
+        public string FechaAutorizacion { get; set; }
         public string RolAprobacion { get; set; }
         public string FechaAprobacion { get; set; }
         public string RolAnulacion { get; set; }
