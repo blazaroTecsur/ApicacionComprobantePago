@@ -22,6 +22,7 @@ namespace ComprobantePago.Infrastructure.Repositories
         ISunatService sunatService,
         XmlComprobanteService xmlService,
         PdfComprobanteService pdfService,
+        IUsuarioContexto usuario,
         ILogger<ComprobanteRepository> logger)
         : RepositorioBase<Comprobante>(contexto), IComprobanteRepository
     {
@@ -29,6 +30,7 @@ namespace ComprobantePago.Infrastructure.Repositories
         private readonly ISunatService _sunatService = sunatService;
         private readonly XmlComprobanteService _xmlService = xmlService;
         private readonly PdfComprobanteService _pdfService = pdfService;
+        private readonly IUsuarioContexto _usuario = usuario;
         private readonly ILogger<ComprobanteRepository> _logger = logger;
 
         // ── Generar Folio ─────────────────────────
@@ -111,7 +113,7 @@ namespace ComprobantePago.Infrastructure.Repositories
                     existente.EmpleadoCodigo       = dto.EmpleadoCodigo;
                     existente.EmpleadoNombre       = dto.EmpleadoNombre;
                     existente.CodigoEstado         = "REGISTRADO";
-                    existente.UsuarioAct           = "SYSTEM";
+                    existente.UsuarioAct           = _usuario.Correo;
                     existente.FechaAct             = DateTime.Now;
                 }
                 else
@@ -155,7 +157,9 @@ namespace ComprobantePago.Infrastructure.Repositories
                         EmpleadoCodigo         = dto.EmpleadoCodigo,
                         EmpleadoNombre         = dto.EmpleadoNombre,
                         CodigoEstado           = "REGISTRADO",
-                        UsuarioReg             = "SYSTEM",
+                        RolDigitacion          = _usuario.Correo,
+                        FechaDigitacion        = DateTime.Now,
+                        UsuarioReg             = _usuario.Correo,
                         FechaReg               = DateTime.Now
                     };
                     await _entidades.AddAsync(comprobante);
@@ -178,31 +182,32 @@ namespace ComprobantePago.Infrastructure.Repositories
         {
             var c = await ObtenerPorFolioAsync(command.Comprobante.Folio);
             c.CodigoEstado = "ENVIADO";
-            c.UsuarioAct   = "SYSTEM";
+            c.UsuarioAct   = _usuario.Correo;
             c.FechaAct     = DateTime.Now;
             await _unitOfWork.SaveChangesAsync();
         }
 
-        // ── Firmar ────────────────────────────────
+        // ── Firmar (Autorizador) ──────────────────
         public async Task FirmarAsync(FirmarComprobanteCommand command)
         {
             var c = await ObtenerPorFolioAsync(command.Comprobante.Folio);
             c.CodigoEstado    = "AUTORIZADO";
-            c.RolAutorizacion = "SYSTEM";
-            c.UsuarioAct      = "SYSTEM";
+            c.RolAutorizacion = _usuario.Correo;
+            c.FechaAutorizacion = DateTime.Now;
+            c.UsuarioAct      = _usuario.Correo;
             c.FechaAct        = DateTime.Now;
             await _unitOfWork.SaveChangesAsync();
         }
 
-        // ── Aprobar ───────────────────────────────
+        // ── Aprobar (Aprobador) ───────────────────
         public async Task AprobarAsync(AprobarComprobanteCommand command)
         {
             var c = await ObtenerPorFolioAsync(command.Comprobante.Folio);
-            c.CodigoEstado  = "APROBADO";
-            c.RolAprobacion = "SYSTEM";
+            c.CodigoEstado    = "APROBADO";
+            c.RolAprobacion   = _usuario.Correo;
             c.FechaAprobacion = DateTime.Now;
-            c.UsuarioAct    = "SYSTEM";
-            c.FechaAct      = DateTime.Now;
+            c.UsuarioAct      = _usuario.Correo;
+            c.FechaAct        = DateTime.Now;
             await _unitOfWork.SaveChangesAsync();
         }
 
@@ -210,11 +215,11 @@ namespace ComprobantePago.Infrastructure.Repositories
         public async Task AnularAsync(AnularComprobanteCommand command)
         {
             var c = await ObtenerPorFolioAsync(command.Comprobante.Folio);
-            c.CodigoEstado  = "ANULADO";
-            c.RolAnulacion  = "SYSTEM";
+            c.CodigoEstado   = "ANULADO";
+            c.RolAnulacion   = _usuario.Correo;
             c.FechaAnulacion = DateTime.Now;
-            c.UsuarioAct    = "SYSTEM";
-            c.FechaAct      = DateTime.Now;
+            c.UsuarioAct     = _usuario.Correo;
+            c.FechaAct       = DateTime.Now;
             await _unitOfWork.SaveChangesAsync();
         }
 
@@ -309,7 +314,7 @@ namespace ComprobantePago.Infrastructure.Repositories
 
             var entidad = dto.Adapt<ImputacionContable>();
             entidad.Secuencia  = maxSec + 1;
-            entidad.UsuarioReg = "SYSTEM";
+            entidad.UsuarioReg = _usuario.Correo;
             entidad.FechaReg   = DateTime.Now;
 
             await _contexto.ImputacionesContables.AddAsync(entidad);
@@ -344,7 +349,7 @@ namespace ComprobantePago.Infrastructure.Repositories
             entidad.CodUnidad1Cuenta = dto.CodUnidad1Cuenta;
             entidad.CodUnidad3Cuenta = dto.CodUnidad3Cuenta;
             entidad.CodUnidad4Cuenta = dto.CodUnidad4Cuenta;
-            entidad.UsuarioAct       = "SYSTEM";
+            entidad.UsuarioAct       = _usuario.Correo;
             entidad.FechaAct         = DateTime.Now;
 
             await _unitOfWork.SaveChangesAsync();
@@ -442,7 +447,7 @@ namespace ComprobantePago.Infrastructure.Repositories
                     NombreArchivo = nombre,
                     Contenido     = contenido,
                     FechaReg      = DateTime.Now,
-                    UsuarioReg    = "SYSTEM"
+                    UsuarioReg    = _usuario.Correo
                 };
                 await _contexto.DocumentosElectronicos.AddAsync(doc);
             }

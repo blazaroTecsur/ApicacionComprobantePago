@@ -52,7 +52,9 @@
         public string CodigoEstado { get; set; } = "NUEVO";
         public string? EstadoSunat { get; set; }
         public string? RolDigitacion { get; set; }
+        public DateTime? FechaDigitacion { get; set; }
         public string? RolAutorizacion { get; set; }
+        public DateTime? FechaAutorizacion { get; set; }
         public string? RolAprobacion { get; set; }
         public DateTime? FechaAprobacion { get; set; }
         public string? RolAnulacion { get; set; }

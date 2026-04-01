@@ -161,7 +161,9 @@ function poblarCabecera(data) {
     $('#txtRucBenef').val(data.rucBenef);
     $('#txtRazonSocialBenef').val(data.razonSocialBenef);
     $('#txtRolDigitacion').val(data.rolDigitacion);
+    $('#txtFechaDigitacion').val(data.fechaDigitacion);
     $('#txtRolAutorizacion').val(data.rolAutorizacion);
+    $('#txtFechaAutorizacion').val(data.fechaAutorizacion);
     $('#txtRolAprobacion').val(data.rolAprobacion);
     $('#txtFechaAprobacion').val(data.fechaAprobacion);
     $('#txtEstadoComprobante').val(data.estado);
