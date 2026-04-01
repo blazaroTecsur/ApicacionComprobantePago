@@ -172,6 +172,16 @@ try
 
     var app = builder.Build();
 
+    // ── Columnas pendientes de BD (idempotente, IF NOT EXISTS) ────────────────
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await db.Database.ExecuteSqlRawAsync(@"
+            ALTER TABLE rcocomprobante
+                ADD COLUMN IF NOT EXISTS FechaDigitacion   DATETIME NULL,
+                ADD COLUMN IF NOT EXISTS FechaAutorizacion DATETIME NULL");
+    }
+
     // ── Pipeline de middlewares ───────────────────────────────────────────────
     // 1. Manejo global de excepciones (primero)
     app.UseMiddleware<ExceptionMiddleware>();
