@@ -350,6 +350,8 @@ function guardarComprobante() {
                 $('#txtFolio').val(response.folio);
                 $('#hdnFolio').val(response.folio);
                 mostrarBotonesSegunEstado('REGISTRADO');
+                $('#barraOpcionesImputacion').removeClass('d-none');
+                $('#barraAccionesImputacion').removeClass('d-none');
             } else {
                 CorporativoCore.notificarError(response.mensaje);
             }
@@ -836,6 +838,10 @@ function bindEventos() {
             : desc;
         $('#txtNumeroDocumentoIdentidad').val(ruc);
         $('#txtRazonSocial').val(nombre);
+        if ($('#rdoFacturacionManual').is(':checked')) {
+            $('#txtRucBenef').val(ruc);
+            $('#txtRazonSocialBenef').val(nombre);
+        }
         bootstrap.Modal.getInstance(
             document.getElementById('modalBusqueda')).hide();
     });
