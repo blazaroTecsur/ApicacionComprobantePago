@@ -15,7 +15,9 @@ using ComprobantePago.Infrastructure.Services.Maestros;
 using ComprobantePago.Web.Middlewares;
 using FluentValidation;
 using Mapster;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Serilog.Events;
 using System.Text.Json;
@@ -120,6 +122,44 @@ try
         builder.Services.AddScoped<ICuentaContableService, DbCuentaContableService>();
     }
 
+    // ── Autenticación JWT / Azure Entra ID (multi-tenant) ────────────────────
+    // Sin [Authorize] en los controladores, los requests anónimos pasan sin problema.
+    // Cuando se activen los tenants reales, solo se necesita completar ValidTenants en appsettings.
+    var azureAdConfig = builder.Configuration.GetSection("AzureAd");
+    var validTenants  = azureAdConfig.GetSection("ValidTenants").Get<string[]>() ?? [];
+
+    builder.Services.AddHttpContextAccessor();
+    builder.Services.AddScoped<IUsuarioContexto, UsuarioContexto>();
+
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            options.Authority = $"{azureAdConfig["Instance"]}common/v2.0";
+            options.Audience  = azureAdConfig["Audience"];
+
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer           = validTenants.Length > 0,
+                ValidateAudience         = !string.IsNullOrWhiteSpace(azureAdConfig["Audience"]),
+                ValidateLifetime         = true,
+                ValidateIssuerSigningKey = true,
+
+                // Acepta únicamente los tenants configurados (GCI, Los Andes, Tecsur)
+                IssuerValidator = (issuer, _, _) =>
+                {
+                    if (validTenants.Length == 0) return issuer; // modo desarrollo sin tenants
+
+                    var issuersPermitidos = validTenants
+                        .Select(t => $"https://login.microsoftonline.com/{t}/v2.0");
+
+                    if (issuersPermitidos.Contains(issuer)) return issuer;
+
+                    throw new SecurityTokenInvalidIssuerException(
+                        $"Tenant no autorizado: {issuer}");
+                }
+            };
+        });
+
     // ── Servicios de aplicación ───────────────────────────────────────────────
     builder.Services.AddScoped<XmlComprobanteService>();
     builder.Services.AddScoped<PdfComprobanteService>();
@@ -160,6 +200,7 @@ try
     app.UseHttpsRedirection();
     app.UseStaticFiles();
     app.UseRouting();
+    app.UseAuthentication();
     app.UseAuthorization();
 
     app.MapControllerRoute(
