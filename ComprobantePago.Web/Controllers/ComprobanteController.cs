@@ -2,7 +2,6 @@ using ComprobantePago.Application.Commands.Comprobante;
 using ComprobantePago.Application.Commands.Imputacion;
 using ComprobantePago.Application.Common;
 using ComprobantePago.Application.DTOs.Comprobante.Requests;
-using ComprobantePago.Application.Exceptions;
 using ComprobantePago.Application.Interfaces.QueryServices;
 using ComprobantePago.Application.Interfaces.Repositories;
 using ComprobantePago.Application.Interfaces.Services;
@@ -38,7 +37,7 @@ namespace ComprobantePago.Web.Controllers
         }
 
         // ══════════════════════════════════════
-        // VISTAS MVC
+        // VISTAS MVC  →  /Comprobante/Index | /Comprobante/Detalle
         // ══════════════════════════════════════
 
         public IActionResult Index() => View();
@@ -46,52 +45,52 @@ namespace ComprobantePago.Web.Controllers
         public IActionResult Detalle() => View();
 
         // ══════════════════════════════════════
-        // COMBOS
+        // COMBOS  →  GET /Comprobante/{action}
         // ══════════════════════════════════════
 
         /// <summary>Devuelve los tipos de documento disponibles.</summary>
-        [HttpGet("ObtenerTiposDocumento")]
+        [HttpGet]
         public async Task<IActionResult> ObtenerTiposDocumento()
             => Ok(await _maestrosService.ObtenerTiposDocumentoAsync());
 
         /// <summary>Devuelve los tipos SUNAT disponibles.</summary>
-        [HttpGet("ObtenerTiposSunat")]
+        [HttpGet]
         public async Task<IActionResult> ObtenerTiposSunat()
             => Ok(await _maestrosService.ObtenerTiposSunatAsync());
 
         /// <summary>Devuelve las monedas disponibles.</summary>
-        [HttpGet("ObtenerMonedas")]
+        [HttpGet]
         public async Task<IActionResult> ObtenerMonedas()
             => Ok(await _maestrosService.ObtenerMonedasAsync());
 
         /// <summary>Devuelve los lugares de pago disponibles.</summary>
-        [HttpGet("ObtenerLugaresPago")]
+        [HttpGet]
         public async Task<IActionResult> ObtenerLugaresPago()
             => Ok(await _maestrosService.ObtenerLugaresPagoAsync());
 
         /// <summary>Devuelve los tipos de detracción disponibles.</summary>
-        [HttpGet("ObtenerTiposDetraccion")]
+        [HttpGet]
         public async Task<IActionResult> ObtenerTiposDetraccion()
             => Ok(await _maestrosService.ObtenerTiposDetraccionAsync());
 
         /// <summary>Alias para ObtenerTiposDocumento.</summary>
-        [HttpGet("ObtenerTipos")]
+        [HttpGet]
         public async Task<IActionResult> ObtenerTipos()
             => Ok(await _maestrosService.ObtenerTiposDocumentoAsync());
 
         /// <summary>Devuelve los estados de comprobante disponibles.</summary>
-        [HttpGet("ObtenerEstados")]
+        [HttpGet]
         public async Task<IActionResult> ObtenerEstados()
             => Ok(await _maestrosService.ObtenerEstadosAsync());
 
         /// <summary>Busca empleados por filtro de código o nombre.</summary>
-        [HttpGet("ObtenerEmpleados")]
-        public async Task<IActionResult> ObtenerEmpleados([FromQuery] string filtro = "")
+        [HttpGet]
+        public async Task<IActionResult> ObtenerEmpleados(string filtro = "")
             => Ok(await _maestrosService.ObtenerEmpleadosAsync(filtro));
 
         /// <summary>Busca proveedores por filtro de RUC o razón social.</summary>
-        [HttpGet("ObtenerProveedores")]
-        public async Task<IActionResult> ObtenerProveedores([FromQuery] string filtro = "")
+        [HttpGet]
+        public async Task<IActionResult> ObtenerProveedores(string filtro = "")
             => Ok(await _proveedorService.ObtenerProveedoresAsync(filtro));
 
         // ══════════════════════════════════════
@@ -99,13 +98,13 @@ namespace ComprobantePago.Web.Controllers
         // ══════════════════════════════════════
 
         /// <summary>Busca comprobantes aplicando los filtros indicados.</summary>
-        [HttpPost("Buscar")]
+        [HttpPost]
         public async Task<IActionResult> Buscar([FromBody] BuscarComprobanteDto filtros)
             => Ok(await _queryService.BuscarAsync(filtros));
 
         /// <summary>Devuelve el detalle completo de un comprobante por folio.</summary>
-        [HttpGet("ObtenerDetalle")]
-        public async Task<IActionResult> ObtenerDetalle([FromQuery] string folio)
+        [HttpGet]
+        public async Task<IActionResult> ObtenerDetalle(string folio)
         {
             var data = await _queryService.ObtenerDetalleAsync(folio);
             return data is null
@@ -114,16 +113,16 @@ namespace ComprobantePago.Web.Controllers
         }
 
         /// <summary>Descarga el PDF del comprobante.</summary>
-        [HttpGet("ObtenerPdf")]
-        public async Task<IActionResult> ObtenerPdf([FromQuery] string folio)
+        [HttpGet]
+        public async Task<IActionResult> ObtenerPdf(string folio)
         {
             var pdf = await _queryService.ObtenerPdfAsync(folio);
             return pdf is null ? NotFound() : File(pdf, "application/pdf");
         }
 
         /// <summary>Lista los documentos electrónicos adjuntos a un comprobante.</summary>
-        [HttpGet("DocumentosElectronicos")]
-        public async Task<IActionResult> DocumentosElectronicos([FromQuery] string folio)
+        [HttpGet]
+        public async Task<IActionResult> DocumentosElectronicos(string folio)
             => Ok(await _queryService.ObtenerDocumentosElectronicosAsync(folio));
 
         // ══════════════════════════════════════
@@ -131,7 +130,7 @@ namespace ComprobantePago.Web.Controllers
         // ══════════════════════════════════════
 
         /// <summary>Registra o actualiza un comprobante.</summary>
-        [HttpPost("Guardar")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Guardar([FromBody] RegistrarComprobanteCommand command)
         {
@@ -140,7 +139,7 @@ namespace ComprobantePago.Web.Controllers
         }
 
         /// <summary>Envía el comprobante al siguiente estado.</summary>
-        [HttpPost("Enviar")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Enviar([FromBody] EnviarComprobanteCommand command)
         {
@@ -149,7 +148,7 @@ namespace ComprobantePago.Web.Controllers
         }
 
         /// <summary>Firma (autoriza) el comprobante.</summary>
-        [HttpPost("Firmar")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Firmar([FromBody] FirmarComprobanteCommand command)
         {
@@ -158,7 +157,7 @@ namespace ComprobantePago.Web.Controllers
         }
 
         /// <summary>Aprueba el comprobante.</summary>
-        [HttpPost("Aprobar")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Aprobar([FromBody] AprobarComprobanteCommand command)
         {
@@ -167,7 +166,7 @@ namespace ComprobantePago.Web.Controllers
         }
 
         /// <summary>Anula el comprobante.</summary>
-        [HttpPost("Anular")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Anular([FromBody] AnularComprobanteCommand command)
         {
@@ -176,7 +175,7 @@ namespace ComprobantePago.Web.Controllers
         }
 
         /// <summary>Deriva el comprobante.</summary>
-        [HttpPost("Derivar")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Derivar([FromBody] DerivarComprobanteCommand command)
         {
@@ -189,24 +188,23 @@ namespace ComprobantePago.Web.Controllers
         // ══════════════════════════════════════
 
         /// <summary>Lista las imputaciones contables de un comprobante.</summary>
-        [HttpGet("ObtenerImputaciones")]
-        public async Task<IActionResult> ObtenerImputaciones([FromQuery] string folio)
+        [HttpGet]
+        public async Task<IActionResult> ObtenerImputaciones(string folio)
             => Ok(await _queryService.ObtenerImputacionesAsync(folio));
 
         /// <summary>Busca cuentas contables por filtro.</summary>
-        [HttpGet("ObtenerCuentasContables")]
-        public async Task<IActionResult> ObtenerCuentasContables([FromQuery] string filtro = "")
+        [HttpGet]
+        public async Task<IActionResult> ObtenerCuentasContables(string filtro = "")
             => Ok(await _maestrosService.ObtenerCuentasContablesAsync(filtro));
 
         /// <summary>Busca códigos de unidad por campo/unidad/código/filtro.</summary>
-        [HttpGet("ObtenerCodigosUnidad")]
+        [HttpGet]
         public async Task<IActionResult> ObtenerCodigosUnidad(
-            [FromQuery] string campo, [FromQuery] int unidad,
-            [FromQuery] string codigo, [FromQuery] string filtro = "")
+            string campo, int unidad, string codigo, string filtro = "")
             => Ok(await _maestrosService.ObtenerCodigosUnidadAsync(campo, unidad, codigo, filtro));
 
         /// <summary>Descarga la plantilla Excel para carga masiva de imputaciones.</summary>
-        [HttpGet("DescargarPlantillaImputacion")]
+        [HttpGet]
         public async Task<IActionResult> DescargarPlantillaImputacion()
         {
             var archivo = await _queryService.ObtenerPlantillaImputacionAsync();
@@ -220,7 +218,7 @@ namespace ComprobantePago.Web.Controllers
         // ══════════════════════════════════════
 
         /// <summary>Agrega una línea de imputación contable.</summary>
-        [HttpPost("AgregarImputacion")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AgregarImputacion([FromBody] AgregarImputacionCommand command)
         {
@@ -229,7 +227,7 @@ namespace ComprobantePago.Web.Controllers
         }
 
         /// <summary>Edita una línea de imputación contable existente.</summary>
-        [HttpPost("EditarImputacion")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditarImputacion([FromBody] EditarImputacionCommand command)
         {
@@ -238,7 +236,7 @@ namespace ComprobantePago.Web.Controllers
         }
 
         /// <summary>Elimina una línea de imputación contable.</summary>
-        [HttpPost("EliminarImputacion")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EliminarImputacion([FromBody] EliminarImputacionCommand command)
         {
@@ -247,7 +245,7 @@ namespace ComprobantePago.Web.Controllers
         }
 
         /// <summary>Carga masiva de imputaciones desde un archivo Excel.</summary>
-        [HttpPost("CargarImputacionMasiva")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CargarImputacionMasiva(IFormFile file)
         {
@@ -260,19 +258,19 @@ namespace ComprobantePago.Web.Controllers
         // ══════════════════════════════════════
 
         /// <summary>Valida un comprobante electrónico mediante su archivo XML SUNAT.</summary>
-        [HttpPost("ValidarXmlSunat")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ValidarXmlSunat(IFormFile archivo)
             => Ok(await _repository.ValidarXmlSunatAsync(archivo));
 
         /// <summary>Valida un comprobante electrónico mediante su archivo PDF.</summary>
-        [HttpPost("ValidarPdfSunat")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ValidarPdfSunat(IFormFile archivo)
             => Ok(await _repository.ValidarPdfSunatAsync(archivo));
 
         /// <summary>Valida un comprobante electrónico mediante un archivo ZIP (XML + CDR + PDF).</summary>
-        [HttpPost("ValidarZipSunat")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ValidarZipSunat(IFormFile archivo)
             => Ok(await _repository.ValidarZipSunatAsync(archivo));
@@ -282,10 +280,10 @@ namespace ComprobantePago.Web.Controllers
         // ══════════════════════════════════════
 
         /// <summary>Sube documentos adjuntos a un comprobante.</summary>
-        [HttpPost("SubirDocumentos")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubirDocumentos(
-            [FromForm] string folio, [FromForm] string subTipo, IFormFileCollection archivos)
+            string folio, string subTipo, IFormFileCollection archivos)
         {
             var lista = new List<(byte[], string, string, string)>();
             foreach (var archivo in archivos.Where(a => a.Length > 0))
@@ -305,8 +303,8 @@ namespace ComprobantePago.Web.Controllers
         }
 
         /// <summary>Descarga un documento adjunto por su ID.</summary>
-        [HttpGet("DescargarDocumento")]
-        public async Task<IActionResult> DescargarDocumento([FromQuery] int id)
+        [HttpGet]
+        public async Task<IActionResult> DescargarDocumento(int id)
         {
             var doc = await _repository.DescargarDocumentoAsync(id);
             if (doc is null) return NotFound();
@@ -316,7 +314,7 @@ namespace ComprobantePago.Web.Controllers
         }
 
         /// <summary>Elimina un documento adjunto por su ID.</summary>
-        [HttpPost("EliminarDocumento")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EliminarDocumento([FromBody] int id)
         {
@@ -329,7 +327,7 @@ namespace ComprobantePago.Web.Controllers
         // ══════════════════════════════════════
 
         /// <summary>Exporta la distribución SyteLine en formato Excel para los folios indicados.</summary>
-        [HttpPost("ExportarDistribucionSyteline")]
+        [HttpPost]
         public async Task<IActionResult> ExportarDistribucionSyteline([FromForm] List<string> folios)
         {
             var datos = await _sytelineService.ObtenerDistribucionSytelineAsync(folios);
@@ -340,7 +338,7 @@ namespace ComprobantePago.Web.Controllers
         }
 
         /// <summary>Exporta la cabecera SyteLine en formato Excel para los folios indicados.</summary>
-        [HttpPost("ExportarCabeceraSyteline")]
+        [HttpPost]
         public async Task<IActionResult> ExportarCabeceraSyteline([FromForm] List<string> folios)
         {
             var datos = await _sytelineService.ObtenerCabecerasSytelineAsync(folios);
