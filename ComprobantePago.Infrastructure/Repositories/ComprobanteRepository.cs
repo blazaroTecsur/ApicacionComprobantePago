@@ -46,20 +46,15 @@ namespace ComprobantePago.Infrastructure.Repositories
         {
             var prefijo = $"{anio}{mes}";
 
-            var ultimo = await _contexto.Comprobantes
+            var maxFolio = await _contexto.Comprobantes
                 .Where(x => x.Folio.StartsWith(prefijo))
-                .OrderByDescending(x => x.Folio)
-                .FirstOrDefaultAsync();
+                .MaxAsync(x => (string?)x.Folio);
 
-            int correlativo = 1;
-            if (ultimo != null)
-            {
-                var sufijo = ultimo.Folio.Substring(prefijo.Length);
-                if (int.TryParse(sufijo, out int num))
-                    correlativo = num + 1;
-            }
+            if (maxFolio is null)
+                return "0001";
 
-            return correlativo.ToString("D4");
+            return (int.TryParse(maxFolio[prefijo.Length..], out var num) ? num + 1 : 1)
+                .ToString("D4");
         }
 
         // ── Guardar Comprobante ───────────────────
