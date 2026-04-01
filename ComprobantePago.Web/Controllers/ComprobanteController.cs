@@ -2,7 +2,6 @@ using ComprobantePago.Application.Commands.Comprobante;
 using ComprobantePago.Application.Commands.Imputacion;
 using ComprobantePago.Application.Common;
 using ComprobantePago.Application.DTOs.Comprobante.Requests;
-using ComprobantePago.Application.Exceptions;
 using ComprobantePago.Application.Interfaces.QueryServices;
 using ComprobantePago.Application.Interfaces.Repositories;
 using ComprobantePago.Application.Interfaces.Services;
@@ -38,7 +37,7 @@ namespace ComprobantePago.Web.Controllers
         }
 
         // ══════════════════════════════════════
-        // VISTAS MVC
+        // VISTAS MVC  →  /Comprobante/Index | /Comprobante/Detalle
         // ══════════════════════════════════════
 
         public IActionResult Index() => View();
@@ -46,7 +45,7 @@ namespace ComprobantePago.Web.Controllers
         public IActionResult Detalle() => View();
 
         // ══════════════════════════════════════
-        // COMBOS
+        // COMBOS  →  GET /Comprobante/{action}
         // ══════════════════════════════════════
 
         /// <summary>Devuelve los tipos de documento disponibles.</summary>
@@ -201,8 +200,7 @@ namespace ComprobantePago.Web.Controllers
         /// <summary>Busca códigos de unidad por campo/unidad/código/filtro.</summary>
         [HttpGet]
         public async Task<IActionResult> ObtenerCodigosUnidad(
-            [FromQuery] string campo, [FromQuery] int unidad,
-            [FromQuery] string codigo, [FromQuery] string filtro = "")
+            string campo, int unidad, string codigo, string filtro = "")
             => Ok(await _maestrosService.ObtenerCodigosUnidadAsync(campo, unidad, codigo, filtro));
 
         /// <summary>Descarga la plantilla Excel para carga masiva de imputaciones.</summary>
@@ -285,7 +283,7 @@ namespace ComprobantePago.Web.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubirDocumentos(
-            [FromForm] string folio, [FromForm] string subTipo, IFormFileCollection archivos)
+            string folio, string subTipo, IFormFileCollection archivos)
         {
             var lista = new List<(byte[], string, string, string)>();
             foreach (var archivo in archivos.Where(a => a.Length > 0))
