@@ -309,8 +309,6 @@ function mostrarBotonesSegunEstado(estado) {
         case 'APROBADO':
             $('#btnImprimirComprobante, #btnVistaPrevia')
                 .removeClass('d-none');
-            $('#btnAsociados, #btnOrigen, #btnDestino, #btnCtaBancaria')
-                .removeClass('d-none');
             break;
         case 'ANULADO':
             $('#btnImprimirComprobante, #btnVistaPrevia')
