@@ -85,12 +85,12 @@ namespace ComprobantePago.Web.Controllers
 
         /// <summary>Busca empleados por filtro de código o nombre.</summary>
         [HttpGet]
-        public async Task<IActionResult> ObtenerEmpleados(string filtro = "")
+        public async Task<IActionResult> ObtenerEmpleados([FromQuery] string filtro = "")
             => Ok(await _maestrosService.ObtenerEmpleadosAsync(filtro));
 
         /// <summary>Busca proveedores por filtro de RUC o razón social.</summary>
         [HttpGet]
-        public async Task<IActionResult> ObtenerProveedores(string filtro = "")
+        public async Task<IActionResult> ObtenerProveedores([FromQuery] string filtro = "")
             => Ok(await _proveedorService.ObtenerProveedoresAsync(filtro));
 
         // ══════════════════════════════════════
@@ -104,7 +104,7 @@ namespace ComprobantePago.Web.Controllers
 
         /// <summary>Devuelve el detalle completo de un comprobante por folio.</summary>
         [HttpGet]
-        public async Task<IActionResult> ObtenerDetalle(string folio)
+        public async Task<IActionResult> ObtenerDetalle([FromQuery] string folio)
         {
             var data = await _queryService.ObtenerDetalleAsync(folio);
             return data is null
@@ -114,7 +114,7 @@ namespace ComprobantePago.Web.Controllers
 
         /// <summary>Descarga el PDF del comprobante.</summary>
         [HttpGet]
-        public async Task<IActionResult> ObtenerPdf(string folio)
+        public async Task<IActionResult> ObtenerPdf([FromQuery] string folio)
         {
             var pdf = await _queryService.ObtenerPdfAsync(folio);
             return pdf is null ? NotFound() : File(pdf, "application/pdf");
@@ -122,7 +122,7 @@ namespace ComprobantePago.Web.Controllers
 
         /// <summary>Lista los documentos electrónicos adjuntos a un comprobante.</summary>
         [HttpGet]
-        public async Task<IActionResult> DocumentosElectronicos(string folio)
+        public async Task<IActionResult> DocumentosElectronicos([FromQuery] string folio)
             => Ok(await _queryService.ObtenerDocumentosElectronicosAsync(folio));
 
         // ══════════════════════════════════════
@@ -189,12 +189,12 @@ namespace ComprobantePago.Web.Controllers
 
         /// <summary>Lista las imputaciones contables de un comprobante.</summary>
         [HttpGet]
-        public async Task<IActionResult> ObtenerImputaciones(string folio)
+        public async Task<IActionResult> ObtenerImputaciones([FromQuery] string folio)
             => Ok(await _queryService.ObtenerImputacionesAsync(folio));
 
         /// <summary>Busca cuentas contables por filtro.</summary>
         [HttpGet]
-        public async Task<IActionResult> ObtenerCuentasContables(string filtro = "")
+        public async Task<IActionResult> ObtenerCuentasContables([FromQuery] string filtro = "")
             => Ok(await _maestrosService.ObtenerCuentasContablesAsync(filtro));
 
         /// <summary>Busca códigos de unidad por campo/unidad/código/filtro.</summary>
@@ -304,7 +304,7 @@ namespace ComprobantePago.Web.Controllers
 
         /// <summary>Descarga un documento adjunto por su ID.</summary>
         [HttpGet]
-        public async Task<IActionResult> DescargarDocumento(int id)
+        public async Task<IActionResult> DescargarDocumento([FromQuery] int id)
         {
             var doc = await _repository.DescargarDocumentoAsync(id);
             if (doc is null) return NotFound();

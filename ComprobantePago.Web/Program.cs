@@ -1,4 +1,3 @@
-using Asp.Versioning;
 using ComprobantePago.Application.Common;
 using ComprobantePago.Application.Interfaces;
 using ComprobantePago.Application.Interfaces.QueryServices;
