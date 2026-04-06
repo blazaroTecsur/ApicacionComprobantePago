@@ -112,12 +112,16 @@ namespace ComprobantePago.Web.Controllers
                 : Ok(data);
         }
 
-        /// <summary>Descarga el PDF del comprobante.</summary>
+        /// <summary>Genera y devuelve el PDF del comprobante (vista previa o descarga).</summary>
         [HttpGet]
-        public async Task<IActionResult> ObtenerPdf([FromQuery] string folio)
+        public async Task<IActionResult> ObtenerPdf([FromQuery] string folio, [FromQuery] bool descargar = false)
         {
             var pdf = await _queryService.ObtenerPdfAsync(folio);
-            return pdf is null ? NotFound() : File(pdf, "application/pdf");
+            if (pdf is null) return NotFound();
+            var nombre = $"Comprobante_{folio}.pdf";
+            return descargar
+                ? File(pdf, "application/pdf", nombre)
+                : File(pdf, "application/pdf");
         }
 
         /// <summary>Lista los documentos electrónicos adjuntos a un comprobante.</summary>

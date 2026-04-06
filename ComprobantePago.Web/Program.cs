@@ -83,6 +83,10 @@ try
     builder.Services.Configure<SunatSettings>(
         builder.Configuration.GetSection("Sunat"));
 
+    // ── Configuración Empresa ─────────────────────────────────────────────────
+    builder.Services.Configure<EmpresaSettings>(
+        builder.Configuration.GetSection(EmpresaSettings.Section));
+
     // ── HttpClient SUNAT ──────────────────────────────────────────────────────
     builder.Services.AddHttpClient<ISunatService, SunatService>()
         .ConfigurePrimaryHttpMessageHandler(() =>

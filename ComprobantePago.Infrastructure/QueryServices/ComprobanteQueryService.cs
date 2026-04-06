@@ -2,20 +2,25 @@ using ComprobantePago.Application.DTOs.Comprobante.Requests;
 using ComprobantePago.Application.DTOs.Comprobante.Response;
 using ComprobantePago.Application.DTOs.Responses;
 using ComprobantePago.Application.Interfaces.QueryServices;
+using ComprobantePago.Application.Settings;
 using ComprobantePago.Infrastructure.Persistence;
+using ComprobantePago.Infrastructure.Services;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace ComprobantePago.Infrastructure.QueryServices
 {
     public class ComprobanteQueryService(
         AppDbContext contexto,
-        ILogger<ComprobanteQueryService> logger)
+        ILogger<ComprobanteQueryService> logger,
+        IOptions<EmpresaSettings> empresaOptions)
         : IComprobanteQueryService
     {
         private readonly AppDbContext _contexto = contexto;
         private readonly ILogger<ComprobanteQueryService> _logger = logger;
+        private readonly EmpresaSettings _empresa = empresaOptions.Value;
 
         // ── Buscar comprobantes ───────────────────
         public async Task<IEnumerable<ComprobanteDto>> BuscarAsync(
@@ -118,8 +123,87 @@ namespace ComprobantePago.Infrastructure.QueryServices
             };
         }
 
-        public Task<byte[]> ObtenerPdfAsync(string folio)
-            => Task.FromResult<byte[]>(null!);
+        public async Task<byte[]?> ObtenerPdfAsync(string folio)
+        {
+            var c = await _contexto.Comprobantes
+                .FirstOrDefaultAsync(x => x.Folio == folio);
+            if (c is null) return null;
+
+            var imputaciones = await _contexto.ImputacionesContables
+                .Where(x => x.Folio == folio)
+                .OrderBy(x => x.Secuencia)
+                .ToListAsync();
+
+            if (!imputaciones.Any()) return null;
+
+            // Descripción del tipo de documento
+            var descTipo = await _contexto.TiposDocumento
+                .Where(t => t.Codigo == c.TipoDocumento)
+                .Select(t => t.Descripcion)
+                .FirstOrDefaultAsync() ?? string.Empty;
+
+            // Descripción del lugar de pago
+            var descLugar = await _contexto.LugaresPago
+                .Where(l => l.Codigo == c.LugarPago)
+                .Select(l => l.Descripcion)
+                .FirstOrDefaultAsync() ?? string.Empty;
+
+            var data = new ComprobanteReporteData
+            {
+                EmpresaNombre = _empresa.Nombre,
+                EmpresaRuc    = _empresa.Ruc,
+
+                RucProveedor      = c.RucReceptor,
+                RazonSocial       = c.RazonSocialReceptor,
+                Serie             = c.Serie,
+                Numero            = c.Numero,
+                FechaEmision      = c.FechaEmision.ToString("dd/MM/yyyy"),
+                TipoDocumento     = c.TipoDocumento,
+                TipoSunat         = c.TipoSunat,
+                DescTipoDocumento = descTipo,
+                Moneda            = c.Moneda,
+                TasaCambio        = c.TasaCambio,
+                FechaRecepcion    = c.FechaRecepcion?.ToString("dd/MM/yyyy") ?? string.Empty,
+                LugarPago         = c.LugarPago ?? string.Empty,
+                DescLugarPago     = descLugar,
+                RucBenef          = c.RucBeneficiario ?? string.Empty,
+                OrdenCompra       = c.OrdenCompra ?? string.Empty,
+                FechaVencimiento  = c.FechaVencimiento?.ToString("dd/MM/yyyy") ?? string.Empty,
+                EsDocumentoElectronico = c.EsDocumentoElectronico,
+                EstadoSunat       = c.EstadoSunat ?? string.Empty,
+                CodigoEstado      = c.CodigoEstado,
+
+                MontoNeto        = c.MontoNeto,
+                MontoExento      = c.MontoExento,
+                PorcentajeIGV    = c.PorcentajeIGV,
+                MontoIGVCredito  = c.MontoIGVCredito,
+                MontoBruto       = c.MontoBruto,
+                MontoRetencion   = c.MontoRetencion,
+                MontoDetraccion  = c.MontoDetraccion,
+
+                TieneDetraccion      = c.TieneDetraccion,
+                TipoDetraccion       = c.TipoDetraccion ?? string.Empty,
+                PorcentajeDetraccion = c.PorcentajeDetraccion ?? 0,
+
+                RolDigitacion   = c.RolDigitacion ?? string.Empty,
+                FechaDigitacion = c.FechaDigitacion?.ToString("dd/MM/yyyy") ?? string.Empty,
+                RolAutorizacion = c.RolAutorizacion ?? string.Empty,
+                Observacion     = c.Observacion ?? string.Empty,
+
+                Imputaciones = imputaciones.Select(i => new ImputacionReporteData
+                {
+                    CuentaContable   = i.CuentaContable ?? string.Empty,
+                    CodUnidad1Cuenta = i.CodUnidad1Cuenta ?? string.Empty,
+                    Proyecto         = i.Proyecto ?? string.Empty,
+                    CodUnidad3Cuenta = i.CodUnidad3Cuenta ?? string.Empty,
+                    CodUnidad4Cuenta = i.CodUnidad4Cuenta ?? string.Empty,
+                    Monto            = i.Monto,
+                    Descripcion      = i.Descripcion ?? string.Empty
+                }).ToList()
+            };
+
+            return ComprobantePdfReporteService.Generar(data);
+        }
 
         public async Task<IEnumerable<DocumentoElectronicoDto>>
             ObtenerDocumentosElectronicosAsync(string folio)
