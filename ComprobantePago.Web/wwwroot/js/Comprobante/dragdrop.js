@@ -435,9 +435,10 @@ function mostrarResultadoSunat(response, tipo, archivo) {
                 poblarCamposDesdeXml(response.datos);
                 mostrarVistaDetalle();
                 cargarDocumentosElectronicos(response.folio);
-                if (archivo) {
-                    const subTipoArchivo = tipo === 'zip' ? 'XML_CDR' : 'XML_SUNAT';
-                    _subirDocumentoConFolio(archivo, response.folio, subTipoArchivo);
+                // ZIP: el backend extrae y guarda los documentos internos (incluido R-*.zip CDR)
+                // XML: guardar el archivo validado como XML_SUNAT
+                if (archivo && tipo === 'xml') {
+                    _subirDocumentoConFolio(archivo, response.folio, 'XML_SUNAT');
                 }
             });
             break;
@@ -472,9 +473,10 @@ function mostrarResultadoSunat(response, tipo, archivo) {
                 poblarCamposDesdeXml(response.datos);
                 mostrarVistaDetalle();
                 cargarDocumentosElectronicos(response.folio);
-                if (archivo) {
-                    const subTipoArchivo = tipo === 'zip' ? 'XML_CDR' : 'XML_SUNAT';
-                    _subirDocumentoConFolio(archivo, response.folio, subTipoArchivo);
+                // ZIP: el backend extrae y guarda los documentos internos (incluido R-*.zip CDR)
+                // XML: guardar el archivo validado como XML_SUNAT
+                if (archivo && tipo === 'xml') {
+                    _subirDocumentoConFolio(archivo, response.folio, 'XML_SUNAT');
                 }
             });
             break;

@@ -410,19 +410,21 @@ namespace ComprobantePago.Infrastructure.Repositories
                 var archivos = new List<(byte[] contenido, string nombre, string tipo, string subTipo)>();
                 foreach (var entrada in zip.Entries)
                 {
-                    var ext = Path.GetExtension(entrada.Name)
-                        .TrimStart('.').ToLowerInvariant();
-                    if (ext != "xml" && ext != "pdf") continue;
+                    var ext    = Path.GetExtension(entrada.Name).TrimStart('.').ToLowerInvariant();
+                    var esCdr  = entrada.Name.StartsWith("R-", StringComparison.OrdinalIgnoreCase);
+
+                    // Incluir: xml, pdf, y zip solo si es CDR (R-*)
+                    if (ext != "xml" && ext != "pdf" && !(esCdr && ext == "zip")) continue;
 
                     using var ms = new MemoryStream();
                     using var entStream = entrada.Open();
                     await entStream.CopyToAsync(ms);
 
-                    var esCdr = entrada.Name.StartsWith("R-", StringComparison.OrdinalIgnoreCase);
                     string tipo, subTipo;
-                    if (ext == "pdf")   { tipo = "PDF"; subTipo = "REPRESENTACION_IMPRESA"; }
-                    else if (esCdr)     { tipo = "XML"; subTipo = "XML_CDR"; }
-                    else                { tipo = "XML"; subTipo = "XML_SUNAT"; }
+                    if (ext == "pdf")              { tipo = "PDF"; subTipo = "REPRESENTACION_IMPRESA"; }
+                    else if (esCdr && ext == "zip"){ tipo = "ZIP"; subTipo = "XML_CDR"; }
+                    else if (esCdr)                { tipo = "XML"; subTipo = "XML_CDR"; }
+                    else                           { tipo = "XML"; subTipo = "XML_SUNAT"; }
                     archivos.Add((ms.ToArray(), entrada.Name, tipo, subTipo));
                 }
                 await GuardarDocumentosAsync(resultado.Folio, archivos);
