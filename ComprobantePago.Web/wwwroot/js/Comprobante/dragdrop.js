@@ -52,8 +52,11 @@ function inicializarDragDrop() {
 // ── Procesar archivo del drag-drop principal ──
 function procesarArchivo(archivo) {
     const extension = archivo.name.split('.').pop().toLowerCase();
+    const esCdr = archivo.name.startsWith('R-');
 
-    if (extension === 'xml') {
+    if (esCdr && (extension === 'xml' || extension === 'zip')) {
+        subirDocumentoSinValidacion(archivo, 'XML_CDR');
+    } else if (extension === 'xml') {
         validarXmlSunat(archivo);
     } else if (extension === 'zip') {
         validarZipSunat(archivo);
@@ -84,7 +87,7 @@ function validarXmlSunat(archivo) {
                     response.mensaje || response.motivo || 'Error al validar el archivo XML.');
                 return;
             }
-            mostrarResultadoSunat(response, 'xml');
+            mostrarResultadoSunat(response, 'xml', archivo);
         },
         error: function (xhr) {
             CorporativoCore.hideLoading();
@@ -124,7 +127,7 @@ function validarZipSunat(archivo) {
                     </div>`);
                 return;
             }
-            mostrarResultadoSunat(response, 'zip');
+            mostrarResultadoSunat(response, 'zip', archivo);
         },
         error: function (xhr) {
             CorporativoCore.hideLoading();
@@ -394,7 +397,7 @@ function actualizarIndicadoresCategorias(docs) {
 }
 
 // ── Mostrar resultado validación SUNAT ────────
-function mostrarResultadoSunat(response, tipo) {
+function mostrarResultadoSunat(response, tipo, archivo) {
     $('#divResultadoSunat').removeClass('d-none');
 
     const estado = response.estadoSunat;
@@ -432,6 +435,10 @@ function mostrarResultadoSunat(response, tipo) {
                 poblarCamposDesdeXml(response.datos);
                 mostrarVistaDetalle();
                 cargarDocumentosElectronicos(response.folio);
+                if (archivo) {
+                    const subTipoArchivo = tipo === 'zip' ? 'XML_CDR' : 'XML_SUNAT';
+                    _subirDocumentoConFolio(archivo, response.folio, subTipoArchivo);
+                }
             });
             break;
 
@@ -465,6 +472,10 @@ function mostrarResultadoSunat(response, tipo) {
                 poblarCamposDesdeXml(response.datos);
                 mostrarVistaDetalle();
                 cargarDocumentosElectronicos(response.folio);
+                if (archivo) {
+                    const subTipoArchivo = tipo === 'zip' ? 'XML_CDR' : 'XML_SUNAT';
+                    _subirDocumentoConFolio(archivo, response.folio, subTipoArchivo);
+                }
             });
             break;
 
