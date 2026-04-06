@@ -807,6 +807,13 @@ function bindEventos() {
         if (this.files.length > 0) subirImputacionMasiva(this.files[0]);
     });
 
+    // Descargar imputación (PDF descarga directa)
+    $('#btnImprimirComprobante').on('click', function () {
+        const folio = $('#hdnFolio').val();
+        if (!folio) return;
+        window.open(`/Comprobante/ObtenerPdf?folio=${folio}&descargar=true`, '_blank');
+    });
+
     // Vista previa PDF
     $('#btnVistaPrevia').on('click', function () {
         const folio = $('#hdnFolio').val();

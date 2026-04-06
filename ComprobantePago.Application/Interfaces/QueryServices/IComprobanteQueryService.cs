@@ -9,7 +9,7 @@ namespace ComprobantePago.Application.Interfaces.QueryServices
         // ── Consultas Comprobante ─────────────────
         Task<IEnumerable<ComprobanteDto>> BuscarAsync(BuscarComprobanteDto filtros);
         Task<ComprobanteDetalleDto> ObtenerDetalleAsync(string folio);
-        Task<byte[]> ObtenerPdfAsync(string folio);
+        Task<byte[]?> ObtenerPdfAsync(string folio);
         Task<IEnumerable<DocumentoElectronicoDto>> ObtenerDocumentosElectronicosAsync(string folio);
 
         // ── Consultas Imputación ──────────────────
