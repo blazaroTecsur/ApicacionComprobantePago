@@ -160,7 +160,7 @@ namespace ComprobantePago.Tests.HU01
 
             var resultado = await repo.ValidarXmlSunatAsync(archivo);
 
-            Assert.Equal("1", resultado.CodigoEstado,
+            Assert.True(resultado.CodigoEstado == "1",
                 $"{descripcion} debe validarse correctamente.");
         }
     }
