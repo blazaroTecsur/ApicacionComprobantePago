@@ -194,7 +194,6 @@ namespace ComprobantePago.Infrastructure.QueryServices
                 {
                     CuentaContable   = i.CuentaContable ?? string.Empty,
                     CodUnidad1Cuenta = i.CodUnidad1Cuenta ?? string.Empty,
-                    Proyecto         = i.Proyecto ?? string.Empty,
                     CodUnidad3Cuenta = i.CodUnidad3Cuenta ?? string.Empty,
                     CodUnidad4Cuenta = i.CodUnidad4Cuenta ?? string.Empty,
                     Monto            = i.Monto,

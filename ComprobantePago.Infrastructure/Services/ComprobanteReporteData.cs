@@ -55,7 +55,6 @@ namespace ComprobantePago.Infrastructure.Services
     {
         public string  CuentaContable    { get; set; } = string.Empty;
         public string  CodUnidad1Cuenta  { get; set; } = string.Empty;
-        public string  Proyecto          { get; set; } = string.Empty;
         public string  CodUnidad3Cuenta  { get; set; } = string.Empty;
         public string  CodUnidad4Cuenta  { get; set; } = string.Empty;
         public decimal Monto             { get; set; }
