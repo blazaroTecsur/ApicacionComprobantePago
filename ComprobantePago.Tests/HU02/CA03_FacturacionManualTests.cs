@@ -7,6 +7,7 @@ using ComprobantePago.Infrastructure.Services;
 using ComprobantePago.Tests.Helpers;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using Xunit;
 
 namespace ComprobantePago.Tests.HU02
 {
@@ -33,9 +34,9 @@ namespace ComprobantePago.Tests.HU02
 
             return new ComprobanteRepository(
                 db, unitOfWork.Object,
+                new Mock<ISunatService>().Object,
                 new XmlComprobanteService(),
                 new PdfComprobanteService(),
-                new Mock<ISunatService>().Object,
                 mockUsuario.Object,
                 NullLogger<ComprobanteRepository>.Instance);
         }
@@ -83,7 +84,7 @@ namespace ComprobantePago.Tests.HU02
         {
             var repo      = ConstruirRepository(nameof(GuardarManual_FolioTieneLongitudCorrecta));
             var resultado = await repo.GuardarAsync(ComandoManual("RP", "001", "00000001"));
-            Assert.Equal(10, resultado.Length,
+            Assert.True(resultado.Length == 10,
                 "El folio generado debe tener formato YYYYMMNNNN (10 caracteres).");
         }
 
@@ -126,8 +127,7 @@ namespace ComprobantePago.Tests.HU02
             comando2.Comprobante.MontoBruto  = 150.00m;
 
             var folioActualizado = await repo.GuardarAsync(comando2);
-            Assert.Equal(folio, folioActualizado,
-                "El folio no debe cambiar al actualizar un comprobante existente.");
+            Assert.Equal(folio, folioActualizado);
         }
 
         // ── Cabecera completa en modo manual ──────────────────────────────────
@@ -148,8 +148,8 @@ namespace ComprobantePago.Tests.HU02
 
             var repo = new ComprobanteRepository(
                 db, unitOfWork.Object,
-                new XmlComprobanteService(), new PdfComprobanteService(),
                 new Mock<ISunatService>().Object,
+                new XmlComprobanteService(), new PdfComprobanteService(),
                 mockUsuario.Object, NullLogger<ComprobanteRepository>.Instance);
 
             var comando = ComandoManual("RP", "001", "00000001");
@@ -183,8 +183,8 @@ namespace ComprobantePago.Tests.HU02
 
             var repo = new ComprobanteRepository(
                 db, unitOfWork.Object,
-                new XmlComprobanteService(), new PdfComprobanteService(),
                 new Mock<ISunatService>().Object,
+                new XmlComprobanteService(), new PdfComprobanteService(),
                 mockUsuario.Object, NullLogger<ComprobanteRepository>.Instance);
 
             var folio = await repo.GuardarAsync(ComandoManual("RP", "001", "00000001"));
@@ -211,8 +211,8 @@ namespace ComprobantePago.Tests.HU02
 
             var repo = new ComprobanteRepository(
                 db, unitOfWork.Object,
-                new XmlComprobanteService(), new PdfComprobanteService(),
                 new Mock<ISunatService>().Object,
+                new XmlComprobanteService(), new PdfComprobanteService(),
                 mockUsuario.Object, NullLogger<ComprobanteRepository>.Instance);
 
             var folio      = await repo.GuardarAsync(ComandoManual("RP", "001", "00000001"));
