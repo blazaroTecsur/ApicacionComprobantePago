@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Internal;
 using System.IO.Compression;
 using System.Text;
 
@@ -21,27 +22,27 @@ namespace ComprobantePago.Tests.Helpers
             string tipoDoc     = "01")
         {
             return $@"<?xml version=""1.0"" encoding=""UTF-8""?>
-<Invoice xmlns=""urn:oasis:names:specification:ubl:schema:xsd:Invoice-2""
-         xmlns:cbc=""urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2""
-         xmlns:cac=""urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"">
-  <cbc:ID>{serie}-{numero}</cbc:ID>
-  <cbc:IssueDate>{fecha}</cbc:IssueDate>
-  <cbc:InvoiceTypeCode>{tipoDoc}</cbc:InvoiceTypeCode>
-  <cbc:DocumentCurrencyCode>{moneda}</cbc:DocumentCurrencyCode>
-  <cac:AccountingSupplierParty>
-    <cac:Party>
-      <cac:PartyIdentification>
-        <cbc:ID>{ruc}</cbc:ID>
-      </cac:PartyIdentification>
-      <cac:PartyLegalEntity>
-        <cbc:RegistrationName>EMPRESA EMISORA SAC</cbc:RegistrationName>
-      </cac:PartyLegalEntity>
-    </cac:Party>
-  </cac:AccountingSupplierParty>
-  <cac:LegalMonetaryTotal>
-    <cbc:PayableAmount>{montoTotal.ToString(System.Globalization.CultureInfo.InvariantCulture)}</cbc:PayableAmount>
-  </cac:LegalMonetaryTotal>
-</Invoice>";
+                <Invoice xmlns=""urn:oasis:names:specification:ubl:schema:xsd:Invoice-2""
+                         xmlns:cbc=""urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2""
+                         xmlns:cac=""urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"">
+                  <cbc:ID>{serie}-{numero}</cbc:ID>
+                  <cbc:IssueDate>{fecha}</cbc:IssueDate>
+                  <cbc:InvoiceTypeCode>{tipoDoc}</cbc:InvoiceTypeCode>
+                  <cbc:DocumentCurrencyCode>{moneda}</cbc:DocumentCurrencyCode>
+                  <cac:AccountingSupplierParty>
+                    <cac:Party>
+                      <cac:PartyIdentification>
+                        <cbc:ID>{ruc}</cbc:ID>
+                      </cac:PartyIdentification>
+                      <cac:PartyLegalEntity>
+                        <cbc:RegistrationName>EMPRESA EMISORA SAC</cbc:RegistrationName>
+                      </cac:PartyLegalEntity>
+                    </cac:Party>
+                  </cac:AccountingSupplierParty>
+                  <cac:LegalMonetaryTotal>
+                    <cbc:PayableAmount>{montoTotal.ToString(System.Globalization.CultureInfo.InvariantCulture)}</cbc:PayableAmount>
+                  </cac:LegalMonetaryTotal>
+                </Invoice>";
         }
 
         // ── IFormFile a partir de bytes ───────────────────────────────────────
