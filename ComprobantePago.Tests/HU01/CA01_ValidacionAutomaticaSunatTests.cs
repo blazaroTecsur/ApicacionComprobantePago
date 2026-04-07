@@ -28,7 +28,7 @@ namespace ComprobantePago.Tests.HU01
         {
             var db        = DbContextFactory.Crear(dbNombre.Length > 0 ? dbNombre : null);
             var unitOfWork = new Mock<IUnitOfWork>();
-            unitOfWork.Setup(u => u.SaveChangesAsync()).Returns(Task.CompletedTask);
+            unitOfWork.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(0);
             unitOfWork.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
             unitOfWork.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
 

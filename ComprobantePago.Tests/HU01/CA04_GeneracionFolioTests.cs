@@ -31,7 +31,7 @@ namespace ComprobantePago.Tests.HU01
             var nombre    = dbNombre.Length > 0 ? dbNombre : Guid.NewGuid().ToString();
             var db        = DbContextFactory.Crear(nombre);
             var unitOfWork = new Mock<IUnitOfWork>();
-            unitOfWork.Setup(u => u.SaveChangesAsync()).Returns(Task.CompletedTask);
+            unitOfWork.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(0);
             unitOfWork.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
             unitOfWork.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
 
@@ -74,7 +74,7 @@ namespace ComprobantePago.Tests.HU01
             var nombre   = nameof(GenerarFolio_IncremntaCorrelativamente_CuandaYaExistenComprobantes);
             var db       = DbContextFactory.Crear(nombre);
             var unitOfWork = new Mock<IUnitOfWork>();
-            unitOfWork.Setup(u => u.SaveChangesAsync()).Returns(Task.CompletedTask);
+            unitOfWork.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(0);
             unitOfWork.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
             unitOfWork.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
 
@@ -146,7 +146,7 @@ namespace ComprobantePago.Tests.HU01
             var dbNombre  = nameof(GenerarFolio_CuandoSunatRechaza_NoGeneraFolio);
             var db        = DbContextFactory.Crear(dbNombre);
             var unitOfWork = new Mock<IUnitOfWork>();
-            unitOfWork.Setup(u => u.SaveChangesAsync()).Returns(Task.CompletedTask);
+            unitOfWork.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(0);
             unitOfWork.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
             unitOfWork.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
 
