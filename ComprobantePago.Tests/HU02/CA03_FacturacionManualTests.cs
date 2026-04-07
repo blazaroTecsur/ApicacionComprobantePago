@@ -1,7 +1,7 @@
 using ComprobantePago.Application.Commands.Comprobante;
 using ComprobantePago.Application.DTOs.Comprobante.Requests;
-using ComprobantePago.Application.Interfaces;
 using ComprobantePago.Application.Interfaces.Services;
+using ComprobantePago.Infrastructure.Persistence;
 using ComprobantePago.Infrastructure.Repositories;
 using ComprobantePago.Infrastructure.Services;
 using ComprobantePago.Tests.Helpers;
@@ -14,151 +14,130 @@ namespace ComprobantePago.Tests.HU02
     /// CA-03: Permitir el ingreso de información manualmente para recibos
     /// (agua, luz, teléfono, vales de caja, vales de movilidad) y para
     /// la cabecera y detalle de montos.
-    ///
-    /// Verifica que GuardarAsync procese correctamente comprobantes ingresados
-    /// manualmente sin necesidad de validación XML/SUNAT.
     /// </summary>
     public class CA03_FacturacionManualTests
     {
-        private ComprobanteRepository ConstruirRepository(string dbNombre = "")
+        // ── Helpers ───────────────────────────────────────────────────────────
+
+        /// Crea repositorio + DbContext compartido. Usa TestUnitOfWork para que
+        /// SaveChangesAsync persista realmente en la BD InMemory.
+        private static (ComprobanteRepository repo, AppDbContext db) Construir(string nombre)
         {
-            var db         = DbContextFactory.Crear(dbNombre.Length > 0 ? dbNombre : null);
-            var unitOfWork = new Mock<IUnitOfWork>();
-            unitOfWork.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(0);
-            unitOfWork.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
-            unitOfWork.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
+            var db      = DbContextFactory.Crear(nombre);
+            var uow     = new TestUnitOfWork(db);
+            var usuario = new Mock<ComprobantePago.Application.Interfaces.IUsuarioContexto>();
+            usuario.Setup(u => u.Correo).Returns("test@tecsur.com.pe");
 
-            var mockUsuario = new Mock<IUsuarioContexto>();
-            mockUsuario.Setup(u => u.Correo).Returns("test@tecsur.com.pe");
-
-            return new ComprobanteRepository(
-                db, unitOfWork.Object,
+            var repo = new ComprobanteRepository(
+                db, uow,
                 new XmlComprobanteService(),
                 new PdfComprobanteService(),
                 new Mock<ISunatService>().Object,
-                mockUsuario.Object,
+                usuario.Object,
                 NullLogger<ComprobanteRepository>.Instance);
+
+            return (repo, db);
         }
 
-        private static RegistrarComprobanteCommand ComandoManual(
+        private static RegistrarComprobanteCommand Comando(
             string tipoDocumento,
-            string serie,
-            string numero,
-            string descripcion = "") => new()
+            string serie      = "001",
+            string numero     = "00000001",
+            string folio      = "",
+            decimal montoNeto = 100m,
+            decimal igv       = 0m,
+            decimal total     = 100m) => new()
         {
             Comprobante = new RegistrarComprobanteDto
             {
-                Folio           = string.Empty,   // sin folio → se genera automáticamente
+                Folio           = folio,
                 Ruc             = "10411309512",
-                RazonSocial     = descripcion.Length > 0 ? descripcion : "PROVEEDOR MANUAL SAC",
+                RazonSocial     = "PROVEEDOR MANUAL SAC",
                 TipoDocumento   = tipoDocumento,
-                TipoSunat       = "00",           // comprobantes manuales sin código SUNAT
+                TipoSunat       = "00",
                 Serie           = serie,
                 Numero          = numero,
                 FechaEmision    = "01/04/2026",
                 FechaRecepcion  = "02/04/2026",
                 Moneda          = "PEN",
                 TasaCambio      = 1m,
-                MontoNeto       = 100.00m,
-                MontoIGVCredito = 0m,
-                MontoTotal      = 100.00m,
-                MontoBruto      = 100.00m,
+                MontoNeto       = montoNeto,
+                MontoIGVCredito = igv,
+                MontoTotal      = total,
+                MontoBruto      = total,
                 TieneDetraccion = false
             }
         };
 
-        // ── Generación de folio en modo manual ────────────────────────────────
+        // ── Generación de folio ───────────────────────────────────────────────
 
         [Fact]
         public async Task GuardarManual_SinFolioPrevio_GeneraFolio()
         {
-            var repo      = ConstruirRepository(nameof(GuardarManual_SinFolioPrevio_GeneraFolio));
-            var resultado = await repo.GuardarAsync(ComandoManual("RP", "001", "00000001"));
-            Assert.False(string.IsNullOrWhiteSpace(resultado),
+            var (repo, _) = Construir(nameof(GuardarManual_SinFolioPrevio_GeneraFolio));
+            var folio     = await repo.GuardarAsync(Comando("RP"));
+            Assert.False(string.IsNullOrWhiteSpace(folio),
                 "Debe generarse un folio al guardar en modo manual.");
         }
 
         [Fact]
         public async Task GuardarManual_FolioTieneLongitudCorrecta()
         {
-            var repo      = ConstruirRepository(nameof(GuardarManual_FolioTieneLongitudCorrecta));
-            var resultado = await repo.GuardarAsync(ComandoManual("RP", "001", "00000001"));
-            Assert.Equal(10, resultado.Length,
-                "El folio generado debe tener formato YYYYMMNNNN (10 caracteres).");
+            var (repo, _) = Construir(nameof(GuardarManual_FolioTieneLongitudCorrecta));
+            var folio     = await repo.GuardarAsync(Comando("RP"));
+            Assert.Equal(10, folio.Length,
+                "El folio debe tener formato YYYYMMNNNN (10 caracteres).");
         }
 
-        // ── Tipos de comprobante manual permitidos ────────────────────────────
+        // ── Tipos de comprobante manual ───────────────────────────────────────
 
         [Theory]
-        [InlineData("RP",  "001", "00000001", "Recibo de agua/luz/teléfono")]
-        [InlineData("VC",  "001", "00000001", "Vale de caja")]
-        [InlineData("VM",  "001", "00000001", "Vale de movilidad")]
-        [InlineData("CI",  "001", "00000001", "Comprobante interno")]
-        [InlineData("RH",  "001", "00000001", "Recibo por honorarios")]
+        [InlineData("RP",  "Recibo de agua/luz/teléfono")]
+        [InlineData("VC",  "Vale de caja")]
+        [InlineData("VM",  "Vale de movilidad")]
+        [InlineData("CI",  "Comprobante interno")]
+        [InlineData("RH",  "Recibo por honorarios")]
         public async Task GuardarManual_AceptaTiposDeComprobanteInterno(
-            string tipoDocumento, string serie, string numero, string descripcion)
+            string tipoDocumento, string descripcion)
         {
-            var repo      = ConstruirRepository($"Manual_{tipoDocumento}");
-            var resultado = await repo.GuardarAsync(
-                ComandoManual(tipoDocumento, serie, numero, descripcion));
-            Assert.False(string.IsNullOrWhiteSpace(resultado),
-                $"{descripcion} ({tipoDocumento}) debe guardarse correctamente en modo manual.");
+            var (repo, _) = Construir($"Tipo_{tipoDocumento}");
+            var folio     = await repo.GuardarAsync(Comando(tipoDocumento));
+            Assert.False(string.IsNullOrWhiteSpace(folio),
+                $"{descripcion} ({tipoDocumento}) debe guardarse correctamente.");
         }
 
-        // ── Actualización de comprobante existente ────────────────────────────
+        // ── Actualización sin duplicado ───────────────────────────────────────
 
         [Fact]
         public async Task GuardarManual_ConFolioExistente_ActualizaSinCrearDuplicado()
         {
-            var dbNombre  = nameof(GuardarManual_ConFolioExistente_ActualizaSinCrearDuplicado);
-            var repo      = ConstruirRepository(dbNombre);
-            var db        = DbContextFactory.Crear(dbNombre);
+            var (repo, db) = Construir(nameof(GuardarManual_ConFolioExistente_ActualizaSinCrearDuplicado));
 
-            // Primer guardado → crea el registro
-            var folio = await repo.GuardarAsync(ComandoManual("RP", "001", "00000001"));
+            // Primer guardado
+            var folio = await repo.GuardarAsync(Comando("RP"));
             Assert.False(string.IsNullOrWhiteSpace(folio));
 
-            // Segundo guardado con el mismo folio → actualiza
-            var comando2 = ComandoManual("RP", "001", "00000001");
-            comando2.Comprobante.Folio       = folio;
-            comando2.Comprobante.MontoTotal  = 150.00m;
-            comando2.Comprobante.MontoNeto   = 150.00m;
-            comando2.Comprobante.MontoBruto  = 150.00m;
+            // Segundo guardado con el mismo folio (actualización)
+            var folioActualizado = await repo.GuardarAsync(
+                Comando("RP", folio: folio, total: 150m, montoNeto: 150m));
 
-            var folioActualizado = await repo.GuardarAsync(comando2);
             Assert.Equal(folio, folioActualizado,
                 "El folio no debe cambiar al actualizar un comprobante existente.");
+
+            var total = db.Comprobantes.Count(c => c.Folio == folio);
+            Assert.Equal(1, total,
+                "No debe crearse un duplicado al actualizar.");
         }
 
-        // ── Cabecera completa en modo manual ──────────────────────────────────
+        // ── Persistencia de datos ─────────────────────────────────────────────
 
         [Fact]
         public async Task GuardarManual_PersisteDatosDeMontos()
         {
-            var dbNombre = nameof(GuardarManual_PersisteDatosDeMontos);
-            var db       = DbContextFactory.Crear(dbNombre);
+            var (repo, db) = Construir(nameof(GuardarManual_PersisteDatosDeMontos));
 
-            var unitOfWork = new Mock<IUnitOfWork>();
-            unitOfWork.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(0);
-            unitOfWork.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
-            unitOfWork.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
-
-            var mockUsuario = new Mock<IUsuarioContexto>();
-            mockUsuario.Setup(u => u.Correo).Returns("test@tecsur.com.pe");
-
-            var repo = new ComprobanteRepository(
-                db, unitOfWork.Object,
-                new XmlComprobanteService(), new PdfComprobanteService(),
-                new Mock<ISunatService>().Object,
-                mockUsuario.Object, NullLogger<ComprobanteRepository>.Instance);
-
-            var comando = ComandoManual("RP", "001", "00000001");
-            comando.Comprobante.MontoNeto       = 250.00m;
-            comando.Comprobante.MontoIGVCredito = 45.00m;
-            comando.Comprobante.MontoTotal      = 295.00m;
-            comando.Comprobante.MontoBruto      = 295.00m;
-
-            var folio = await repo.GuardarAsync(comando);
+            var folio = await repo.GuardarAsync(
+                Comando("RP", montoNeto: 250m, igv: 45m, total: 295m));
 
             var registrado = db.Comprobantes.FirstOrDefault(c => c.Folio == folio);
             Assert.NotNull(registrado);
@@ -168,28 +147,24 @@ namespace ComprobantePago.Tests.HU02
         }
 
         [Fact]
-        public async Task GuardarManual_RegistraUsuarioDigitacion()
+        public async Task GuardarManual_RegistraUsuarioYFechaDigitacion()
         {
-            var dbNombre = nameof(GuardarManual_RegistraUsuarioDigitacion);
-            var db       = DbContextFactory.Crear(dbNombre);
+            var db  = DbContextFactory.Crear(nameof(GuardarManual_RegistraUsuarioYFechaDigitacion));
+            var uow = new TestUnitOfWork(db);
 
-            var unitOfWork = new Mock<IUnitOfWork>();
-            unitOfWork.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(0);
-            unitOfWork.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
-            unitOfWork.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
-
-            var mockUsuario = new Mock<IUsuarioContexto>();
-            mockUsuario.Setup(u => u.Correo).Returns("operador@tecsur.com.pe");
+            var usuario = new Mock<ComprobantePago.Application.Interfaces.IUsuarioContexto>();
+            usuario.Setup(u => u.Correo).Returns("operador@tecsur.com.pe");
 
             var repo = new ComprobanteRepository(
-                db, unitOfWork.Object,
+                db, uow,
                 new XmlComprobanteService(), new PdfComprobanteService(),
                 new Mock<ISunatService>().Object,
-                mockUsuario.Object, NullLogger<ComprobanteRepository>.Instance);
+                usuario.Object,
+                NullLogger<ComprobanteRepository>.Instance);
 
-            var folio = await repo.GuardarAsync(ComandoManual("RP", "001", "00000001"));
-
+            var folio      = await repo.GuardarAsync(Comando("RP"));
             var registrado = db.Comprobantes.FirstOrDefault(c => c.Folio == folio);
+
             Assert.NotNull(registrado);
             Assert.Equal("operador@tecsur.com.pe", registrado.RolDigitacion);
             Assert.NotNull(registrado.FechaDigitacion);
@@ -198,24 +173,9 @@ namespace ComprobantePago.Tests.HU02
         [Fact]
         public async Task GuardarManual_EstadoInicialEsRegistrado()
         {
-            var dbNombre = nameof(GuardarManual_EstadoInicialEsRegistrado);
-            var db       = DbContextFactory.Crear(dbNombre);
+            var (repo, db) = Construir(nameof(GuardarManual_EstadoInicialEsRegistrado));
 
-            var unitOfWork = new Mock<IUnitOfWork>();
-            unitOfWork.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(0);
-            unitOfWork.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
-            unitOfWork.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
-
-            var mockUsuario = new Mock<IUsuarioContexto>();
-            mockUsuario.Setup(u => u.Correo).Returns("test@tecsur.com.pe");
-
-            var repo = new ComprobanteRepository(
-                db, unitOfWork.Object,
-                new XmlComprobanteService(), new PdfComprobanteService(),
-                new Mock<ISunatService>().Object,
-                mockUsuario.Object, NullLogger<ComprobanteRepository>.Instance);
-
-            var folio      = await repo.GuardarAsync(ComandoManual("RP", "001", "00000001"));
+            var folio      = await repo.GuardarAsync(Comando("RP"));
             var registrado = db.Comprobantes.FirstOrDefault(c => c.Folio == folio);
 
             Assert.NotNull(registrado);
