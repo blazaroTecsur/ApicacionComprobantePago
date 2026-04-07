@@ -31,9 +31,9 @@ namespace ComprobantePago.Tests.HU02
 
             var repo = new ComprobanteRepository(
                 db, uow,
+                new Mock<ISunatService>().Object,
                 new XmlComprobanteService(),
                 new PdfComprobanteService(),
-                new Mock<ISunatService>().Object,
                 usuario.Object,
                 NullLogger<ComprobanteRepository>.Instance);
 
@@ -86,7 +86,7 @@ namespace ComprobantePago.Tests.HU02
         {
             var (repo, _) = Construir(nameof(GuardarManual_FolioTieneLongitudCorrecta));
             var folio     = await repo.GuardarAsync(Comando("RP"));
-            Assert.Equal(10, folio.Length,
+            Assert.True(folio.Length == 10,
                 "El folio debe tener formato YYYYMMNNNN (10 caracteres).");
         }
 
@@ -122,11 +122,11 @@ namespace ComprobantePago.Tests.HU02
             var folioActualizado = await repo.GuardarAsync(
                 Comando("RP", folio: folio, total: 150m, montoNeto: 150m));
 
-            Assert.Equal(folio, folioActualizado,
+            Assert.True(folioActualizado == folio,
                 "El folio no debe cambiar al actualizar un comprobante existente.");
 
             var total = db.Comprobantes.Count(c => c.Folio == folio);
-            Assert.Equal(1, total,
+            Assert.True(total == 1,
                 "No debe crearse un duplicado al actualizar.");
         }
 
@@ -158,8 +158,8 @@ namespace ComprobantePago.Tests.HU02
 
             var repo = new ComprobanteRepository(
                 db, uow,
-                new XmlComprobanteService(), new PdfComprobanteService(),
                 new Mock<ISunatService>().Object,
+                new XmlComprobanteService(), new PdfComprobanteService(),
                 usuario.Object,
                 NullLogger<ComprobanteRepository>.Instance);
 
