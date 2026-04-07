@@ -136,7 +136,7 @@ namespace ComprobantePago.Tests.HU01
             var resultado = await repo.ValidarXmlSunatAsync(archivo);
 
             // Folio longitud total = 4 (año) + 2 (mes) + 4 (correlativo) = 10
-            Assert.Equal(10, resultado.Folio.Length,
+            Assert.True(resultado.Folio.Length == 10,
                 $"Folio '{resultado.Folio}' debe tener 10 caracteres (YYYYMMNNNN).");
         }
 
