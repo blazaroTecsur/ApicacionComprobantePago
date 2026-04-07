@@ -107,16 +107,13 @@ namespace ComprobantePago.Infrastructure.Services
                         col.Item().PaddingTop(6);
 
                         // ── TABLA IMPUTACIONES ─────────────────────
-                        // Encabezado de columnas
                         col.Item().Row(row =>
                         {
-                            row.ConstantItem(70).Text("Cuenta").Bold();
-                            row.ConstantItem(80).Text("Activid.").Bold();
-                            row.ConstantItem(40).Text("CR").Bold();
-                            row.ConstantItem(60).Text("Proy.Cal.").Bold();
-                            row.ConstantItem(40).Text("Ubi.").Bold();
-                            row.ConstantItem(40).Text("Sub.").Bold();
-                            row.ConstantItem(55).AlignRight().Text("Monto").Bold();
+                            row.ConstantItem(75).Text("Cuenta").Bold();
+                            row.ConstantItem(75).Text("Cód. Unid. 1").Bold();
+                            row.ConstantItem(55).Text("Cód. Unid. 3").Bold();
+                            row.ConstantItem(55).Text("Cód. Unid. 4").Bold();
+                            row.ConstantItem(60).AlignRight().Text("Monto").Bold();
                             row.RelativeItem().PaddingLeft(4).Text("Descripción").Bold();
                         });
                         col.Item().Text(SEP_IGUAL);
@@ -128,13 +125,11 @@ namespace ComprobantePago.Infrastructure.Services
                             totalImputado += imp.Monto;
                             col.Item().Row(row =>
                             {
-                                row.ConstantItem(70).Text(imp.CuentaContable);
-                                row.ConstantItem(80).Text(imp.CodUnidad1Cuenta);
-                                row.ConstantItem(40).Text(string.Empty); // CR no mapeado aún
-                                row.ConstantItem(60).Text(imp.Proyecto);
-                                row.ConstantItem(40).Text(imp.CodUnidad3Cuenta);
-                                row.ConstantItem(40).Text(imp.CodUnidad4Cuenta);
-                                row.ConstantItem(55).AlignRight().Text(FormatMonto(imp.Monto));
+                                row.ConstantItem(75).Text(imp.CuentaContable);
+                                row.ConstantItem(75).Text(imp.CodUnidad1Cuenta);
+                                row.ConstantItem(55).Text(imp.CodUnidad3Cuenta);
+                                row.ConstantItem(55).Text(imp.CodUnidad4Cuenta);
+                                row.ConstantItem(60).AlignRight().Text(FormatMonto(imp.Monto));
                                 row.RelativeItem().PaddingLeft(4).Text(imp.Descripcion);
                             });
                         }
