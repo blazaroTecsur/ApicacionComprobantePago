@@ -7,6 +7,7 @@ using ComprobantePago.Infrastructure.Services;
 using ComprobantePago.Tests.Helpers;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using Xunit;
 
 namespace ComprobantePago.Tests.HU01
 {
@@ -49,9 +50,9 @@ namespace ComprobantePago.Tests.HU01
 
             return (new ComprobanteRepository(
                 db, unitOfWork.Object,
+                mockSunat.Object,
                 new XmlComprobanteService(),
                 new PdfComprobanteService(),
-                mockSunat.Object,
                 mockUsuario.Object,
                 NullLogger<ComprobanteRepository>.Instance), nombre);
         }
@@ -94,7 +95,7 @@ namespace ComprobantePago.Tests.HU01
                     It.IsAny<string>(), It.IsAny<decimal>()))
                 .ReturnsAsync(new ValidacionSunatDto { Exito = true, CodigoEstado = "1", EstadoSunat = "ACEPTADO" });
 
-            var repo    = new ComprobanteRepository(db, unitOfWork.Object, new XmlComprobanteService(), new PdfComprobanteService(), mockSunat.Object, mockUsuario.Object, NullLogger<ComprobanteRepository>.Instance);
+            var repo    = new ComprobanteRepository(db, unitOfWork.Object, mockSunat.Object, new XmlComprobanteService(), new PdfComprobanteService(), mockUsuario.Object, NullLogger<ComprobanteRepository>.Instance);
             var archivo = ArchivoTestFactory.CrearFormFileXml(ArchivoTestFactory.XmlFacturaSunat());
 
             var resultado = await repo.ValidarXmlSunatAsync(archivo);
@@ -135,7 +136,7 @@ namespace ComprobantePago.Tests.HU01
             var resultado = await repo.ValidarXmlSunatAsync(archivo);
 
             // Folio longitud total = 4 (año) + 2 (mes) + 4 (correlativo) = 10
-            Assert.Equal(10, resultado.Folio.Length,
+            Assert.True(resultado.Folio.Length == 10,
                 $"Folio '{resultado.Folio}' debe tener 10 caracteres (YYYYMMNNNN).");
         }
 
@@ -159,7 +160,7 @@ namespace ComprobantePago.Tests.HU01
                     It.IsAny<string>(), It.IsAny<decimal>()))
                 .ReturnsAsync(new ValidacionSunatDto { Exito = false, CodigoEstado = "0", EstadoSunat = "NO_EXISTE" });
 
-            var repo    = new ComprobanteRepository(db, unitOfWork.Object, new XmlComprobanteService(), new PdfComprobanteService(), mockSunat.Object, mockUsuario.Object, NullLogger<ComprobanteRepository>.Instance);
+            var repo    = new ComprobanteRepository(db, unitOfWork.Object, mockSunat.Object, new XmlComprobanteService(), new PdfComprobanteService(),  mockUsuario.Object, NullLogger<ComprobanteRepository>.Instance);
             var archivo = ArchivoTestFactory.CrearFormFileXml(ArchivoTestFactory.XmlFacturaSunat());
 
             var resultado = await repo.ValidarXmlSunatAsync(archivo);

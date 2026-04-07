@@ -6,6 +6,7 @@ using ComprobantePago.Infrastructure.Services;
 using ComprobantePago.Tests.Helpers;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using Xunit;
 
 namespace ComprobantePago.Tests.HU01
 {
@@ -34,9 +35,9 @@ namespace ComprobantePago.Tests.HU01
 
             return new ComprobanteRepository(
                 db, unitOfWork.Object,
+                mockSunat.Object,
                 new XmlComprobanteService(),
                 new PdfComprobanteService(),
-                mockSunat.Object,
                 mockUsuario.Object,
                 NullLogger<ComprobanteRepository>.Instance);
         }
