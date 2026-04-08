@@ -6,6 +6,7 @@ using ComprobantePago.Application.Interfaces.QueryServices;
 using ComprobantePago.Application.Interfaces.Repositories;
 using ComprobantePago.Application.Interfaces.Services;
 using ComprobantePago.Application.Interfaces.Services.Maestros;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ComprobantePago.Web.Controllers
@@ -13,27 +14,33 @@ namespace ComprobantePago.Web.Controllers
     /// <summary>Gestión de comprobantes de pago.</summary>
     public class ComprobanteController : Controller
     {
-        private readonly IComprobanteQueryService _queryService;
-        private readonly ISytelineQueryService    _sytelineService;
-        private readonly IMaestrosQueryService    _maestrosService;
-        private readonly IComprobanteRepository  _repository;
-        private readonly IExcelSytelineService   _excelService;
-        private readonly IProveedorService       _proveedorService;
+        private readonly IComprobanteQueryService             _queryService;
+        private readonly ISytelineQueryService               _sytelineService;
+        private readonly IMaestrosQueryService               _maestrosService;
+        private readonly IComprobanteRepository             _repository;
+        private readonly IExcelSytelineService              _excelService;
+        private readonly IProveedorService                  _proveedorService;
+        private readonly IValidator<RegistrarComprobanteDto> _comprobanteValidator;
+        private readonly IValidator<ImputacionDto>           _imputacionValidator;
 
         public ComprobanteController(
-            IComprobanteQueryService queryService,
-            ISytelineQueryService    sytelineService,
-            IMaestrosQueryService    maestrosService,
-            IComprobanteRepository  repository,
-            IExcelSytelineService   excelService,
-            IProveedorService       proveedorService)
+            IComprobanteQueryService             queryService,
+            ISytelineQueryService               sytelineService,
+            IMaestrosQueryService               maestrosService,
+            IComprobanteRepository             repository,
+            IExcelSytelineService              excelService,
+            IProveedorService                  proveedorService,
+            IValidator<RegistrarComprobanteDto> comprobanteValidator,
+            IValidator<ImputacionDto>           imputacionValidator)
         {
-            _queryService     = queryService;
-            _sytelineService  = sytelineService;
-            _maestrosService  = maestrosService;
-            _repository       = repository;
-            _excelService     = excelService;
-            _proveedorService = proveedorService;
+            _queryService         = queryService;
+            _sytelineService      = sytelineService;
+            _maestrosService      = maestrosService;
+            _repository           = repository;
+            _excelService         = excelService;
+            _proveedorService     = proveedorService;
+            _comprobanteValidator = comprobanteValidator;
+            _imputacionValidator  = imputacionValidator;
         }
 
         // ══════════════════════════════════════
@@ -138,6 +145,10 @@ namespace ComprobantePago.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Guardar([FromBody] RegistrarComprobanteCommand command)
         {
+            var validacion = await _comprobanteValidator.ValidateAsync(command.Comprobante);
+            if (!validacion.IsValid)
+                return BadRequest(new { exito = false, mensaje = validacion.Errors.First().ErrorMessage });
+
             var folio = await _repository.GuardarAsync(command);
             return Ok(new { exito = true, folio });
         }
@@ -226,6 +237,10 @@ namespace ComprobantePago.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AgregarImputacion([FromBody] AgregarImputacionCommand command)
         {
+            var validacion = await _imputacionValidator.ValidateAsync(command.Imputacion);
+            if (!validacion.IsValid)
+                return BadRequest(new { exito = false, mensaje = validacion.Errors.First().ErrorMessage });
+
             var imputacion = await _repository.AgregarImputacionAsync(command);
             return Ok(new { exito = true, imputacion });
         }
@@ -235,6 +250,10 @@ namespace ComprobantePago.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditarImputacion([FromBody] EditarImputacionCommand command)
         {
+            var validacion = await _imputacionValidator.ValidateAsync(command.Imputacion);
+            if (!validacion.IsValid)
+                return BadRequest(new { exito = false, mensaje = validacion.Errors.First().ErrorMessage });
+
             var imputacion = await _repository.EditarImputacionAsync(command);
             return Ok(new { exito = true, imputacion });
         }
