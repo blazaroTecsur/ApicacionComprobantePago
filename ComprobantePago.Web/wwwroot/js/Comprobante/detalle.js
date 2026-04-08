@@ -32,13 +32,13 @@ function inicializar() {
 // ── Inicializar fechas HTML5 ──────────────────
 function inicializarFechas() {
     $('#txtFechaVencimiento').on('change', function () {
-        const emision = $('#txtFechaEmision').val();
-        if (emision && $(this).val()) {
-            const fechaEmision = new Date(emision);
+        const recepcion = $('#txtFechaRecepcion').val();
+        if (recepcion && $(this).val()) {
+            const fechaRecepcion = new Date(recepcion);
             const fechaVenc = new Date($(this).val());
             const diff = Math.round(
-                (fechaVenc - fechaEmision) / (1000 * 60 * 60 * 24));
-            if (diff > 0) $('#txtPlazoPago').val(diff);
+                (fechaVenc - fechaRecepcion) / (1000 * 60 * 60 * 24));
+            if (diff >= 0) $('#txtPlazoPago').val(diff);
         }
     });
 }
@@ -720,33 +720,33 @@ function bindEventos() {
         if (ok) derivarComprobante();
     });
 
-    // Plazo de pago → calcular vencimiento
+    // Plazo de pago → calcular vencimiento (base: fecha recepción)
     $('#txtPlazoPago').on('change', function () {
         const plazo = parseInt($(this).val());
-        const fechaEmision = $('#txtFechaEmision').val();
+        const fechaRecepcion = $('#txtFechaRecepcion').val();
 
-        if (!plazo || plazo <= 0) {
+        if (isNaN(plazo) || plazo < 0) {
             $('#panelFechaVencimiento').addClass('d-none');
             $('#txtFechaVencimiento').val('');
             return;
         }
 
-        if (CorporativoCore.esVacio(fechaEmision)) {
+        if (CorporativoCore.esVacio(fechaRecepcion)) {
             CorporativoCore.notificarAdvertencia(
-                'Debe ingresar la fecha de emisión primero.');
+                'Debe ingresar la fecha de recepción primero.');
             $(this).val('');
             return;
         }
 
         $('#txtFechaVencimiento').val(
-            calcularFechaVencimiento(fechaEmision, plazo));
+            calcularFechaVencimiento(fechaRecepcion, plazo));
         $('#panelFechaVencimiento').removeClass('d-none');
     });
 
-    // Fecha emisión cambia → recalcular vencimiento
-    $('#txtFechaEmision').on('change', function () {
+    // Fecha recepción cambia → recalcular vencimiento si ya hay plazo
+    $('#txtFechaRecepcion').on('change', function () {
         const plazo = parseInt($('#txtPlazoPago').val());
-        if (plazo > 0) {
+        if (!isNaN(plazo) && plazo >= 0 && $(this).val()) {
             $('#txtFechaVencimiento').val(
                 calcularFechaVencimiento($(this).val(), plazo));
             $('#panelFechaVencimiento').removeClass('d-none');
