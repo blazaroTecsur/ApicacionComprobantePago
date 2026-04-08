@@ -29,5 +29,9 @@
         public string CodigoDetraccion { get; set; } // ej: "030"
         public decimal PorcentajeDetraccion { get; set; } // ej: 4.00
         public decimal MontoDetraccion { get; set; } // ej: 466.00
+        // ── Documento Asociado (Nota Crédito / Débito) ────────────
+        public string TipoDocumentoAsociado { get; set; } = string.Empty; // ej: "01"
+        public string SerieAsociado         { get; set; } = string.Empty; // ej: "F001"
+        public string NumeroAsociado        { get; set; } = string.Empty; // ej: "00000123"
     }
 }

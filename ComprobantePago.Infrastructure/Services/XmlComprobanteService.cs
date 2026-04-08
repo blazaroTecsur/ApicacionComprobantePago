@@ -233,6 +233,27 @@ namespace ComprobantePago.Infrastructure.Services
                         System.Globalization.CultureInfo.InvariantCulture,
                         out var montoDet) ? montoDet : 0;
                 }
+
+                // Documento Asociado — solo en CreditNote y DebitNote
+                // BillingReference/InvoiceDocumentReference contiene Serie-Numero y tipo del doc original
+                var billingRef = root?.Element(cac + "BillingReference")?
+                    .Element(cac + "InvoiceDocumentReference");
+
+                if (billingRef != null)
+                {
+                    var refId = billingRef.Element(cbc + "ID")?.Value ?? "";
+                    if (refId.Contains('-'))
+                    {
+                        datos.SerieAsociado  = refId.Split('-')[0];
+                        datos.NumeroAsociado = refId.Split('-')[1];
+                    }
+                    else
+                    {
+                        datos.NumeroAsociado = refId;
+                    }
+                    datos.TipoDocumentoAsociado = billingRef
+                        .Element(cbc + "DocumentTypeCode")?.Value ?? "";
+                }
             }
             catch
             {
