@@ -17,14 +17,12 @@ namespace ComprobantePago.Application.Validations
                 .NotEmpty().WithMessage("La descripción de cuenta es obligatoria.")
                 .MaximumLength(200).WithMessage("La descripción no puede superar 200 caracteres.");
 
-            RuleFor(x => x.CodUnidad1Cuenta)
-                .NotEmpty().WithMessage("El código de unidad 1 es obligatorio.");
-
-            RuleFor(x => x.CodUnidad3Cuenta)
-                .NotEmpty().WithMessage("El código de unidad 3 es obligatorio.");
-
-            RuleFor(x => x.CodUnidad4Cuenta)
-                .NotEmpty().WithMessage("El código de unidad 4 es obligatorio.");
+            RuleFor(x => x)
+                .Must(x => !string.IsNullOrWhiteSpace(x.CodUnidad1Cuenta)
+                        || !string.IsNullOrWhiteSpace(x.CodUnidad3Cuenta)
+                        || !string.IsNullOrWhiteSpace(x.CodUnidad4Cuenta))
+                .WithMessage("Debe indicar al menos un código de unidad (1, 3 o 4).")
+                .WithName("CodUnidad");
         }
     }
 }
