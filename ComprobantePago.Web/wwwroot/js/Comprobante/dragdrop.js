@@ -607,7 +607,7 @@ function poblarCamposDesdeXml(datos) {
     $('#MontoBruto').removeClass('d-none');
     $('#txtMontoBruto').val(CorporativoCore.formatearMonto(montoBruto));
 
-    if (datos.plazoPago) {
+    if (datos.plazoPago != null && datos.plazoPago !== '') {
         $('#txtPlazoPago').val(datos.plazoPago);
         const fechaVenc = calcularFechaVencimiento(
             datos.fechaEmision, parseInt(datos.plazoPago));
