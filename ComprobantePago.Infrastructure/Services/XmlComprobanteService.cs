@@ -118,12 +118,28 @@ namespace ComprobantePago.Infrastructure.Services
                     out var total) ? total : 0;
 
                 var netoStr = monetaryTotal?
-                    .Element(cbc + "LineExtensionAmount")?.Value ?? "0";
-                datos.MontoNeto = decimal.TryParse(
-                    netoStr,
-                    System.Globalization.NumberStyles.Any,
-                    System.Globalization.CultureInfo.InvariantCulture,
-                    out var neto) ? neto : 0;
+                    .Element(cbc + "LineExtensionAmount")?.Value;
+
+                if (decimal.TryParse(
+                        netoStr,
+                        System.Globalization.NumberStyles.Any,
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        out var neto) && neto > 0)
+                {
+                    datos.MontoNeto = neto;
+                }
+                else
+                {
+                    // CreditNote / DebitNote: LineExtensionAmount no existe en LegalMonetaryTotal.
+                    // Se calcula sumando TaxableAmount de cada TaxSubtotal (base imponible de cada tramo).
+                    datos.MontoNeto = root?
+                        .Descendants(cac + "TaxSubtotal")
+                        .Sum(ts => decimal.TryParse(
+                            ts.Element(cbc + "TaxableAmount")?.Value ?? "0",
+                            System.Globalization.NumberStyles.Any,
+                            System.Globalization.CultureInfo.InvariantCulture,
+                            out var v) ? v : 0) ?? 0;
+                }
 
                 // IGV
                 var taxTotal = root?
