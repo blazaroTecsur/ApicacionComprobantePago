@@ -643,6 +643,13 @@ function poblarCamposDesdeXml(datos) {
         $('#txtFechaDeposito').prop('disabled', true);
     }
 
+    // Documento Asociado (Nota de Crédito / Débito)
+    if (datos.tipoDocumentoAsociado || datos.serieAsociado || datos.numeroAsociado) {
+        esperarComboYAsignar('#ddlTipoDocumentoAsociado', datos.tipoDocumentoAsociado);
+        $('#txtSerieAsociado').val(datos.serieAsociado || '');
+        $('#txtNumeroAsociado').val(datos.numeroAsociado || '');
+    }
+
     bloquearCamposElectronico();
     CorporativoCore.notificarExito('Campos poblados correctamente.');
 }
