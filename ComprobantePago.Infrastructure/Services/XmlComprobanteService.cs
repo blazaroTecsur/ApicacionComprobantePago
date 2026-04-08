@@ -47,8 +47,16 @@ namespace ComprobantePago.Infrastructure.Services
                 }
 
                 // Tipo documento (código SUNAT)
-                datos.TipoSunat = root?
-                    .Element(cbc + "InvoiceTypeCode")?.Value ?? "";
+                // - Invoice    → InvoiceTypeCode   (01 = Factura, 03 = Boleta, etc.)
+                // - CreditNote → CreditNoteTypeCode o fallback "07"
+                // - DebitNote  → DebitNoteTypeCode  o fallback "08"
+                var rootName = root?.Name.LocalName ?? "";
+                datos.TipoSunat = rootName switch
+                {
+                    "CreditNote" => root!.Element(cbc + "CreditNoteTypeCode")?.Value is { Length: > 0 } v1 ? v1 : "07",
+                    "DebitNote"  => root!.Element(cbc + "DebitNoteTypeCode")?.Value  is { Length: > 0 } v2 ? v2 : "08",
+                    _            => root?.Element(cbc + "InvoiceTypeCode")?.Value ?? ""
+                };
 
                 // Moneda
                 datos.Moneda = root?
