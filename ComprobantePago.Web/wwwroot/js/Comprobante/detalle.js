@@ -525,7 +525,7 @@ function bloquearCamposElectronico() {
 
 // ── Habilitar campos modo manual ──────────────
 function habilitarCamposManual() {
-    $('#txtNumeroDocumentoIdentidad').prop('readonly', false);
+    // txtNumeroDocumentoIdentidad se mantiene readonly: solo se llena con el botón de búsqueda
     $('#btnBuscarProveedorPrincipal').prop('disabled', false);
     $('#ddlTipoDocumento').prop('disabled', false);
     $('#ddlTipoSunat').prop('disabled', false);
