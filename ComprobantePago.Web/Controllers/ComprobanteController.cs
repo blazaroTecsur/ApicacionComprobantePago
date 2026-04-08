@@ -147,7 +147,11 @@ namespace ComprobantePago.Web.Controllers
         {
             var validacion = await _comprobanteValidator.ValidateAsync(command.Comprobante);
             if (!validacion.IsValid)
-                return BadRequest(new { exito = false, mensaje = validacion.Errors.First().ErrorMessage });
+                return BadRequest(new
+                {
+                    success = false,
+                    error = new { code = "VALIDATION_ERROR", userMessage = validacion.Errors.First().ErrorMessage }
+                });
 
             var folio = await _repository.GuardarAsync(command);
             return Ok(new { exito = true, folio });
@@ -239,7 +243,11 @@ namespace ComprobantePago.Web.Controllers
         {
             var validacion = await _imputacionValidator.ValidateAsync(command.Imputacion);
             if (!validacion.IsValid)
-                return BadRequest(new { exito = false, mensaje = validacion.Errors.First().ErrorMessage });
+                return BadRequest(new
+                {
+                    success = false,
+                    error = new { code = "VALIDATION_ERROR", userMessage = validacion.Errors.First().ErrorMessage }
+                });
 
             var imputacion = await _repository.AgregarImputacionAsync(command);
             return Ok(new { exito = true, imputacion });
@@ -252,7 +260,11 @@ namespace ComprobantePago.Web.Controllers
         {
             var validacion = await _imputacionValidator.ValidateAsync(command.Imputacion);
             if (!validacion.IsValid)
-                return BadRequest(new { exito = false, mensaje = validacion.Errors.First().ErrorMessage });
+                return BadRequest(new
+                {
+                    success = false,
+                    error = new { code = "VALIDATION_ERROR", userMessage = validacion.Errors.First().ErrorMessage }
+                });
 
             var imputacion = await _repository.EditarImputacionAsync(command);
             return Ok(new { exito = true, imputacion });
