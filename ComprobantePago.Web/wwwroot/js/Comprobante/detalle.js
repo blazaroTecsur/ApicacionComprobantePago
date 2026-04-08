@@ -582,7 +582,7 @@ function habilitarCamposDetraccion(habilitar) {
 
 // ── Calcular fecha vencimiento ────────────────
 function calcularFechaVencimiento(fechaEmision, diasPlazo) {
-    if (!fechaEmision || !diasPlazo) return '';
+    if (!fechaEmision || diasPlazo == null || isNaN(diasPlazo)) return '';
     const fecha = new Date(fechaEmision);
     if (isNaN(fecha)) return '';
     fecha.setDate(fecha.getDate() + diasPlazo);
