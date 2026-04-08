@@ -296,7 +296,7 @@ var assemblies = [
       { "name": "ComprobantePago.Application.Commands.Comprobante.EnviarComprobanteCommand", "rp": "ComprobantePago.Application_EnviarComprobanteCommand.html", "cl": 0, "ucl": 1, "cal": 1, "tl": 9, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Application.Commands.Comprobante.ExportarSytelineCommand", "rp": "ComprobantePago.Application_ExportarSytelineCommand.html", "cl": 0, "ucl": 1, "cal": 1, "tl": 7, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Application.Commands.Comprobante.FirmarComprobanteCommand", "rp": "ComprobantePago.Application_FirmarComprobanteCommand.html", "cl": 0, "ucl": 1, "cal": 1, "tl": 9, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "ComprobantePago.Application.Commands.Comprobante.RegistrarComprobanteCommand", "rp": "ComprobantePago.Application_RegistrarComprobanteCommand.html", "cl": 0, "ucl": 1, "cal": 1, "tl": 9, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "ComprobantePago.Application.Commands.Comprobante.RegistrarComprobanteCommand", "rp": "ComprobantePago.Application_RegistrarComprobanteCommand.html", "cl": 1, "ucl": 0, "cal": 1, "tl": 9, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Application.Commands.Imputacion.AgregarImputacionCommand", "rp": "ComprobantePago.Application_AgregarImputacionCommand.html", "cl": 0, "ucl": 1, "cal": 1, "tl": 9, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Application.Commands.Imputacion.EditarImputacionCommand", "rp": "ComprobantePago.Application_EditarImputacionCommand.html", "cl": 0, "ucl": 1, "cal": 1, "tl": 9, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Application.Commands.Imputacion.EliminarImputacionCommand", "rp": "ComprobantePago.Application_EliminarImputacionCommand.html", "cl": 0, "ucl": 2, "cal": 2, "tl": 8, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -307,10 +307,10 @@ var assemblies = [
       { "name": "ComprobantePago.Application.DTOs.Comprobante.Requests.AccionComprobanteDto", "rp": "ComprobantePago.Application_AccionComprobanteDto.html", "cl": 0, "ucl": 1, "cal": 1, "tl": 7, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Application.DTOs.Comprobante.Requests.BuscarComprobanteDto", "rp": "ComprobantePago.Application_BuscarComprobanteDto.html", "cl": 0, "ucl": 4, "cal": 4, "tl": 10, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Application.DTOs.Comprobante.Requests.ImputacionDto", "rp": "ComprobantePago.Application_ImputacionDto.html", "cl": 0, "ucl": 11, "cal": 11, "tl": 17, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "ComprobantePago.Application.DTOs.Comprobante.Requests.RegistrarComprobanteDto", "rp": "ComprobantePago.Application_RegistrarComprobanteDto.html", "cl": 0, "ucl": 38, "cal": 38, "tl": 46, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "ComprobantePago.Application.DTOs.Comprobante.Requests.RegistrarComprobanteDto", "rp": "ComprobantePago.Application_RegistrarComprobanteDto.html", "cl": 38, "ucl": 0, "cal": 38, "tl": 46, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Application.DTOs.Comprobante.Response.ComprobanteDetalleDto", "rp": "ComprobantePago.Application_ComprobanteDetalleDto.html", "cl": 0, "ucl": 66, "cal": 66, "tl": 82, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Application.DTOs.Comprobante.Response.ComprobanteDto", "rp": "ComprobantePago.Application_ComprobanteDto.html", "cl": 0, "ucl": 9, "cal": 9, "tl": 15, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "ComprobantePago.Application.DTOs.Comprobante.Response.DatosXmlDto", "rp": "ComprobantePago.Application_DatosXmlDto.html", "cl": 18, "ucl": 5, "cal": 23, "tl": 33, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "ComprobantePago.Application.DTOs.Comprobante.Response.DatosXmlDto", "rp": "ComprobantePago.Application_DatosXmlDto.html", "cl": 22, "ucl": 1, "cal": 23, "tl": 33, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Application.DTOs.Comprobante.Response.DocumentoElectronicoDto", "rp": "ComprobantePago.Application_DocumentoElectronicoDto.html", "cl": 0, "ucl": 6, "cal": 6, "tl": 12, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Application.DTOs.Comprobante.Response.ImputacionDetalleDto", "rp": "ComprobantePago.Application_ImputacionDetalleDto.html", "cl": 0, "ucl": 11, "cal": 11, "tl": 17, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Application.DTOs.Comprobante.Response.ValidacionSunatDto", "rp": "ComprobantePago.Application_ValidacionSunatDto.html", "cl": 6, "ucl": 0, "cal": 6, "tl": 12, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -324,7 +324,7 @@ var assemblies = [
       { "name": "ComprobantePago.Application.Settings.EmpresaSettings", "rp": "ComprobantePago.Application_EmpresaSettings.html", "cl": 0, "ucl": 2, "cal": 2, "tl": 9, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Application.Validations.BuscarComprobanteValidator", "rp": "ComprobantePago.Application_BuscarComprobanteValidator.html", "cl": 0, "ucl": 9, "cal": 9, "tl": 19, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Application.Validations.ImputacionValidator", "rp": "ComprobantePago.Application_ImputacionValidator.html", "cl": 0, "ucl": 10, "cal": 10, "tl": 21, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "ComprobantePago.Application.Validations.RegistrarComprobanteValidator", "rp": "ComprobantePago.Application_RegistrarComprobanteValidator.html", "cl": 0, "ucl": 39, "cal": 39, "tl": 61, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "ComprobantePago.Application.Validations.RegistrarComprobanteValidator", "rp": "ComprobantePago.Application_RegistrarComprobanteValidator.html", "cl": 39, "ucl": 0, "cal": 39, "tl": 61, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
     ]},
   {
     "name": "ComprobantePago.Domain",
@@ -332,7 +332,7 @@ var assemblies = [
       { "name": "ComprobantePago.Domain.Entities.CodigoUnidad1", "rp": "ComprobantePago.Domain_CodigoUnidad1.html", "cl": 0, "ucl": 9, "cal": 9, "tl": 15, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Domain.Entities.CodigoUnidad3", "rp": "ComprobantePago.Domain_CodigoUnidad3.html", "cl": 0, "ucl": 8, "cal": 8, "tl": 14, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Domain.Entities.CodigoUnidad4", "rp": "ComprobantePago.Domain_CodigoUnidad4.html", "cl": 0, "ucl": 8, "cal": 8, "tl": 14, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "ComprobantePago.Domain.Entities.Comprobante", "rp": "ComprobantePago.Domain_Comprobante.html", "cl": 18, "ucl": 51, "cal": 69, "tl": 78, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "ComprobantePago.Domain.Entities.Comprobante", "rp": "ComprobantePago.Domain_Comprobante.html", "cl": 47, "ucl": 22, "cal": 69, "tl": 78, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Domain.Entities.CuentaContable", "rp": "ComprobantePago.Domain_CuentaContable.html", "cl": 0, "ucl": 8, "cal": 8, "tl": 14, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Domain.Entities.DocumentoElectronico", "rp": "ComprobantePago.Domain_DocumentoElectronico.html", "cl": 7, "ucl": 1, "cal": 8, "tl": 14, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Domain.Entities.Empleado", "rp": "ComprobantePago.Domain_Empleado.html", "cl": 0, "ucl": 32, "cal": 32, "tl": 51, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -369,7 +369,7 @@ var assemblies = [
       { "name": "ComprobantePago.Infrastructure.QueryServices.ComprobanteQueryService", "rp": "ComprobantePago.Infrastructure_ComprobanteQueryService.html", "cl": 0, "ucl": 189, "cal": 189, "tl": 241, "cb": 0, "tb": 76, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Infrastructure.QueryServices.MaestrosQueryService", "rp": "ComprobantePago.Infrastructure_MaestrosQueryService.html", "cl": 0, "ucl": 47, "cal": 47, "tl": 78, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Infrastructure.QueryServices.SytelineQueryService", "rp": "ComprobantePago.Infrastructure_SytelineQueryService.html", "cl": 0, "ucl": 174, "cal": 174, "tl": 222, "cb": 0, "tb": 114, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "ComprobantePago.Infrastructure.Repositories.ComprobanteRepository", "rp": "ComprobantePago.Infrastructure_ComprobanteRepository.html", "cl": 109, "ucl": 250, "cal": 359, "tl": 490, "cb": 34, "tb": 66, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "ComprobantePago.Infrastructure.Repositories.ComprobanteRepository", "rp": "ComprobantePago.Infrastructure_ComprobanteRepository.html", "cl": 217, "ucl": 142, "cal": 359, "tl": 490, "cb": 42, "tb": 66, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Infrastructure.Services.ComprobantePdfReporteService", "rp": "ComprobantePago.Infrastructure_ComprobantePdfReporteService.html", "cl": 0, "ucl": 162, "cal": 162, "tl": 181, "cb": 0, "tb": 60, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Infrastructure.Services.ComprobanteReporteData", "rp": "ComprobantePago.Infrastructure_ComprobanteReporteData.html", "cl": 0, "ucl": 36, "cal": 36, "tl": 63, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Infrastructure.Services.ExcelSytelineService", "rp": "ComprobantePago.Infrastructure_ExcelSytelineService.html", "cl": 0, "ucl": 272, "cal": 272, "tl": 441, "cb": 0, "tb": 20, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -384,7 +384,7 @@ var assemblies = [
       { "name": "ComprobantePago.Infrastructure.Services.Maestros.DbProveedorService", "rp": "ComprobantePago.Infrastructure_DbProveedorService.html", "cl": 0, "ucl": 18, "cal": 18, "tl": 32, "cb": 0, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Infrastructure.Services.PdfComprobanteService", "rp": "ComprobantePago.Infrastructure_PdfComprobanteService.html", "cl": 0, "ucl": 108, "cal": 108, "tl": 172, "cb": 0, "tb": 42, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "ComprobantePago.Infrastructure.Services.SunatService", "rp": "ComprobantePago.Infrastructure_SunatService.html", "cl": 0, "ucl": 108, "cal": 108, "tl": 159, "cb": 0, "tb": 24, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "ComprobantePago.Infrastructure.Services.XmlComprobanteService", "rp": "ComprobantePago.Infrastructure_XmlComprobanteService.html", "cl": 116, "ucl": 40, "cal": 156, "tl": 223, "cb": 61, "tb": 172, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "ComprobantePago.Infrastructure.Services.XmlComprobanteService", "rp": "ComprobantePago.Infrastructure_XmlComprobanteService.html", "cl": 148, "ucl": 8, "cal": 156, "tl": 223, "cb": 98, "tb": 172, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
     ]},
 ];
 
@@ -429,12 +429,6 @@ var riskHotspots = [
       { "value": 34, "exceeded": true },
     ]},
   {
-    "assembly": "ComprobantePago.Infrastructure", "class": "ComprobantePago.Infrastructure.Services.XmlComprobanteService", "reportPath": "ComprobantePago.Infrastructure_XmlComprobanteService.html", "methodName": "LeerDatosXml(System.IO.Stream)", "methodShortName": "LeerDatosXml(...)", "fileIndex": 0, "line": 19,
-    "metrics": [
-      { "value": 756, "exceeded": true },
-      { "value": 172, "exceeded": true },
-    ]},
-  {
     "assembly": "ComprobantePago.Infrastructure", "class": "ComprobantePago.Infrastructure.QueryServices.ComprobanteQueryService", "reportPath": "ComprobantePago.Infrastructure_ComprobanteQueryService.html", "methodName": "ObtenerDetalleAsync()", "methodShortName": "ObtenerDetalleAsync()", "fileIndex": 0, "line": 65,
     "metrics": [
       { "value": 506, "exceeded": true },
@@ -445,6 +439,12 @@ var riskHotspots = [
     "metrics": [
       { "value": 272, "exceeded": true },
       { "value": 16, "exceeded": true },
+    ]},
+  {
+    "assembly": "ComprobantePago.Infrastructure", "class": "ComprobantePago.Infrastructure.Services.XmlComprobanteService", "reportPath": "ComprobantePago.Infrastructure_XmlComprobanteService.html", "methodName": "LeerDatosXml(System.IO.Stream)", "methodShortName": "LeerDatosXml(...)", "fileIndex": 0, "line": 19,
+    "metrics": [
+      { "value": 177, "exceeded": true },
+      { "value": 172, "exceeded": true },
     ]},
   {
     "assembly": "ComprobantePago.Infrastructure", "class": "ComprobantePago.Infrastructure.Services.ExcelSytelineService", "reportPath": "ComprobantePago.Infrastructure_ExcelSytelineService.html", "methodName": "GenerarCabecera(System.Collections.Generic.IEnumerable`1<ComprobantePago.Application.DTOs.Responses.SytelineCabeceraDto>)", "methodShortName": "GenerarCabecera(...)", "fileIndex": 0, "line": 11,
