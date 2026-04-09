@@ -1,5 +1,6 @@
 using ComprobantePago.Application.DTOs.Comprobante.Requests;
 using ComprobantePago.Application.Validations;
+using Xunit;
 
 namespace ComprobantePago.Tests.HU03
 {

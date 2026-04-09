@@ -8,6 +8,7 @@ using ComprobantePago.Infrastructure.Services;
 using ComprobantePago.Tests.Helpers;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using Xunit;
 
 namespace ComprobantePago.Tests.HU03
 {
@@ -27,9 +28,9 @@ namespace ComprobantePago.Tests.HU03
 
             var repo = new ComprobanteRepository(
                 db, uow,
+                new Mock<ISunatService>().Object,
                 new XmlComprobanteService(),
                 new PdfComprobanteService(),
-                new Mock<ISunatService>().Object,
                 usuario.Object,
                 NullLogger<ComprobanteRepository>.Instance);
 
@@ -221,7 +222,7 @@ namespace ComprobantePago.Tests.HU03
             await repo.EliminarImputacionAsync(new EliminarImputacionCommand
             {
                 Folio     = folio,
-                Secuencia = secuencia.ToString()
+                Secuencia = secuencia
             });
 
             Assert.False(db.ImputacionesContables
@@ -240,7 +241,7 @@ namespace ComprobantePago.Tests.HU03
             await repo.EliminarImputacionAsync(new EliminarImputacionCommand
             {
                 Folio     = folio,
-                Secuencia = sec2.ToString()
+                Secuencia = sec2
             });
 
             var restantes = db.ImputacionesContables
