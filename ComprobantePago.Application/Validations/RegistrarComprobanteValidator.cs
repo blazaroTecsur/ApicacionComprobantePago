@@ -48,6 +48,10 @@ namespace ComprobantePago.Application.Validations
             RuleFor(x => x.MontoIGVCredito)
                 .GreaterThanOrEqualTo(0).WithMessage("El monto IGV no puede ser negativo.");
 
+            RuleFor(x => x.TipoDetraccion)
+                .NotEmpty().WithMessage("El tipo de detracción es obligatorio cuando aplica detracción.")
+                .When(x => x.TieneDetraccion);
+
             RuleFor(x => x.PorcentajeDetraccion)
                 .InclusiveBetween(0, 100)
                 .WithMessage("El porcentaje de detracción debe estar entre 0 y 100.")
