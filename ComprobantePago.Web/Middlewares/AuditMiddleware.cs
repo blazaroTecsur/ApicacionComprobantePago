@@ -1,5 +1,6 @@
 using Serilog;
 using System.Security.Claims;
+using ILogger = Serilog.ILogger;
 
 namespace ComprobantePago.Web.Middlewares
 {
