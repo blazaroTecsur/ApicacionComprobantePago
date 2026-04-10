@@ -324,6 +324,16 @@ namespace ComprobantePago.Infrastructure.Repositories
                     .FirstOrDefaultAsync(x => x.Folio == dto.Folio)
                     ?? throw new AppException($"No se encontró el comprobante '{dto.Folio}'.");
 
+                // Bloquear si el total ya imputado (seq > 1) coincide con MontoTotal.
+                var totalImputado = await _contexto.ImputacionesContables
+                    .Where(x => x.Folio == dto.Folio && x.Secuencia > 1)
+                    .SumAsync(x => (decimal?)x.Monto) ?? 0m;
+
+                if (Math.Abs(totalImputado - cpte.MontoTotal) <= 0.02m)
+                    throw new AppException(
+                        "La imputación contable está completa. El total imputado ya coincide con el monto del comprobante.",
+                        "IMPUTACION_COMPLETA");
+
                 var lineas = LineasEsperadas(cpte);
                 var idx = nuevaSecuencia - 1; // 0-based: seq 2 → idx 1, seq 3 → idx 2 …
 
