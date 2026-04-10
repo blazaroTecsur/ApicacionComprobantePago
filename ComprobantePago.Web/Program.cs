@@ -20,6 +20,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Serilog.Events;
+using Serilog.Formatting.Compact;
 using System.Text.Json;
 
 // ── Serilog: configurar antes del builder ─────────────────────────────────────
@@ -30,15 +31,40 @@ Log.Logger = new LoggerConfiguration()
         LogEventLevel.Warning)
     .Enrich.FromLogContext()
     .Enrich.WithMachineName()
+
+    // Consola: texto legible para desarrollo
     .WriteTo.Console(
         outputTemplate:
-        "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+        "[{Timestamp:HH:mm:ss} {Level:u3}] [{CorrelationId}] {UserId} | {Message:lj}{NewLine}{Exception}")
+
+    // Archivo texto: historial legible en producción
     .WriteTo.File(
         path: "logs/comprobante-.log",
         rollingInterval: RollingInterval.Day,
         retainedFileCountLimit: 30,
         outputTemplate:
-        "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+        "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [{CorrelationId}] {UserId} | {Message:lj}{NewLine}{Exception}")
+
+    // Archivo JSON estructurado: consumible por sistemas de observabilidad
+    // (Seq, Elastic, Splunk, etc.). Incluye RequestId, CorrelationId, UserId automáticamente.
+    .WriteTo.File(
+        formatter: new CompactJsonFormatter(),
+        path: "logs/comprobante-json-.log",
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 30,
+        restrictedToMinimumLevel: LogEventLevel.Information)
+
+    // Archivo JSON solo para auditoría (filtro por propiedad AuditLog=true)
+    .WriteTo.Logger(lc => lc
+        .Filter.ByIncludingOnly(e =>
+            e.Properties.ContainsKey("AuditLog") &&
+            e.Properties["AuditLog"].ToString() == "True")
+        .WriteTo.File(
+            formatter: new CompactJsonFormatter(),
+            path: "logs/audit-.log",
+            rollingInterval: RollingInterval.Day,
+            retainedFileCountLimit: 90))
+
     .CreateLogger();
 
 try
@@ -191,10 +217,14 @@ try
     }
 
     // ── Pipeline de middlewares ───────────────────────────────────────────────
-    // 1. Manejo global de excepciones (primero)
+    // 1. Manejo global de excepciones (primero, captura todo)
     app.UseMiddleware<ExceptionMiddleware>();
 
-    // 2. Serilog request logging
+    // 2. CorrelationId: inyecta CorrelationId, RequestId y UserId en LogContext
+    //    antes de que cualquier log de la petición sea emitido.
+    app.UseMiddleware<CorrelationIdMiddleware>();
+
+    // 3. Serilog request logging (ya enriquecido con CorrelationId / UserId)
     app.UseSerilogRequestLogging(opts =>
     {
         opts.MessageTemplate =
@@ -220,6 +250,9 @@ try
     app.UseRouting();
     app.UseAuthentication();
     app.UseAuthorization();
+
+    // 4. AuditMiddleware: audita POST críticos DESPUÉS de autenticar al usuario
+    app.UseMiddleware<AuditMiddleware>();
 
     app.MapControllerRoute(
         name: "default",
