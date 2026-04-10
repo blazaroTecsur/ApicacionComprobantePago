@@ -6,9 +6,10 @@ namespace ComprobantePago.Infrastructure.Services
 {
     internal static class ComprobantePdfReporteService
     {
-        // Separadores
-        private const string SEP_IGUAL  = "================================================================================";
-        private const string SEP_GUION  = "--------------------------------------------------------------------------------";
+        // Separadores — ancho calculado para Letter (612 pt) con márgenes 1.2 cm c/lado (≈ 34 pt):
+        // usable ≈ 544 pt · Courier New 7.5 pt ≈ 4.5 pt/car → ~121 caracteres.
+        private static readonly string SEP_IGUAL = new string('=', 121);
+        private static readonly string SEP_GUION = new string('-', 121);
 
         static ComprobantePdfReporteService()
         {
