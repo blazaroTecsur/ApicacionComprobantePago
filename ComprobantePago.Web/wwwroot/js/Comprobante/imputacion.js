@@ -24,6 +24,23 @@ function inicializarTablaImputacion() {
         ordering: false,
         columns: [
             { data: 'aliasCuenta' },
+            {
+                // Afectación / código impositivo — calculado por secuencia
+                data: null,
+                render: function (data, type, row) {
+                    const af = obtenerAfectacion(row.secuencia);
+                    if (!af) return '';
+                    const clases = {
+                        CABECERA:  'bg-secondary',
+                        GRAVADO:   'bg-primary',
+                        IGV:       'bg-info text-dark',
+                        EXONERADO: 'bg-success',
+                        'RETENCIÓN': 'bg-warning text-dark'
+                    };
+                    const cls = clases[af] ?? 'bg-secondary';
+                    return `<span class="badge ${cls}">${af}</span>`;
+                }
+            },
             { data: 'proyecto' },
             { data: 'codUnidad1Cuenta' },
             { data: 'codUnidad3Cuenta' },
@@ -38,7 +55,14 @@ function inicializarTablaImputacion() {
             {
                 data: 'secuencia',
                 orderable: false,
-                render: function (secuencia) {
+                render: function (secuencia, type, row) {
+                    if (row.estado === 'pendiente') {
+                        return `<button class="btn btn-sm btn-warning btn-configurar-imp"
+                                        data-secuencia="${secuencia}"
+                                        title="Configurar cuenta contable y códigos de unidad">
+                                    <i class="bi bi-pencil-square"></i> Configurar
+                                </button>`;
+                    }
                     return `
                         <button class="btn btn-sm btn-primary btn-editar-imp"
                                 data-secuencia="${secuencia}">
@@ -50,7 +74,12 @@ function inicializarTablaImputacion() {
                         </button>`;
                 }
             }
-        ]
+        ],
+        createdRow: function (row, data) {
+            if (data.estado === 'pendiente') {
+                $(row).addClass('table-warning');
+            }
+        }
     });
 }
 
@@ -58,7 +87,7 @@ function inicializarTablaImputacion() {
 function cargarImputaciones(folio) {
     CorporativoQuery.ajaxGet(`/Comprobante/ObtenerImputaciones?folio=${folio}`, function (data) {
         listaImputaciones = data;
-        tablaImputacion.clear().rows.add(data).draw();
+        refrescarTabla();
         calcularTotales();
     });
 }
@@ -150,7 +179,7 @@ function agregarImputacion() {
         function (response) {
             if (response.exito) {
                 listaImputaciones.push(response.imputacion);
-                tablaImputacion.row.add(response.imputacion).draw();
+                refrescarTabla();
                 calcularTotales();
                 limpiarFormularioImputacion();
                 CorporativoCore.notificarExito('Imputación agregada correctamente.');
@@ -175,7 +204,7 @@ function guardarEdicionImputacion() {
                     .findIndex(i => i.secuencia == secuenciaEditando);
                 if (idx >= 0) listaImputaciones[idx] = response.imputacion;
 
-                tablaImputacion.clear().rows.add(listaImputaciones).draw();
+                refrescarTabla();
                 calcularTotales();
                 ocultarFormularioImputacion();
                 CorporativoCore.notificarExito('Imputación actualizada correctamente.');
@@ -199,7 +228,7 @@ async function eliminarImputacion(secuencia) {
             if (response.exito) {
                 listaImputaciones = listaImputaciones
                     .filter(i => i.secuencia != secuencia);
-                tablaImputacion.clear().rows.add(listaImputaciones).draw();
+                refrescarTabla();
                 calcularTotales();
                 ocultarFormularioImputacion();
                 CorporativoCore.notificarExito('Imputación eliminada correctamente.');
@@ -296,14 +325,58 @@ function obtenerLineasEsperadas() {
     const retencion = CorporativoCore.limpiarMonto($('#txtMontoRetencion').val());
 
     const lineas = [
-        { monto: null,     desc: 'Cabecera SyteLine' },   // seq 1: sin monto requerido
-        { monto: neto,     desc: 'Monto Neto' },           // seq 2
-        { monto: igv,      desc: 'IGV Crédito Fiscal' },   // seq 3
+        { monto: null,     desc: 'Cabecera SyteLine',      afectacion: 'CABECERA'   }, // seq 1
+        { monto: neto,     desc: 'Monto Neto',             afectacion: 'GRAVADO'    }, // seq 2
+        { monto: igv,      desc: 'IGV Crédito Fiscal',     afectacion: 'IGV'        }, // seq 3
     ];
-    if (exento > 0)    lineas.push({ monto: exento,    desc: 'Monto Exento / Exonerado' });
-    if (retencion > 0) lineas.push({ monto: retencion, desc: 'Retención' });
+    if (exento > 0)    lineas.push({ monto: exento,    desc: 'Monto Exento / Exonerado', afectacion: 'EXONERADO' });
+    if (retencion > 0) lineas.push({ monto: retencion, desc: 'Retención',                afectacion: 'RETENCIÓN' });
 
     return lineas;
+}
+
+/** Devuelve la etiqueta de afectación/código impositivo para una secuencia dada. */
+function obtenerAfectacion(seq) {
+    const lineas = obtenerLineasEsperadas();
+    const item   = lineas[seq - 1];
+    return item ? item.afectacion : '';
+}
+
+/**
+ * Genera filas "pendientes" para las secuencias esperadas que aún no tienen
+ * imputación guardada en listaImputaciones.
+ */
+function construirFilasPendientes() {
+    const lineas              = obtenerLineasEsperadas();
+    const secuenciasGuardadas = new Set(listaImputaciones.map(i => i.secuencia));
+
+    return lineas
+        .map((linea, idx) => ({ seq: idx + 1, ...linea }))
+        .filter(l => !secuenciasGuardadas.has(l.seq))
+        .map(l => ({
+            secuencia:         l.seq,
+            aliasCuenta:       '',
+            cuentaContable:    '',
+            descripcionCuenta: '',
+            monto:             l.monto ?? 0,
+            descripcion:       l.desc,
+            proyecto:          '',
+            codUnidad1Cuenta:  '',
+            codUnidad3Cuenta:  '',
+            codUnidad4Cuenta:  '',
+            estado:            'pendiente'
+        }));
+}
+
+/**
+ * Redibuja la tabla fusionando imputaciones guardadas (de listaImputaciones)
+ * con filas pendientes, ordenadas por secuencia.
+ */
+function refrescarTabla() {
+    const guardadas  = listaImputaciones.map(i => ({ ...i, estado: 'guardado' }));
+    const pendientes = construirFilasPendientes();
+    const todas = [...guardadas, ...pendientes].sort((a, b) => a.secuencia - b.secuencia);
+    tablaImputacion.clear().rows.add(todas).draw();
 }
 
 /** Devuelve { seq, monto, desc } para la próxima línea a agregar. */
@@ -343,7 +416,7 @@ function procesarImputacionMasiva(archivo) {
             CorporativoCore.hideLoading();
             if (response.exito) {
                 listaImputaciones = response.imputaciones;
-                tablaImputacion.clear().rows.add(listaImputaciones).draw();
+                refrescarTabla();
                 calcularTotales();
                 CorporativoCore.notificarExito('Imputación masiva cargada correctamente.');
             } else {
@@ -482,6 +555,11 @@ function bindEventosImputacion() {
 
     $('#tblImputacion').on('click', '.btn-eliminar-imp', function () {
         eliminarImputacion($(this).data('secuencia'));
+    });
+
+    // Configurar fila pendiente: abre el formulario pre-cargado para la siguiente línea esperada.
+    $('#tblImputacion').on('click', '.btn-configurar-imp', function () {
+        mostrarFormularioImputacion();
     });
 
     $('#btnExplorar').on('click', function () {
