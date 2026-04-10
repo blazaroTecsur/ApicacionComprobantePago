@@ -311,8 +311,37 @@ namespace ComprobantePago.Infrastructure.Repositories
                 .Where(x => x.Folio == dto.Folio)
                 .MaxAsync(x => (int?)x.Secuencia) ?? 0;
 
+            var nuevaSecuencia = maxSec + 1;
+
+            // ── Validación de monto por secuencia ─────────────────────────────
+            // Seq 1 = cabecera SyteLine (no requiere monto específico).
+            // Seq 2+ = deben coincidir con los montos del comprobante en este orden:
+            //   2 → MontoNeto | 3 → IGV crédito fiscal | 4 → Exento | 4/5 → Retención
+            if (nuevaSecuencia > 1)
+            {
+                var cpte = await _contexto.Comprobantes
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.Folio == dto.Folio)
+                    ?? throw new AppException($"No se encontró el comprobante '{dto.Folio}'.");
+
+                var lineas = LineasEsperadas(cpte);
+                var idx = nuevaSecuencia - 1; // 0-based: seq 2 → idx 1, seq 3 → idx 2 …
+
+                if (idx < lineas.Count)
+                {
+                    var (montoEsperado, descLinea) = lineas[idx];
+                    const decimal tolerancia = 0.02m; // margen por redondeo de decimales
+
+                    if (Math.Abs(dto.Monto - montoEsperado) > tolerancia)
+                        throw new AppException(
+                            $"La imputación {nuevaSecuencia} debe corresponder al {descLinea} " +
+                            $"({montoEsperado:N2}). Se recibió {dto.Monto:N2}.",
+                            "MONTO_IMPUTACION_INVALIDO");
+                }
+            }
+
             var entidad = dto.Adapt<ImputacionContable>();
-            entidad.Secuencia  = maxSec + 1;
+            entidad.Secuencia  = nuevaSecuencia;
             entidad.UsuarioReg = _usuario.Correo;
             entidad.FechaReg   = DateTime.Now;
 
@@ -323,6 +352,30 @@ namespace ComprobantePago.Infrastructure.Repositories
                 entidad.Secuencia, dto.Folio);
 
             return entidad.Adapt<ImputacionDetalleDto>();
+        }
+
+        /// <summary>
+        /// Construye la secuencia de montos esperados para las imputaciones de un comprobante.
+        /// Índice 0 = seq 1 (cabecera, sin validación de monto).
+        /// Índice 1 = seq 2 → MontoNeto.
+        /// Índice 2 = seq 3 → IGV Crédito Fiscal.
+        /// Índice 3 = seq 4 → MontoExento  (solo si > 0).
+        /// Índice 3/4 = seq 4/5 → MontoRetencion (solo si > 0).
+        /// </summary>
+        private static IReadOnlyList<(decimal Monto, string Descripcion)> LineasEsperadas(
+            Comprobante c)
+        {
+            var lista = new List<(decimal, string)>
+            {
+                (0m,                "cabecera SyteLine"),    // seq 1 – sin validación
+                (c.MontoNeto,       "monto neto"),           // seq 2
+                (c.MontoIGVCredito, "IGV crédito fiscal"),   // seq 3
+            };
+            if (c.MontoExento > 0)
+                lista.Add((c.MontoExento,    "monto exento/exonerado")); // seq 4
+            if (c.MontoRetencion > 0)
+                lista.Add((c.MontoRetencion, "monto de retención"));     // seq 4 ó 5
+            return lista.AsReadOnly();
         }
 
         public async Task<ImputacionDetalleDto> EditarImputacionAsync(

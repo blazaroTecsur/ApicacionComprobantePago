@@ -68,6 +68,16 @@ function mostrarFormularioImputacion() {
     limpiarFormularioImputacion();
     modoEdicion = false;
     secuenciaEditando = null;
+
+    // Pre-cargar monto y mostrar badge según la línea que se va a agregar
+    const linea = obtenerLineaSiguiente();
+    if (linea.monto !== null) {
+        $('#txtMonto').val(CorporativoCore.formatearMonto(linea.monto));
+    }
+    $('#lblLineaImputacion')
+        .text(linea.desc ? `Línea ${linea.seq} — ${linea.desc}` : `Línea ${linea.seq}`)
+        .removeClass('d-none');
+
     $('#pnlDetalleImputacion').removeClass('d-none');
     $('#btnAgregarNuevaImputacion').removeClass('d-none');
     $('#btnCancelarDetalle').removeClass('d-none');
@@ -98,6 +108,12 @@ function mostrarFormularioEditar(secuencia) {
         $('#txtCodUnidad3Cuenta').val(imp.codUnidad3Cuenta);
         $('#txtCodUnidad4Cuenta').val(imp.codUnidad4Cuenta);
     }
+
+    // Badge de línea: muestra la descripción si la secuencia tiene un nombre conocido
+    const desc = obtenerDescripcionSecuencia(imp.secuencia);
+    $('#lblLineaImputacion')
+        .text(desc ? `Línea ${imp.secuencia} — ${desc}` : `Línea ${imp.secuencia}`)
+        .removeClass('d-none');
 
     $('#pnlDetalleImputacion').removeClass('d-none');
     $('#btnAgregarNuevaImputacion').addClass('d-none');
@@ -198,9 +214,11 @@ async function eliminarImputacion(secuencia) {
 function calcularTotales() {
     const montoTotal = CorporativoCore.limpiarMonto($('#txtMontoTotal').val());
 
-    const totalImputado = listaImputaciones.reduce((sum, imp) => {
-        return sum + (parseFloat(imp.monto) || 0);
-    }, 0);
+    // La línea 1 es cabecera SyteLine y no cuenta como imputación financiera.
+    // Solo se suman las líneas con secuencia > 1.
+    const totalImputado = listaImputaciones
+        .filter(i => i.secuencia > 1)
+        .reduce((sum, imp) => sum + (parseFloat(imp.monto) || 0), 0);
 
     const diferencia = montoTotal - totalImputado;
 
@@ -247,9 +265,56 @@ function ocultarFormularioImputacion() {
     $('#btnEditarDetalle').addClass('d-none');
     $('#btnEliminarDetalle').addClass('d-none');
     $('#btnCancelarDetalle').addClass('d-none');
+    $('#lblLineaImputacion').addClass('d-none');
     limpiarFormularioImputacion();
     modoEdicion = false;
     secuenciaEditando = null;
+}
+
+// ════════════════════════════════════════════
+// LÓGICA DE SECUENCIAS DE IMPUTACIÓN
+// ════════════════════════════════════════════
+
+/**
+ * Construye la lista de líneas esperadas según los montos del comprobante.
+ * Índice 0 → seq 1 (cabecera, sin monto requerido)
+ * Índice 1 → seq 2 (Monto Neto)
+ * Índice 2 → seq 3 (IGV Crédito Fiscal)
+ * Índice 3 → seq 4 (Exento, solo si > 0)
+ * Índice 3/4 → seq 4/5 (Retención, solo si > 0)
+ */
+function obtenerLineasEsperadas() {
+    const neto      = CorporativoCore.limpiarMonto($('#txtMontoNeto').val());
+    const igv       = CorporativoCore.limpiarMonto($('#txtMontoIGVCredito').val());
+    const exento    = CorporativoCore.limpiarMonto($('#txtMontoExento').val());
+    const retencion = CorporativoCore.limpiarMonto($('#txtMontoRetencion').val());
+
+    const lineas = [
+        { monto: null,     desc: 'Cabecera SyteLine' },   // seq 1: sin monto requerido
+        { monto: neto,     desc: 'Monto Neto' },           // seq 2
+        { monto: igv,      desc: 'IGV Crédito Fiscal' },   // seq 3
+    ];
+    if (exento > 0)    lineas.push({ monto: exento,    desc: 'Monto Exento / Exonerado' });
+    if (retencion > 0) lineas.push({ monto: retencion, desc: 'Retención' });
+
+    return lineas;
+}
+
+/** Devuelve { seq, monto, desc } para la próxima línea a agregar. */
+function obtenerLineaSiguiente() {
+    const lineas  = obtenerLineasEsperadas();
+    const nextSeq = listaImputaciones.length + 1;
+    const idx     = nextSeq - 1; // 0-based
+    return idx < lineas.length
+        ? { seq: nextSeq, ...lineas[idx] }
+        : { seq: nextSeq, monto: null, desc: null };
+}
+
+/** Devuelve la descripción de una secuencia ya guardada (para el modo edición). */
+function obtenerDescripcionSecuencia(seq) {
+    const lineas = obtenerLineasEsperadas();
+    const item   = lineas[seq - 1];
+    return item ? item.desc : null;
 }
 
 // ── Cargar imputación masiva ──────────────────
