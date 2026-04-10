@@ -235,6 +235,12 @@ function calcularTotales() {
             .addClass('text-success')
             .removeClass('text-danger fw-bold');
     }
+
+    // Bloquear el botón "Agregar Imputación" cuando la diferencia llega a 0.
+    const completa = Math.abs(diferencia) <= 0.01;
+    $('#btnAgregarDetalle')
+        .prop('disabled', completa)
+        .attr('title', completa ? 'Imputación completa: la diferencia es 0.00' : '');
 }
 
 // ── Validar formulario ────────────────────────
