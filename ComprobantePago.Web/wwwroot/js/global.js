@@ -142,17 +142,17 @@ var CorporativoCore = (function () {
         };
         const { bg, icon } = colores[tipo] || colores.info;
 
-        const $toast = $(`
-            <div style="
-                position:fixed; top:24px; left:24px; z-index:9999;
+        // Construir con jQuery para evitar XSS al insertar el mensaje como texto
+        const $toast = $('<div>', {
+            style: `position:fixed; top:24px; left:24px; z-index:9999;
                 background:${bg}; color:#fff; padding:12px 18px;
                 border-radius:6px; font-size:13px; max-width:340px;
                 box-shadow:0 4px 12px rgba(0,0,0,.25);
-                display:flex; align-items:center; gap:10px;">
-                <span style="font-weight:bold">${icon}</span>
-                <span>${mensaje}</span>
-            </div>
-        `).appendTo("body");
+                display:flex; align-items:center; gap:10px;`
+        })
+            .append($('<span>', { style: 'font-weight:bold', text: icon }))
+            .append($('<span>').text(mensaje))
+            .appendTo('body');
 
         setTimeout(() => $toast.fadeOut(400, () => $toast.remove()), 4500);
     }
@@ -215,6 +215,12 @@ var CorporativoCore = (function () {
         return !valor || valor.toString().trim() === '';
     }
 
+    // ── Escape HTML (previene XSS en template literals) ──────
+
+    function escaparHtml(valor) {
+        return $('<span>').text(valor ?? '').html();
+    }
+
     return {
         init,
         handleError,
@@ -225,6 +231,7 @@ var CorporativoCore = (function () {
         formatearMonto,
         limpiarMonto,
         esVacio,
+        escaparHtml,
         showLoading,
         hideLoading,
         confirmar,

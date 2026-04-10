@@ -338,12 +338,15 @@ function buscarCodigoUnidad(campo, unidad, inputId) {
 
 function mostrarModalBusqueda(data, titulo, claseItem, inputId) {
     const renderItem = (d) => {
-        const extra = inputId ? `data-input="${inputId}"` : '';
-        return `<a class="list-group-item list-group-item-action ${claseItem}"
-                   data-codigo="${d.codigo}" ${extra} href="#">
-                    <span class="fw-bold">${d.codigo}</span>
-                    <span class="text-muted ms-2">${d.descripcion}</span>
-                </a>`;
+        const $a = $('<a>', {
+            class: `list-group-item list-group-item-action ${claseItem}`,
+            'data-codigo': d.codigo,
+            href: '#'
+        });
+        if (inputId) $a.attr('data-input', inputId);
+        $a.append($('<span>', { class: 'fw-bold' }).text(d.codigo));
+        $a.append($('<span>', { class: 'text-muted ms-2' }).text(d.descripcion));
+        return $a[0].outerHTML;
     };
 
     const html = `

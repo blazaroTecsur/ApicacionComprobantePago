@@ -90,13 +90,17 @@ try
     // ── HttpClient SUNAT ──────────────────────────────────────────────────────
     builder.Services.AddHttpClient<ISunatService, SunatService>()
         .ConfigurePrimaryHttpMessageHandler(() =>
-            new HttpClientHandler
+        {
+            var handler = new HttpClientHandler { UseProxy = false };
+            // Omitir validación SSL solo en desarrollo (SUNAT Beta usa cert autofirmado).
+            // En producción se valida el certificado normalmente.
+            if (builder.Environment.IsDevelopment())
             {
-                UseProxy = false,
-                ServerCertificateCustomValidationCallback =
-                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                handler.ServerCertificateCustomValidationCallback =
+                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
             }
-        );
+            return handler;
+        });
 
     // ── Mapster: configurar mappings de la capa Application ──────────────────
     MapsterConfig.Configure();

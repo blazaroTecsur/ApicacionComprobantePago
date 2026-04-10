@@ -292,23 +292,54 @@ namespace ComprobantePago.Web.Controllers
         // VALIDACIÓN SUNAT
         // ══════════════════════════════════════
 
+        /// <summary>
+        /// Valida que el archivo no sea nulo, no exceda el tamaño máximo y tenga
+        /// una de las extensiones permitidas. Devuelve el objeto de error o null si es válido.
+        /// </summary>
+        private static object? ValidarArchivo(IFormFile? archivo, int maxMb, params string[] extensiones)
+        {
+            if (archivo is null || archivo.Length == 0)
+                return new { success = false, error = new { code = "FILE_REQUIRED", userMessage = "Debe seleccionar un archivo." } };
+
+            if (archivo.Length > maxMb * 1024 * 1024)
+                return new { success = false, error = new { code = "FILE_TOO_LARGE", userMessage = $"El archivo no debe superar {maxMb} MB." } };
+
+            var ext = Path.GetExtension(archivo.FileName).TrimStart('.').ToLowerInvariant();
+            if (extensiones.Length > 0 && !extensiones.Contains(ext))
+                return new { success = false, error = new { code = "FILE_TYPE_INVALID", userMessage = $"Tipo de archivo no permitido. Se acepta: {string.Join(", ", extensiones)}." } };
+
+            return null;
+        }
+
         /// <summary>Valida un comprobante electrónico mediante su archivo XML SUNAT.</summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ValidarXmlSunat(IFormFile archivo)
-            => Ok(await _repository.ValidarXmlSunatAsync(archivo));
+        {
+            var error = ValidarArchivo(archivo, 10, "xml");
+            if (error != null) return BadRequest(error);
+            return Ok(await _repository.ValidarXmlSunatAsync(archivo));
+        }
 
         /// <summary>Valida un comprobante electrónico mediante su archivo PDF.</summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ValidarPdfSunat(IFormFile archivo)
-            => Ok(await _repository.ValidarPdfSunatAsync(archivo));
+        {
+            var error = ValidarArchivo(archivo, 20, "pdf");
+            if (error != null) return BadRequest(error);
+            return Ok(await _repository.ValidarPdfSunatAsync(archivo));
+        }
 
         /// <summary>Valida un comprobante electrónico mediante un archivo ZIP (XML + CDR + PDF).</summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ValidarZipSunat(IFormFile archivo)
-            => Ok(await _repository.ValidarZipSunatAsync(archivo));
+        {
+            var error = ValidarArchivo(archivo, 20, "zip");
+            if (error != null) return BadRequest(error);
+            return Ok(await _repository.ValidarZipSunatAsync(archivo));
+        }
 
         // ══════════════════════════════════════
         // GESTIÓN DOCUMENTOS ADJUNTOS
@@ -320,9 +351,13 @@ namespace ComprobantePago.Web.Controllers
         public async Task<IActionResult> SubirDocumentos(
             string folio, string subTipo, IFormFileCollection archivos)
         {
+            var extensionesPermitidas = new[] { "pdf", "xml", "jpg", "jpeg", "png", "xlsx", "xls" };
             var lista = new List<(byte[], string, string, string)>();
             foreach (var archivo in archivos.Where(a => a.Length > 0))
             {
+                var error = ValidarArchivo(archivo, 20, extensionesPermitidas);
+                if (error != null) return BadRequest(error);
+
                 var ext  = Path.GetExtension(archivo.FileName).TrimStart('.').ToLowerInvariant();
                 var tipo = ext == "pdf" ? "PDF" : ext.ToUpper();
                 using var ms = new MemoryStream();

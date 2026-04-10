@@ -1,4 +1,5 @@
 ﻿using ComprobantePago.Application.DTOs.Comprobante.Response;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace ComprobantePago.Infrastructure.Services
@@ -15,9 +16,18 @@ namespace ComprobantePago.Infrastructure.Services
         private static readonly XNamespace biz =
             "urn:bizlinks:names:specification:ubl:peru:schema:xsd:BizlinksAggregateComponents-1";
 
+        // Configuración segura: deshabilita DTD y entidades externas (previene XXE)
+        private static readonly XmlReaderSettings _xmlSettings = new()
+        {
+            DtdProcessing             = DtdProcessing.Prohibit,
+            XmlResolver               = null,
+            MaxCharactersFromEntities = 0
+        };
+
         public DatosXmlDto LeerDatosXml(Stream stream)
         {
-            var xml = XDocument.Load(stream);
+            using var reader = XmlReader.Create(stream, _xmlSettings);
+            var xml = XDocument.Load(reader);
             var root = xml.Root;
 
             var datos = new DatosXmlDto();
