@@ -17,7 +17,7 @@ using FluentValidation;
 using Mapster;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.Identity.Web;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
@@ -157,44 +157,49 @@ try
     }
 
     // ── Autenticación JWT / Azure Entra ID (multi-tenant) ────────────────────
+    // Microsoft.Identity.Web valida automáticamente: firma, expiración, audiencia,
+    // emisor y nonce (requisitos 3.2 del spec OIDC/PKCE interno).
     // En producción: completar ClientId, Audience y ValidTenants en appsettings.
     var azureAdConfig = builder.Configuration.GetSection("AzureAd");
     // Filtra strings vacíos para que [""] (valor por defecto en dev) se trate igual que [].
     var validTenants  = (azureAdConfig.GetSection("ValidTenants").Get<string[]>() ?? [])
                         .Where(t => !string.IsNullOrWhiteSpace(t))
                         .ToArray();
+    var esDesarrollo  = validTenants.Length == 0;
 
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddScoped<IUsuarioContexto, UsuarioContexto>();
 
-    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddJwtBearer(options =>
-        {
-            options.Authority = $"{azureAdConfig["Instance"]}common/v2.0";
-            options.Audience  = azureAdConfig["Audience"];
+    // AddMicrosoftIdentityWebApiAuthentication lee la sección "AzureAd" y configura
+    // JwtBearer con toda la validación OIDC requerida por el spec 3.2.
+    builder.Services.AddMicrosoftIdentityWebApiAuthentication(
+        builder.Configuration, configSectionName: "AzureAd");
 
-            options.TokenValidationParameters = new TokenValidationParameters
+    // Control de tenants (spec 3.3): en producción solo se aceptan los GUIDs
+    // de tenant configurados en ValidTenants. En desarrollo (lista vacía) se omite.
+    if (!esDesarrollo)
+    {
+        builder.Services.PostConfigure<JwtBearerOptions>(
+            JwtBearerDefaults.AuthenticationScheme,
+            options =>
             {
-                ValidateIssuer           = validTenants.Length > 0,
-                ValidateAudience         = !string.IsNullOrWhiteSpace(azureAdConfig["Audience"]),
-                ValidateLifetime         = true,
-                ValidateIssuerSigningKey = true,
-
-                // Acepta únicamente los tenants configurados (GCI, Los Andes, Tecsur)
-                IssuerValidator = (issuer, _, _) =>
+                var anteriorOnTokenValidated = options.Events?.OnTokenValidated;
+                options.Events ??= new JwtBearerEvents();
+                options.Events.OnTokenValidated = async ctx =>
                 {
-                    if (validTenants.Length == 0) return issuer; // modo desarrollo sin tenants
+                    // Encadenar el handler que Microsoft.Identity.Web ya registró
+                    if (anteriorOnTokenValidated is not null)
+                        await anteriorOnTokenValidated(ctx);
 
-                    var issuersPermitidos = validTenants
-                        .Select(t => $"https://login.microsoftonline.com/{t}/v2.0");
+                    var tid = ctx.Principal?.FindFirst("tid")?.Value
+                           ?? ctx.Principal?.FindFirst(
+                                  "http://schemas.microsoft.com/identity/claims/tenantid")?.Value;
 
-                    if (issuersPermitidos.Contains(issuer)) return issuer;
-
-                    throw new SecurityTokenInvalidIssuerException(
-                        $"Tenant no autorizado: {issuer}");
-                }
-            };
-        });
+                    if (string.IsNullOrEmpty(tid) || !validTenants.Contains(tid))
+                        ctx.Fail($"Tenant no autorizado: {tid}");
+                };
+            });
+    }
 
     // ── Autorización basada en App Roles de Azure Entra ID ───────────────────
     // Roles definidos en el manifest de la app registrada:
@@ -202,7 +207,6 @@ try
     //
     // En desarrollo (ValidTenants vacío) todas las políticas se resuelven como
     // autorizadas automáticamente para no bloquear el flujo local sin token JWT.
-    var esDesarrollo = validTenants.Length == 0;
     builder.Services.AddAuthorization(options =>
     {
         if (esDesarrollo)
