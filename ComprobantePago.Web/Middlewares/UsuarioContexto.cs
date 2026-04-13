@@ -9,10 +9,11 @@ namespace ComprobantePago.Web.Middlewares
     /// </summary>
     public sealed class UsuarioContexto : IUsuarioContexto
     {
-        public string CodTenant  { get; }
-        public string CodUsuario { get; }
-        public string Correo     { get; }
-        public string Titulo     { get; }
+        public string                CodTenant  { get; }
+        public string                CodUsuario { get; }
+        public string                Correo     { get; }
+        public string                Titulo     { get; }
+        public IReadOnlyList<string> Roles      { get; }
 
         public UsuarioContexto(IHttpContextAccessor contexto, IConfiguration config)
         {
@@ -43,6 +44,15 @@ namespace ComprobantePago.Web.Middlewares
 
             Titulo = ObtenerClaim("name", ClaimTypes.Name)
                 .IfEmpty(Dev("Titulo"));
+
+            // Lee los App Roles del claim "roles" (array en el JWT de Entra ID).
+            // En desarrollo (sin token) queda vacío; la política de autorización
+            // local ya permite todo cuando ValidTenants está vacío.
+            Roles = usuario?.FindAll("roles")
+                        .Select(c => c.Value)
+                        .ToList()
+                        .AsReadOnly()
+                    ?? (IReadOnlyList<string>)[];
         }
     }
 

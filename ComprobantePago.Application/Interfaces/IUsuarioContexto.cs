@@ -13,5 +13,12 @@ namespace ComprobantePago.Application.Interfaces
 
         /// <summary>Nombre para mostrar del usuario (claim "name").</summary>
         string Titulo { get; }
+
+        /// <summary>
+        /// App Roles asignados al usuario en Azure Entra ID (claim "roles").
+        /// Valores esperados: Digitador · Autorizador · Aprobador · Anulador.
+        /// Vacío en entornos de desarrollo sin token JWT.
+        /// </summary>
+        IReadOnlyList<string> Roles { get; }
     }
 }
