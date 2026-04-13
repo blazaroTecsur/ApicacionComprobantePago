@@ -24,6 +24,7 @@ namespace ComprobantePago.Web.Controllers
         private readonly IProveedorService                  _proveedorService;
         private readonly IValidator<RegistrarComprobanteDto> _comprobanteValidator;
         private readonly IValidator<ImputacionDto>           _imputacionValidator;
+        private readonly IValidator<AccionComprobanteDto>    _accionValidator;
 
         public ComprobanteController(
             IComprobanteQueryService             queryService,
@@ -33,7 +34,8 @@ namespace ComprobantePago.Web.Controllers
             IExcelSytelineService              excelService,
             IProveedorService                  proveedorService,
             IValidator<RegistrarComprobanteDto> comprobanteValidator,
-            IValidator<ImputacionDto>           imputacionValidator)
+            IValidator<ImputacionDto>           imputacionValidator,
+            IValidator<AccionComprobanteDto>    accionValidator)
         {
             _queryService         = queryService;
             _sytelineService      = sytelineService;
@@ -43,6 +45,7 @@ namespace ComprobantePago.Web.Controllers
             _proveedorService     = proveedorService;
             _comprobanteValidator = comprobanteValidator;
             _imputacionValidator  = imputacionValidator;
+            _accionValidator      = accionValidator;
         }
 
         // ══════════════════════════════════════
@@ -168,6 +171,9 @@ namespace ComprobantePago.Web.Controllers
         [Authorize(Policy = "RequiereDigitador")]
         public async Task<IActionResult> Enviar([FromBody] EnviarComprobanteCommand command)
         {
+            var validacion = await _accionValidator.ValidateAsync(command.Comprobante);
+            if (!validacion.IsValid)
+                return BadRequest(new { errores = validacion.Errors.Select(e => e.ErrorMessage) });
             await _repository.EnviarAsync(command);
             return Ok(BaseResponse.Ok());
         }
@@ -178,6 +184,9 @@ namespace ComprobantePago.Web.Controllers
         [Authorize(Policy = "RequiereAutorizador")]
         public async Task<IActionResult> Firmar([FromBody] FirmarComprobanteCommand command)
         {
+            var validacion = await _accionValidator.ValidateAsync(command.Comprobante);
+            if (!validacion.IsValid)
+                return BadRequest(new { errores = validacion.Errors.Select(e => e.ErrorMessage) });
             await _repository.FirmarAsync(command);
             return Ok(BaseResponse.Ok());
         }
@@ -188,6 +197,9 @@ namespace ComprobantePago.Web.Controllers
         [Authorize(Policy = "RequiereAprobador")]
         public async Task<IActionResult> Aprobar([FromBody] AprobarComprobanteCommand command)
         {
+            var validacion = await _accionValidator.ValidateAsync(command.Comprobante);
+            if (!validacion.IsValid)
+                return BadRequest(new { errores = validacion.Errors.Select(e => e.ErrorMessage) });
             await _repository.AprobarAsync(command);
             return Ok(BaseResponse.Ok());
         }
@@ -198,6 +210,9 @@ namespace ComprobantePago.Web.Controllers
         [Authorize(Policy = "RequiereAnulador")]
         public async Task<IActionResult> Anular([FromBody] AnularComprobanteCommand command)
         {
+            var validacion = await _accionValidator.ValidateAsync(command.Comprobante);
+            if (!validacion.IsValid)
+                return BadRequest(new { errores = validacion.Errors.Select(e => e.ErrorMessage) });
             await _repository.AnularAsync(command);
             return Ok(BaseResponse.Ok());
         }
@@ -208,6 +223,9 @@ namespace ComprobantePago.Web.Controllers
         [Authorize(Policy = "RequiereAutorizador")]
         public async Task<IActionResult> Derivar([FromBody] DerivarComprobanteCommand command)
         {
+            var validacion = await _accionValidator.ValidateAsync(command.Comprobante);
+            if (!validacion.IsValid)
+                return BadRequest(new { errores = validacion.Errors.Select(e => e.ErrorMessage) });
             await _repository.DerivarAsync(command);
             return Ok(BaseResponse.Ok());
         }
