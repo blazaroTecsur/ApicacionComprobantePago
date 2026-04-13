@@ -159,7 +159,10 @@ try
     // ── Autenticación JWT / Azure Entra ID (multi-tenant) ────────────────────
     // En producción: completar ClientId, Audience y ValidTenants en appsettings.
     var azureAdConfig = builder.Configuration.GetSection("AzureAd");
-    var validTenants  = azureAdConfig.GetSection("ValidTenants").Get<string[]>() ?? [];
+    // Filtra strings vacíos para que [""] (valor por defecto en dev) se trate igual que [].
+    var validTenants  = (azureAdConfig.GetSection("ValidTenants").Get<string[]>() ?? [])
+                        .Where(t => !string.IsNullOrWhiteSpace(t))
+                        .ToArray();
 
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddScoped<IUsuarioContexto, UsuarioContexto>();
