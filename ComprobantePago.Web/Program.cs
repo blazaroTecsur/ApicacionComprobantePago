@@ -157,10 +157,12 @@ try
     }
 
     // ── Autenticación JWT / Azure Entra ID (multi-tenant) ────────────────────
-    // Sin [Authorize] en los controladores, los requests anónimos pasan sin problema.
-    // Cuando se activen los tenants reales, solo se necesita completar ValidTenants en appsettings.
+    // En producción: completar ClientId, Audience y ValidTenants en appsettings.
     var azureAdConfig = builder.Configuration.GetSection("AzureAd");
-    var validTenants  = azureAdConfig.GetSection("ValidTenants").Get<string[]>() ?? [];
+    // Filtra strings vacíos para que [""] (valor por defecto en dev) se trate igual que [].
+    var validTenants  = (azureAdConfig.GetSection("ValidTenants").Get<string[]>() ?? [])
+                        .Where(t => !string.IsNullOrWhiteSpace(t))
+                        .ToArray();
 
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddScoped<IUsuarioContexto, UsuarioContexto>();
@@ -193,6 +195,41 @@ try
                 }
             };
         });
+
+    // ── Autorización basada en App Roles de Azure Entra ID ───────────────────
+    // Roles definidos en el manifest de la app registrada:
+    //   Digitador · Autorizador · Aprobador · Anulador
+    //
+    // En desarrollo (ValidTenants vacío) todas las políticas se resuelven como
+    // autorizadas automáticamente para no bloquear el flujo local sin token JWT.
+    var esDesarrollo = validTenants.Length == 0;
+    builder.Services.AddAuthorization(options =>
+    {
+        if (esDesarrollo)
+        {
+            var todoPermitido = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+                .RequireAssertion(_ => true)
+                .Build();
+            options.DefaultPolicy  = todoPermitido;
+            options.FallbackPolicy = null;
+            options.AddPolicy("RequiereDigitador",   todoPermitido);
+            options.AddPolicy("RequiereAutorizador", todoPermitido);
+            options.AddPolicy("RequiereAprobador",   todoPermitido);
+            options.AddPolicy("RequiereAnulador",    todoPermitido);
+        }
+        else
+        {
+            // Producción: el token JWT debe incluir el claim "roles" con el valor correcto.
+            options.AddPolicy("RequiereDigitador",   p => p.RequireAuthenticatedUser()
+                .RequireClaim("roles", "Digitador"));
+            options.AddPolicy("RequiereAutorizador", p => p.RequireAuthenticatedUser()
+                .RequireClaim("roles", "Autorizador"));
+            options.AddPolicy("RequiereAprobador",   p => p.RequireAuthenticatedUser()
+                .RequireClaim("roles", "Aprobador"));
+            options.AddPolicy("RequiereAnulador",    p => p.RequireAuthenticatedUser()
+                .RequireClaim("roles", "Anulador"));
+        }
+    });
 
     // ── Servicios de aplicación ───────────────────────────────────────────────
     builder.Services.AddScoped<XmlComprobanteService>();
