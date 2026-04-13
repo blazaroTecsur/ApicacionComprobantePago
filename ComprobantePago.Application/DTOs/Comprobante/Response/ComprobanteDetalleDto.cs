@@ -3,7 +3,7 @@
     public class ComprobanteDetalleDto
     {
         // Encabezado
-        public string Folio { get; set; }
+        public string Folio { get; set; } = null!;
         public string Ruc { get; set; }
         public string RazonSocial { get; set; }
         public string TipoDocumento { get; set; }
