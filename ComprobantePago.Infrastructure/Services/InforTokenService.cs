@@ -46,11 +46,13 @@ namespace ComprobantePago.Infrastructure.Services
 
                 _logger.LogInformation("Solicitando nuevo token a Infor ION...");
 
+                // saak = username (Service Account API Key)
+                // sask = password (Service Account Secret Key)
                 var parametros = new Dictionary<string, string>
                 {
                     { "grant_type",    "password" },
-                    { "username",      _settings.Username },
-                    { "password",      _settings.Password },
+                    { "username",      _settings.ServiceAccountKey },
+                    { "password",      _settings.ServiceAccountSecret },
                     { "client_id",     _settings.ClientId },
                     { "client_secret", _settings.ClientSecret },
                     { "scope",         "openid" }
