@@ -3,19 +3,15 @@ using System.Text.Json;
 namespace ComprobantePago.Application.Interfaces.Services
 {
     /// <summary>
-    /// Cliente para el servicio IDO REST de Infor Syteline
-    /// (MGRestService.svc/json/).
+    /// Cliente para el servicio IDO REST de Infor Syteline (MGRestService.svc).
+    /// URLs según la especificación real del servicio.
     /// </summary>
     public interface ISytelineIdoService
     {
         /// <summary>
         /// Consulta registros de un IDO.
+        /// GET /json/{ido}?props=...&amp;filter=...&amp;recordCap=N&amp;orderBy=...
         /// </summary>
-        /// <param name="ido">Nombre del IDO (ej. "SLVendors")</param>
-        /// <param name="props">Propiedades separadas por coma (ej. "VendNum,Name")</param>
-        /// <param name="filter">Filtro estilo SQL (ej. "VendNum = 'VENDOR01'")</param>
-        /// <param name="recordCap">Límite de registros (0 = sin límite del servidor)</param>
-        /// <param name="orderBy">Campo y dirección (ej. "VendNum ASC")</param>
         Task<JsonElement> LoadAsync(
             string ido,
             string? props     = null,
@@ -25,30 +21,52 @@ namespace ComprobantePago.Application.Interfaces.Services
             CancellationToken ct = default);
 
         /// <summary>
-        /// Invoca un método de un IDO.
+        /// Devuelve la definición de propiedades de un IDO (schema).
+        /// GET /json/idoinfo/{ido}
         /// </summary>
-        /// <param name="ido">Nombre del IDO</param>
-        /// <param name="method">Nombre del método</param>
-        /// <param name="parametros">Cuerpo JSON de parámetros</param>
-        Task<JsonElement> InvokeAsync(
-            string      ido,
-            string      method,
-            object?     parametros = null,
-            CancellationToken ct   = default);
-
-        /// <summary>
-        /// Inserta o actualiza registros en un IDO.
-        /// </summary>
-        /// <param name="ido">Nombre del IDO</param>
-        /// <param name="payload">Cuerpo JSON con los Items a actualizar</param>
-        Task<JsonElement> UpdateAsync(
-            string      ido,
-            object      payload,
+        Task<JsonElement> IdoInfoAsync(
+            string ido,
             CancellationToken ct = default);
 
         /// <summary>
-        /// Lista las configuraciones de IDO disponibles en la instancia.
-        /// Útil para descubrir los IDOs accesibles.
+        /// Invoca un método de un IDO.
+        /// GET /json/method/{ido}/{method}
+        /// </summary>
+        Task<JsonElement> InvokeMethodAsync(
+            string ido,
+            string method,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Inserta un registro en un IDO.
+        /// POST /json/{ido}/additem
+        /// </summary>
+        Task<JsonElement> InsertItemAsync(
+            string ido,
+            object payload,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Inserta múltiples registros en un IDO.
+        /// POST /json/{ido}/additems
+        /// </summary>
+        Task<JsonElement> InsertItemsAsync(
+            string ido,
+            object payload,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Actualiza un registro en un IDO.
+        /// PUT /json/{ido}/updateitem
+        /// </summary>
+        Task<JsonElement> UpdateItemAsync(
+            string ido,
+            object payload,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Lista las configuraciones IDO disponibles.
+        /// GET /json/configurations
         /// </summary>
         Task<JsonElement> ObtenerConfiguracionesAsync(CancellationToken ct = default);
     }

@@ -39,32 +39,24 @@ namespace ComprobantePago.Web.Controllers
         }
 
         /// <summary>
-        /// Consulta los primeros N registros del IDO SLAptrxs.
-        /// GET /api/infor/slaptrxs?props=Trx,VendNum,InvDate&filter=&recordCap=5
+        /// Devuelve el schema (propiedades) de un IDO.
+        /// GET /api/infor/idoinfo/{nombre}
         /// </summary>
-        [HttpGet("slaptrxs")]
-        public async Task<IActionResult> ConsultarSLAptrxs(
-            [FromQuery] string? props     = null,
-            [FromQuery] string? filter    = null,
-            [FromQuery] int     recordCap = 5,
-            CancellationToken   ct        = default)
+        [HttpGet("idoinfo/{nombre}")]
+        public async Task<IActionResult> IdoInfo(
+            string            nombre,
+            CancellationToken ct = default)
         {
             if (!_env.IsDevelopment())
                 return NotFound();
 
-            var resultado = await _ido.LoadAsync(
-                ido:       "SLAptrxs",
-                props:     props,
-                filter:    filter,
-                recordCap: recordCap,
-                ct:        ct);
-
+            var resultado = await _ido.IdoInfoAsync(nombre, ct);
             return Ok(resultado);
         }
 
         /// <summary>
-        /// Consulta genérica a cualquier IDO. Útil para explorar la estructura de respuesta.
-        /// GET /api/infor/ido/{nombre}?props=...&filter=...&recordCap=5
+        /// Consulta genérica a cualquier IDO.
+        /// GET /api/infor/ido/{nombre}?props=...&amp;filter=...&amp;recordCap=5
         /// </summary>
         [HttpGet("ido/{nombre}")]
         public async Task<IActionResult> ConsultarIdo(
