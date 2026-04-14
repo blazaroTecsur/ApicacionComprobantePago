@@ -47,8 +47,14 @@ namespace ComprobantePago.Application.Settings
         public string TokenEndpoint =>
             $"{SsoBaseUrl.TrimEnd('/')}token.oauth2";
 
+        /// <summary>
+        /// Site de Syteline destino para los comprobantes (campo UbToSite en SLAptrxs).
+        /// Ejemplo: "LIMA", "SITE1"
+        /// </summary>
+        public string Site { get; set; } = string.Empty;
+
         /// <summary>URL base del servicio IDO REST</summary>
         public string IdoBaseUrl =>
-            $"{BaseUrl.TrimEnd('/')}/{Tenant}/{AppId}/IDORequestService/MGRestService.svc/json/";
+            $"{BaseUrl.TrimEnd('/')}/{Tenant}/{AppId}/IDORequestService/MGRestService.svc/";
     }
 }

@@ -253,6 +253,7 @@ try
 
     // Typed HttpClient para el servicio IDO (resuelve IInforTokenService desde DI)
     builder.Services.AddHttpClient<ISytelineIdoService, SytelineIdoService>();
+    builder.Services.AddScoped<ISytelineEnvioService, SytelineEnvioService>();
 
     // ── Servicios de aplicación ───────────────────────────────────────────────
     builder.Services.AddScoped<XmlComprobanteService>();
