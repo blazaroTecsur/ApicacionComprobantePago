@@ -36,10 +36,10 @@ namespace ComprobantePago.Infrastructure.Services
             var dto     = MapearCabecera(cabecera);
             var payload = new { propertyList = dto };
 
-            if (string.IsNullOrWhiteSpace(dto.VendNum))
+            if (string.IsNullOrWhiteSpace(dto.VendNum) || dto.VendNum == "0")
                 throw new InvalidOperationException(
                     $"El proveedor del comprobante '{dto.InvNum}' no tiene VendNum " +
-                    $"asignado en el maestro de proveedores (IdProveedorExternal vacío). " +
+                    $"asignado en el maestro de proveedores (IdProveedorExternal = 0 o vacío). " +
                     $"Sincronice el maestro de proveedores con Syteline antes de enviar.");
 
             _logger.LogInformation(
