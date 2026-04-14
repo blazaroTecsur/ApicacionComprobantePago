@@ -56,9 +56,14 @@ namespace ComprobantePago.Infrastructure.QueryServices
 
                 // VendNum: para empleados se usa el código; para proveedores se
                 // resuelve desde IdProveedorExternal de tmaproveedor.
+                // IdProveedorExternal = 0 significa que el proveedor aún no está
+                // sincronizado con Syteline — se retorna vacío para que el envío falle
+                // con un mensaje claro en lugar de enviar un VendNum inválido.
                 var vendNum = c.EsEmpleado
                     ? (c.EmpleadoCodigo ?? string.Empty)
-                    : vendNums.GetValueOrDefault(c.RucReceptor, string.Empty);
+                    : vendNums.TryGetValue(c.RucReceptor, out var vn) && vn != "0"
+                        ? vn
+                        : string.Empty;
 
                 result.Add(new SytelineCabeceraDto
                 {
