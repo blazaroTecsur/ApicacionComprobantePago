@@ -146,6 +146,17 @@ function actualizarBotonesExportar() {
     const soloAprobados = seleccionados.length > 0 &&
         seleccionados.every(s => s.estado === 'APROBADO');
 
+    // Enviar a Syteline — solo aprobados
+    $('#index_btnEnviarSyteline')
+        .prop('disabled', !soloAprobados)
+        .toggleClass('btn-info', soloAprobados)
+        .toggleClass('btn-secondary', !soloAprobados)
+        .attr('title', !haySeleccion
+            ? 'Seleccione comprobantes para enviar'
+            : !soloAprobados
+                ? 'Solo se envían comprobantes APROBADOS'
+                : `Enviar ${seleccionados.length} comprobante(s) a Syteline`);
+
     // Cabecera — solo aprobados
     $('#index_btnExportarCabecera')
         .prop('disabled', !soloAprobados)
@@ -183,6 +194,68 @@ function obtenerSeleccionados() {
         });
     });
     return seleccionados;
+}
+
+// ── Enviar cabecera a Syteline (IDO SLAptrxs) ─
+function enviarASyteline() {
+    const seleccionados = obtenerSeleccionados();
+
+    if (seleccionados.length === 0) {
+        CorporativoCore.notificarAdvertencia(
+            'Seleccione al menos un comprobante.');
+        return;
+    }
+
+    const noAprobados = seleccionados.filter(s => s.estado !== 'APROBADO');
+    if (noAprobados.length > 0) {
+        CorporativoCore.notificarAdvertencia(
+            'Solo se pueden enviar comprobantes APROBADOS. ' +
+            `Hay ${noAprobados.length} comprobante(s) sin aprobar.`);
+        return;
+    }
+
+    const folios = seleccionados.map(s => s.folio);
+    const $btn   = $('#index_btnEnviarSyteline');
+    const token  = $('input[name="__RequestVerificationToken"]').first().val();
+
+    $btn.prop('disabled', true)
+        .html('<span class="spinner-border spinner-border-sm me-1"></span> Enviando...');
+
+    $.ajax({
+        url: '/Comprobante/EnviarCabeceraASyteline',
+        method: 'POST',
+        contentType: 'application/json',
+        headers: { 'RequestVerificationToken': token },
+        data: JSON.stringify(folios),
+        success: function (resp) {
+            let msg = `Enviados: ${resp.enviados}`;
+            if (resp.errores > 0) {
+                const detalles = resp.fallos
+                    .map(f => `${f.folio}: ${f.error}`)
+                    .join('\n');
+                CorporativoCore.notificarAdvertencia(
+                    `${msg} — Errores: ${resp.errores}\n${detalles}`);
+            } else {
+                const vouchers = resp.detalle
+                    .map(d => `${d.folio} → Voucher ${d.voucher}`)
+                    .join(', ');
+                CorporativoCore.notificarExito(
+                    `${msg}. Vouchers: ${vouchers}`);
+            }
+            buscar();
+        },
+        error: function (xhr) {
+            const err = xhr.responseJSON?.error
+                ?? `Error ${xhr.status}: ${xhr.statusText}`;
+            CorporativoCore.notificarError(
+                `Error al enviar a Syteline: ${err}`);
+        },
+        complete: function () {
+            $btn.prop('disabled', false)
+                .html('<i class="bi bi-send"></i> Enviar a Syteline');
+            actualizarBotonesExportar();
+        }
+    });
 }
 
 // ── Exportar cabecera Syteline ────────────────
@@ -301,6 +374,9 @@ function bindEventos() {
         bindChkTodos();
         actualizarBotonesExportar();
     });
+
+    // Enviar a Syteline
+    $('#index_btnEnviarSyteline').on('click', enviarASyteline);
 
     // Exportar cabecera
     $('#index_btnExportarCabecera').on('click', exportarCabecera);
