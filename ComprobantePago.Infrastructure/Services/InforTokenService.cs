@@ -2,6 +2,8 @@ using ComprobantePago.Application.Interfaces.Services;
 using ComprobantePago.Application.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 
 namespace ComprobantePago.Infrastructure.Services
@@ -9,22 +11,27 @@ namespace ComprobantePago.Infrastructure.Services
     /// <summary>
     /// Obtiene y cachea el token OAuth2 de Infor ION usando el flujo
     /// Resource Owner Password Credentials (cuenta de servicio).
+    ///
+    /// Formato correcto validado en Postman:
+    ///   - client_id / client_secret → Authorization: Basic base64(ci:cs)
+    ///   - username                  → {Tenant}#{saak}
+    ///   - password                  → sask
+    ///   - scope                     → Infor-ION
     /// </summary>
     public sealed class InforTokenService : IInforTokenService
     {
-        private readonly HttpClient      _http;
-        private readonly InforSettings   _settings;
+        private readonly HttpClient                _http;
+        private readonly InforSettings             _settings;
         private readonly ILogger<InforTokenService> _logger;
 
-        // ── Caché en memoria ─────────────────────────────────────────────────
-        private string   _tokenCache   = string.Empty;
-        private DateTime _tokenExpira  = DateTime.MinValue;
+        private string         _tokenCache  = string.Empty;
+        private DateTime       _tokenExpira = DateTime.MinValue;
         private readonly SemaphoreSlim _lock = new(1, 1);
 
         public InforTokenService(
-            HttpClient                  http,
-            IOptions<InforSettings>     settings,
-            ILogger<InforTokenService>  logger)
+            HttpClient                 http,
+            IOptions<InforSettings>    settings,
+            ILogger<InforTokenService> logger)
         {
             _http     = http;
             _settings = settings.Value;
@@ -33,34 +40,42 @@ namespace ComprobantePago.Infrastructure.Services
 
         public async Task<string> ObtenerTokenAsync()
         {
-            // Fast path: el token en caché sigue vigente
             if (!string.IsNullOrEmpty(_tokenCache) && DateTime.UtcNow < _tokenExpira)
                 return _tokenCache;
 
             await _lock.WaitAsync();
             try
             {
-                // Double-check dentro del lock
                 if (!string.IsNullOrEmpty(_tokenCache) && DateTime.UtcNow < _tokenExpira)
                     return _tokenCache;
 
                 _logger.LogInformation("Solicitando nuevo token a Infor ION...");
 
-                // saak = username (Service Account API Key)
-                // sask = password (Service Account Secret Key)
-                var parametros = new Dictionary<string, string>
+                // ── Body: grant + usuario de servicio ─────────────────────────
+                // Username: {Tenant}#{saak}  (formato requerido por Infor)
+                // Password: sask
+                var body = new Dictionary<string, string>
                 {
-                    { "grant_type",    "password" },
-                    { "username",      _settings.ServiceAccountKey },
-                    { "password",      _settings.ServiceAccountSecret },
-                    { "client_id",     _settings.ClientId },
-                    { "client_secret", _settings.ClientSecret },
-                    { "scope",         "openid" }
+                    { "grant_type", "password" },
+                    { "username",   $"{_settings.Tenant}#{_settings.ServiceAccountKey}" },
+                    { "password",   _settings.ServiceAccountSecret },
+                    { "scope",      "Infor-ION" }
                 };
 
-                using var respuesta = await _http.PostAsync(
-                    _settings.TokenEndpoint,
-                    new FormUrlEncodedContent(parametros));
+                // ── Header: Basic Auth con client_id:client_secret ────────────
+                var credencial = Convert.ToBase64String(
+                    Encoding.UTF8.GetBytes(
+                        $"{_settings.ClientId}:{_settings.ClientSecret}"));
+
+                using var request = new HttpRequestMessage(
+                    HttpMethod.Post, _settings.TokenEndpoint)
+                {
+                    Content = new FormUrlEncodedContent(body)
+                };
+                request.Headers.Authorization =
+                    new AuthenticationHeaderValue("Basic", credencial);
+
+                using var respuesta = await _http.SendAsync(request);
 
                 if (!respuesta.IsSuccessStatusCode)
                 {
@@ -69,19 +84,17 @@ namespace ComprobantePago.Infrastructure.Services
                         "Error al obtener token Infor ION. Status: {Status} — {Body}",
                         respuesta.StatusCode, cuerpo);
                     throw new InvalidOperationException(
-                        $"No se pudo obtener el token de Infor ION: {respuesta.StatusCode}");
+                        $"No se pudo obtener el token de Infor ION ({respuesta.StatusCode}): {cuerpo}");
                 }
 
                 var json = await respuesta.Content.ReadAsStringAsync();
                 var doc  = JsonDocument.Parse(json).RootElement;
 
-                _tokenCache  = doc.GetProperty("access_token").GetString()
-                               ?? throw new InvalidOperationException("La respuesta no contiene access_token.");
+                _tokenCache = doc.GetProperty("access_token").GetString()
+                    ?? throw new InvalidOperationException("La respuesta no contiene access_token.");
 
-                // Restar 60 s al tiempo de expiración para renovar antes de que venza
                 var expiresIn = doc.TryGetProperty("expires_in", out var exp)
-                    ? exp.GetInt32()
-                    : 3600;
+                    ? exp.GetInt32() : 3600;
 
                 _tokenExpira = DateTime.UtcNow.AddSeconds(expiresIn - 60);
 
