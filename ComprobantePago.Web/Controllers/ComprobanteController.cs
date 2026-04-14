@@ -9,6 +9,7 @@ using ComprobantePago.Application.Interfaces.Services.Maestros;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace ComprobantePago.Web.Controllers
 {
@@ -25,6 +26,8 @@ namespace ComprobantePago.Web.Controllers
         private readonly IValidator<RegistrarComprobanteDto> _comprobanteValidator;
         private readonly IValidator<ImputacionDto>           _imputacionValidator;
         private readonly IValidator<AccionComprobanteDto>    _accionValidator;
+        private readonly ISytelineEnvioService               _sytelineEnvio;
+        private readonly ILogger<ComprobanteController>      _logger;
 
         public ComprobanteController(
             IComprobanteQueryService             queryService,
@@ -35,7 +38,9 @@ namespace ComprobantePago.Web.Controllers
             IProveedorService                  proveedorService,
             IValidator<RegistrarComprobanteDto> comprobanteValidator,
             IValidator<ImputacionDto>           imputacionValidator,
-            IValidator<AccionComprobanteDto>    accionValidator)
+            IValidator<AccionComprobanteDto>    accionValidator,
+            ISytelineEnvioService               sytelineEnvio,
+            ILogger<ComprobanteController>      logger)
         {
             _queryService         = queryService;
             _sytelineService      = sytelineService;
@@ -46,6 +51,8 @@ namespace ComprobantePago.Web.Controllers
             _comprobanteValidator = comprobanteValidator;
             _imputacionValidator  = imputacionValidator;
             _accionValidator      = accionValidator;
+            _sytelineEnvio        = sytelineEnvio;
+            _logger               = logger;
         }
 
         // ══════════════════════════════════════
@@ -444,6 +451,49 @@ namespace ComprobantePago.Web.Controllers
             return File(excel,
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 $"Cabecera_Syteline_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+        }
+
+        /// <summary>
+        /// Envía las cabeceras de los comprobantes seleccionados al IDO SLAptrxs de Infor Syteline.
+        /// Devuelve la lista de vouchers generados por Syteline.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Policy = "RequiereAprobador")]
+        public async Task<IActionResult> EnviarCabeceraASyteline(
+            [FromBody] List<string> folios,
+            CancellationToken ct)
+        {
+            if (folios is null || folios.Count == 0)
+                return BadRequest(new { error = "Debe seleccionar al menos un comprobante." });
+
+            var cabeceras = await _sytelineService.ObtenerCabecerasSytelineAsync(folios);
+
+            var resultados = new List<object>();
+            var errores    = new List<object>();
+
+            foreach (var cabecera in cabeceras)
+            {
+                try
+                {
+                    var voucher = await _sytelineEnvio.EnviarCabeceraAsync(cabecera, ct);
+                    resultados.Add(new { folio = cabecera.Factura, voucher });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,
+                        "Error al enviar cabecera {Factura} a Syteline.", cabecera.Factura);
+                    errores.Add(new { folio = cabecera.Factura, error = ex.Message });
+                }
+            }
+
+            return Ok(new
+            {
+                enviados = resultados.Count,
+                errores  = errores.Count,
+                detalle  = resultados,
+                fallos   = errores
+            });
         }
     }
 }
