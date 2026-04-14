@@ -100,8 +100,7 @@ try
     builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseMySql(
             builder.Configuration.GetConnectionString("DefaultConnection"),
-            ServerVersion.AutoDetect(
-                builder.Configuration.GetConnectionString("DefaultConnection"))
+            new MySqlServerVersion(new Version(8, 0, 0))
         )
     );
 
@@ -275,13 +274,20 @@ try
     var app = builder.Build();
 
     // ── Columnas pendientes de BD (idempotente, IF NOT EXISTS) ────────────────
-    using (var scope = app.Services.CreateScope())
+    try
     {
+        using var scope = app.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         await db.Database.ExecuteSqlRawAsync(@"
             ALTER TABLE rcocomprobante
                 ADD COLUMN IF NOT EXISTS FechaDigitacion   DATETIME NULL,
                 ADD COLUMN IF NOT EXISTS FechaAutorizacion DATETIME NULL");
+    }
+    catch (Exception ex)
+    {
+        Log.Warning(ex,
+            "No se pudo ejecutar la migración de columnas al iniciar. " +
+            "Se reintentará en el siguiente arranque.");
     }
 
     // ── Pipeline de middlewares ───────────────────────────────────────────────
