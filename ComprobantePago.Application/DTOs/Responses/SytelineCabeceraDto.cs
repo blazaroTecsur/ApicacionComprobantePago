@@ -2,7 +2,16 @@ namespace ComprobantePago.Application.DTOs.Responses
 {
     public sealed class SytelineCabeceraDto
     {
+        /// <summary>RUC o código del proveedor (para visualización y export Excel).</summary>
         public string Proveedor          { get; init; } = string.Empty;
+
+        /// <summary>
+        /// VendNum de Syteline — viene de tmaproveedor.IdProveedorExternal.
+        /// Es el campo que se envía al IDO SLAptrxs. Vacío si el proveedor
+        /// no está sincronizado con Syteline.
+        /// </summary>
+        public string VendNum            { get; init; } = string.Empty;
+
         public string Nombre             { get; init; } = string.Empty;
         public int Comprobante           { get; init; }
         public string Factura            { get; init; } = string.Empty;

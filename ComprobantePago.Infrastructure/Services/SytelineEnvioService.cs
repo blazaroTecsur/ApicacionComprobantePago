@@ -36,6 +36,12 @@ namespace ComprobantePago.Infrastructure.Services
             var dto     = MapearCabecera(cabecera);
             var payload = new { propertyList = dto };
 
+            if (string.IsNullOrWhiteSpace(dto.VendNum))
+                throw new InvalidOperationException(
+                    $"El proveedor del comprobante '{dto.InvNum}' no tiene VendNum " +
+                    $"asignado en el maestro de proveedores (IdProveedorExternal vacío). " +
+                    $"Sincronice el maestro de proveedores con Syteline antes de enviar.");
+
             _logger.LogInformation(
                 "Enviando comprobante {InvNum} de proveedor {VendNum} a SLAptrxs...",
                 dto.InvNum, dto.VendNum);
@@ -73,9 +79,8 @@ namespace ComprobantePago.Infrastructure.Services
 
         private SLAptrxsInsertDto MapearCabecera(SytelineCabeceraDto c) => new()
         {
-            // Requeridos
-            VendNum   = c.Proveedor.PadLeft(7, '0')[..Math.Min(7, c.Proveedor.Length > 7
-                            ? 7 : c.Proveedor.PadLeft(7, '0').Length)],
+            // VendNum viene de tmaproveedor.IdProveedorExternal (sincronizado desde SLVendors)
+            VendNum   = c.VendNum,
             InvDate   = c.FechaFactura,
             DistDate  = c.FechaDistribucion,
             UbToSite  = _settings.Site,

@@ -27,6 +27,17 @@ namespace ComprobantePago.Infrastructure.QueryServices
                 .OrderBy(x => x.FechaAprobacion)
                 .ToListAsync();
 
+            // Índice RUC → IdProveedorExternal para resolver VendNum sin N+1
+            var rucs = comprobantes
+                .Where(c => !c.EsEmpleado)
+                .Select(c => c.RucReceptor)
+                .Distinct()
+                .ToList();
+
+            var vendNums = await _contexto.Proveedores
+                .Where(p => rucs.Contains(p.Ruc))
+                .ToDictionaryAsync(p => p.Ruc, p => p.IdProveedorExternal.ToString());
+
             var result = new List<SytelineCabeceraDto>();
 
             foreach (var c in comprobantes)
@@ -43,9 +54,16 @@ namespace ComprobantePago.Infrastructure.QueryServices
                         c.FechaEmision.Year,
                         c.FechaEmision.Month));
 
+                // VendNum: para empleados se usa el código; para proveedores se
+                // resuelve desde IdProveedorExternal de tmaproveedor.
+                var vendNum = c.EsEmpleado
+                    ? (c.EmpleadoCodigo ?? string.Empty)
+                    : vendNums.GetValueOrDefault(c.RucReceptor, string.Empty);
+
                 result.Add(new SytelineCabeceraDto
                 {
                     Proveedor = c.EsEmpleado ? (c.EmpleadoCodigo ?? string.Empty) : c.RucReceptor,
+                    VendNum   = vendNum,
                     Nombre    = c.EsEmpleado ? (c.EmpleadoNombre ?? string.Empty) : c.RazonSocialReceptor,
                     Comprobante = c.IdComprobante,
                     Factura = $"{c.Serie}-{c.Numero}",
