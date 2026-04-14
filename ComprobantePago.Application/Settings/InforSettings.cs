@@ -12,8 +12,9 @@ namespace ComprobantePago.Application.Settings
         public string BaseUrl { get; set; } = string.Empty;
 
         /// <summary>
-        /// URL base del SSO incluyendo tenant y /as/ — campo pu del .ionapi.
-        /// Ej: https://mingle-sso.inforcloudsuite.com:443/EPXQLSZBRDZWPDCZ_TST/as/
+        /// Dominio del SSO de Infor — campo pu del .ionapi solo con el host.
+        /// Ej: https://mingle-sso.inforcloudsuite.com:443
+        /// El tenant se toma automáticamente del campo Tenant.
         /// </summary>
         public string SsoBaseUrl { get; set; } = string.Empty;
 
@@ -29,23 +30,20 @@ namespace ComprobantePago.Application.Settings
         /// <summary>OAuth2 Client Secret — campo cs del .ionapi</summary>
         public string ClientSecret { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Service Account API Key — campo saak del .ionapi.
-        /// Se usa como username en el flujo OAuth2 password grant.
-        /// </summary>
+        /// <summary>Service Account API Key — campo saak del .ionapi (parte del username).</summary>
         public string ServiceAccountKey { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Service Account Secret Key — campo sask del .ionapi.
-        /// Se usa como password en el flujo OAuth2 password grant.
-        /// </summary>
+        /// <summary>Service Account Secret Key — campo sask del .ionapi (password).</summary>
         public string ServiceAccountSecret { get; set; } = string.Empty;
 
         // ── URLs derivadas ────────────────────────────────────────────────────
 
-        /// <summary>Token endpoint: SsoBaseUrl + "token.oauth2" (equivale a pu + ot del .ionapi)</summary>
+        /// <summary>
+        /// Token endpoint construido como: {SsoBaseUrl}/{Tenant}/as/token.oauth2
+        /// Equivale exactamente a pu + ot del .ionapi.
+        /// </summary>
         public string TokenEndpoint =>
-            $"{SsoBaseUrl.TrimEnd('/')}token.oauth2";
+            $"{SsoBaseUrl.TrimEnd('/')}/{Tenant}/as/token.oauth2";
 
         /// <summary>
         /// Site de Syteline destino para los comprobantes (campo UbToSite en SLAptrxs).
