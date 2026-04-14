@@ -189,8 +189,11 @@ function obtenerSeleccionados() {
     const seleccionados = [];
     $('.chkComprobante:checked').each(function () {
         seleccionados.push({
-            folio: $(this).data('folio'),
-            estado: $(this).data('estado')
+            // .attr() garantiza string; .data() convierte "2026040001" a número
+            // y JSON.stringify produciría [2026040001] que System.Text.Json
+            // rechaza al deserializar List<string>.
+            folio: $(this).attr('data-folio'),
+            estado: $(this).attr('data-estado')
         });
     });
     return seleccionados;
