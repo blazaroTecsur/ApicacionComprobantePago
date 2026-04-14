@@ -235,6 +235,26 @@ try
         }
     });
 
+    // ── Infor Syteline IDO REST API ───────────────────────────────────────────
+    builder.Services.Configure<InforSettings>(
+        builder.Configuration.GetSection(InforSettings.Section));
+
+    // HttpClient nombrado para el token service (sin typed client para permitir Singleton)
+    builder.Services.AddHttpClient(nameof(InforTokenService));
+
+    // Singleton: el caché del token (SemaphoreSlim + campo privado) debe vivir
+    // durante toda la vida de la aplicación para reutilizarse entre requests.
+    builder.Services.AddSingleton<IInforTokenService>(sp =>
+        new InforTokenService(
+            sp.GetRequiredService<IHttpClientFactory>()
+              .CreateClient(nameof(InforTokenService)),
+            sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<InforSettings>>(),
+            sp.GetRequiredService<ILogger<InforTokenService>>()));
+
+    // Typed HttpClient para el servicio IDO (resuelve IInforTokenService desde DI)
+    builder.Services.AddHttpClient<ISytelineIdoService, SytelineIdoService>();
+    builder.Services.AddScoped<ISytelineEnvioService, SytelineEnvioService>();
+
     // ── Servicios de aplicación ───────────────────────────────────────────────
     builder.Services.AddScoped<XmlComprobanteService>();
     builder.Services.AddScoped<PdfComprobanteService>();
