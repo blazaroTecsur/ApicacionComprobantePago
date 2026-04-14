@@ -172,13 +172,20 @@ try
 
     // AddMicrosoftIdentityWebApiAuthentication lee la sección "AzureAd" y configura
     // JwtBearer con toda la validación OIDC requerida por el spec 3.2.
-    builder.Services.AddMicrosoftIdentityWebApiAuthentication(
-        builder.Configuration, configSectionName: "AzureAd");
-
-    // Control de tenants (spec 3.3): en producción solo se aceptan los GUIDs
-    // de tenant configurados en ValidTenants. En desarrollo (lista vacía) se omite.
-    if (!esDesarrollo)
+    // En desarrollo (ValidTenants vacío / ClientId sin configurar) se registra
+    // un JwtBearer mínimo sin validación para no bloquear el arranque local.
+    if (esDesarrollo)
     {
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer();
+    }
+    else
+    {
+        builder.Services.AddMicrosoftIdentityWebApiAuthentication(
+            builder.Configuration, configSectionName: "AzureAd");
+
+        // Control de tenants (spec 3.3): en producción solo se aceptan los GUIDs
+        // de tenant configurados en ValidTenants.
         builder.Services.PostConfigure<JwtBearerOptions>(
             JwtBearerDefaults.AuthenticationScheme,
             options =>
