@@ -206,11 +206,10 @@ namespace ComprobantePago.Infrastructure.Services
                     $"Error en API Infor Syteline ({respuesta.StatusCode}): {contenido}");
             }
 
-            // Syteline devuelve HTTP 200 incluso cuando la operación falla (MessageCode != 0).
-            // Detectamos el error y lanzamos excepción para que el llamador lo maneje.
+            // Syteline: MessageCode 200 = éxito. Cualquier otro código es error.
             var doc = JsonDocument.Parse(contenido).RootElement.Clone();
             if (doc.TryGetProperty("MessageCode", out var msgCode) &&
-                msgCode.TryGetInt32(out var code) && code != 0)
+                msgCode.TryGetInt32(out var code) && code != 200)
             {
                 var msg = doc.TryGetProperty("Message", out var m) ? m.GetString() : contenido;
                 _logger.LogError("IDO operación fallida. MessageCode: {Code} — {Message}", code, msg);

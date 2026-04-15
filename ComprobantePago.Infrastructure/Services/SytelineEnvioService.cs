@@ -184,11 +184,25 @@ namespace ComprobantePago.Infrastructure.Services
 
         private static int ExtraerVoucher(JsonElement respuesta)
         {
-            // Infor devuelve el item insertado con sus propiedades actualizadas
-            if (respuesta.TryGetProperty("propertyList", out var props) &&
-                props.TryGetProperty("Voucher", out var voucher))
+            // Formato Action/Properties: el voucher viene en UpdatedItems[0].Properties
+            if (respuesta.TryGetProperty("UpdatedItems", out var items) &&
+                items.GetArrayLength() > 0)
             {
-                return voucher.TryGetInt32(out var v) ? v : 0;
+                var item = items[0];
+                if (item.TryGetProperty("Properties", out var props) &&
+                    props.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var prop in props.EnumerateArray())
+                    {
+                        if (prop.TryGetProperty("Name",  out var name)  &&
+                            name.GetString() == "Voucher"                &&
+                            prop.TryGetProperty("Value", out var value)  &&
+                            int.TryParse(value.GetString(), out var v))
+                        {
+                            return v;
+                        }
+                    }
+                }
             }
 
             return 0;
