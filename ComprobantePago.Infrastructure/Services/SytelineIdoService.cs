@@ -97,14 +97,17 @@ namespace ComprobantePago.Infrastructure.Services
 
             var body = new
             {
-                Action = 1,
-                ItemId = $"PBT=[aptrx] apt.ID=[{guid}] apt.DT=[{timestamp}]",
-                Properties = properties.Select(kvp => new
+                Action        = 1,
+                ItemId        = $"PBT=[aptrx] apt.ID=[{guid}] apt.DT=[{timestamp}]",
+                ItemNo        = 0,
+                UpdateLocking = "Row",
+                Properties    = properties.Select(kvp => new
                 {
-                    IsNull   = kvp.Value is null,
-                    Modified = true,
-                    Name     = kvp.Key,
-                    Value    = FormatearValor(kvp.Value)
+                    IsNull        = kvp.Value is null,
+                    Modified      = true,
+                    Name          = kvp.Key,
+                    Value         = FormatearValor(kvp.Value),
+                    OriginalValue = ""
                 }).ToList()
             };
 
