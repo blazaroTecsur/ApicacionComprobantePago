@@ -167,6 +167,11 @@ namespace ComprobantePago.Infrastructure.Services
         {
             var token = await _tokenService.ObtenerTokenAsync();
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Header obligatorio de Mongoose: identifica la configuración/BD de Syteline.
+            // Sin él el IDO responde MessageCode 302 "Missing Mongoose configuration header".
+            if (!string.IsNullOrWhiteSpace(_settings.Configuration))
+                request.Headers.TryAddWithoutValidation("IFS-SL-Config", _settings.Configuration);
         }
 
         private async Task<JsonElement> LeerRespuestaAsync(
