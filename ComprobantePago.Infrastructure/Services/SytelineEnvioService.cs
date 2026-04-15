@@ -88,7 +88,6 @@ namespace ComprobantePago.Infrastructure.Services
             VendNum   = c.VendNum.PadLeft(7),
             InvDate   = c.FechaFactura,
             DistDate  = c.FechaDistribucion,
-            UbToSite  = _settings.Site,
 
             // Cabecera
             InvNum      = c.Factura[..Math.Min(22, c.Factura.Length)],
