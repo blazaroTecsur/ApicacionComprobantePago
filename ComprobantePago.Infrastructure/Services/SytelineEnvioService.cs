@@ -114,7 +114,7 @@ namespace ComprobantePago.Infrastructure.Services
             Authorizer = c.Autorizo[..Math.Min(128, c.Autorizo.Length)],
 
             // Impuesto: Exento cuando no hay IGV o hay monto exento; NR en caso contrario
-            TaxCode1   = (c.ImpVentas2 == 0 || c.MontoExento > 0) ? "Exento" : "NR",
+            TaxCode1   = (c.ImpVentas2 == 0 || c.MontoExento > 0) ? "EXE" : "NR",
 
             // Estado de autorización: siempre "F" (pendiente de autorización en Syteline)
             AuthStatus = "F",

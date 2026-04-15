@@ -86,7 +86,7 @@ namespace ComprobantePago.Application.DTOs.Infor
 
         /// <summary>
         /// Código de impuesto. Campo TaxCode1.
-        /// "Exento" cuando el comprobante no tiene IGV o tiene monto exento;
+        /// "EXE" cuando el comprobante no tiene IGV o tiene monto exento;
         /// "NR" (No Recuperable) en caso contrario.
         /// </summary>
         public string TaxCode1 { get; init; } = string.Empty;
