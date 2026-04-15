@@ -113,11 +113,9 @@ namespace ComprobantePago.Infrastructure.Services
             Txt        = c.Notas[..Math.Min(40, c.Notas.Length)],
             Authorizer = c.Autorizo[..Math.Min(128, c.Autorizo.Length)],
 
-            // Impuesto: Exento cuando no hay IGV o hay monto exento; NR en caso contrario
+            // Impuesto: EXE cuando no hay IGV o hay monto exento; NR en caso contrario
             TaxCode1   = (c.ImpVentas2 == 0 || c.MontoExento > 0) ? "EXE" : "NR",
-
-            // Estado de autorización: siempre "F" (pendiente de autorización en Syteline)
-            AuthStatus = "F",
+            // AuthStatus no se envía — es un campo gestionado por Syteline
 
             // Folio de origen
             aptZLA_SeqFac = c.Comprobante.ToString(),
