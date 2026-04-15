@@ -17,6 +17,12 @@ namespace ComprobantePago.Application.DTOs.Infor
         /// <summary>Código de proveedor Syteline (RUC o código empleado). Campo VendNum.</summary>
         public string VendNum { get; init; } = string.Empty;
 
+        /// <summary>
+        /// Número de voucher AP. Se envía con IsNull=true para que Syteline
+        /// genere automáticamente el siguiente número de secuencia.
+        /// </summary>
+        public int Voucher { get; init; }
+
         /// <summary>Fecha de la factura. Campo InvDate.</summary>
         public string InvDate { get; init; } = string.Empty;
 
