@@ -73,24 +73,24 @@ namespace ComprobantePago.Infrastructure.QueryServices
                     Comprobante = c.IdComprobante,
                     Factura = $"{c.Serie}-{c.Numero}",
                     FechaFactura = c.FechaEmision
-                                        .ToString("dd/MM/yyyy"),
+                                        .ToString("MM/dd/yyyy"),
                     FechaDistribucion = c.FechaRecepcion.HasValue
                                         ? c.FechaRecepcion.Value
-                                          .ToString("dd/MM/yyyy")
+                                          .ToString("MM/dd/yyyy")
                                         : c.FechaEmision
-                                          .ToString("dd/MM/yyyy"),
+                                          .ToString("MM/dd/yyyy"),
                     ImpoCompra = c.MontoNeto,
                     CargosVarios = c.MontoExento,
                     ImpVentas2 = c.MontoIGVCredito,
                     MntoFactura = c.MontoBruto,
                     ImpSinDesc = c.MontoIGVCredito,
-                    FechaDcto = finMes.ToString("dd/MM/yyyy"),
+                    FechaDcto = finMes.ToString("MM/dd/yyyy"),
                     DiasVto = int.TryParse(
                                         c.PlazoPago, out var dias)
                                         ? dias : 0,
                     FechaVen = c.FechaVencimiento.HasValue
                                         ? c.FechaVencimiento.Value
-                                          .ToString("dd/MM/yyyy")
+                                          .ToString("MM/dd/yyyy")
                                         : string.Empty,
                     Moneda = c.Moneda,
                     TipoCambio = c.TasaCambio,
@@ -154,8 +154,8 @@ namespace ComprobantePago.Infrastructure.QueryServices
                 if (imputacionesDistribucion.Count < 2) continue;
 
                 var fechaDist = c.FechaRecepcion.HasValue
-                    ? c.FechaRecepcion.Value.ToString("d/MM/yyyy")
-                    : c.FechaEmision.ToString("d/MM/yyyy");
+                    ? c.FechaRecepcion.Value.ToString("dd/MM/yyyy")
+                    : c.FechaEmision.ToString("dd/MM/yyyy");
 
                 for (int idx = 0; idx < imputacionesDistribucion.Count; idx++)
                 {
@@ -211,7 +211,7 @@ namespace ComprobantePago.Infrastructure.QueryServices
                         Nombre            = nombreExport,
                         FechaDistribucion = fechaDist,
                         Factura           = $"{c.Serie}-{c.Numero}",
-                        FechaFactura      = c.FechaEmision.ToString("d/MM/yyyy"),
+                        FechaFactura      = c.FechaEmision.ToString("dd/MM/yyyy"),
                         TasaCambio        = c.TasaCambio,
                         Moneda            = c.Moneda,
                         ImpoCompra        = c.MontoNeto,
