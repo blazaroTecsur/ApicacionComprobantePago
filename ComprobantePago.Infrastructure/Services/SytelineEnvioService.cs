@@ -33,14 +33,17 @@ namespace ComprobantePago.Infrastructure.Services
             SytelineCabeceraDto cabecera,
             CancellationToken ct = default)
         {
-            var dto     = MapearCabecera(cabecera);
-            var payload = new { propertyList = dto };
+            var dto = MapearCabecera(cabecera);
 
             if (string.IsNullOrWhiteSpace(dto.VendNum) || dto.VendNum == "0")
                 throw new InvalidOperationException(
                     $"El proveedor del comprobante '{dto.InvNum}' no tiene VendNum " +
                     $"asignado en el maestro de proveedores (IdProveedorExternal = 0 o vacío). " +
                     $"Sincronice el maestro de proveedores con Syteline antes de enviar.");
+
+            // Omitir strings vacíos — el IDO de Syteline puede fallar con campos vacíos
+            var propList = FiltrarCamposVacios(dto);
+            var payload  = new { propertyList = propList };
 
             _logger.LogInformation(
                 "Enviando comprobante {InvNum} de proveedor {VendNum} a SLAptrxs...",
@@ -97,7 +100,7 @@ namespace ComprobantePago.Infrastructure.Services
             DueDate  = c.FechaVen,
             DueDays  = c.DiasVto,
             DiscDate = c.FechaDcto,
-            DiscPct  = 0m,
+            DiscPct  = 0.000m,
 
             // Moneda
             AptCurrCode = c.Moneda,
@@ -128,6 +131,24 @@ namespace ComprobantePago.Infrastructure.Services
             aptZLA_TotalDetraccion      = c.TotalDetraccion,
             aptZLA_TotalDetraccionLocal = c.TotalDetLocal,
         };
+
+        // ── Filtrar campos vacíos ─────────────────────────────────────────────
+        // Syteline puede fallar si recibe strings vacíos en campos que no acepta "".
+        // Se omiten las propiedades cuyo valor es null o string vacío.
+        private static Dictionary<string, object?> FiltrarCamposVacios(SLAptrxsInsertDto dto)
+        {
+            var dict = new Dictionary<string, object?>();
+
+            foreach (var prop in typeof(SLAptrxsInsertDto).GetProperties())
+            {
+                var valor = prop.GetValue(dto);
+                if (valor is string s && string.IsNullOrEmpty(s)) continue;
+                if (valor is null) continue;
+                dict[prop.Name] = valor;
+            }
+
+            return dict;
+        }
 
         // ── Extraer Voucher de la respuesta ───────────────────────────────────
 
