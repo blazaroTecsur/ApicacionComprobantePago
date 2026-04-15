@@ -62,8 +62,8 @@ namespace ComprobantePago.Application.DTOs.Infor
 
         // ── Moneda ────────────────────────────────────────────────────────────
 
-        /// <summary>Código de moneda (PEN/USD). Campo AptCurrCode.</summary>
-        public string AptCurrCode { get; init; } = string.Empty;
+        /// <summary>Código de moneda del proveedor (PEN/USD). Campo VenCurrCode.</summary>
+        public string VenCurrCode { get; init; } = string.Empty;
 
         /// <summary>Tipo de cambio. Campo ExchRate.</summary>
         public decimal ExchRate { get; init; }
