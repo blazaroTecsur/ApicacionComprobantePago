@@ -78,11 +78,24 @@ namespace ComprobantePago.Application.DTOs.Infor
         /// <summary>Referencia libre. Campo Ref (max 30 chars).</summary>
         public string Ref { get; init; } = string.Empty;
 
-        /// <summary>Notas. Campo Txt (max 40 chars).</summary>
+        /// <summary>Notas/memo de la transacción AP. Campo Txt (max 40 chars).</summary>
         public string Txt { get; init; } = string.Empty;
 
         /// <summary>Usuario autorizador. Campo Authorizer.</summary>
         public string Authorizer { get; init; } = string.Empty;
+
+        /// <summary>
+        /// Código de impuesto. Campo TaxCode1.
+        /// "EXE" cuando el comprobante no tiene IGV o tiene monto exento;
+        /// "NR" (No Recuperable) en caso contrario.
+        /// </summary>
+        public string TaxCode1 { get; init; } = string.Empty;
+
+        /// <summary>
+        /// Estado de autorización en Syteline. Campo AuthStatus.
+        /// Siempre "F" (Falló / pendiente de autorización manual en Syteline).
+        /// </summary>
+        public string AuthStatus { get; init; } = string.Empty;
 
         /// <summary>Folio / ID del comprobante de origen. Campo aptZLA_SeqFac.</summary>
         public string aptZLA_SeqFac { get; init; } = string.Empty;
