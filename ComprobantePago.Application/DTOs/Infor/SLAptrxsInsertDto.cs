@@ -102,6 +102,12 @@ namespace ComprobantePago.Application.DTOs.Infor
 
         // AuthStatus es un campo gestionado por Syteline — no se envía en additem.
 
+        /// <summary>
+        /// Estado de autorización. Campo AuthStatus.
+        /// Siempre "Falló" al insertar desde el sistema externo.
+        /// </summary>
+        public string AuthStatus { get; init; } = string.Empty;
+
         /// <summary>Folio / ID del comprobante de origen. Campo aptZLA_SeqFac.</summary>
         public string aptZLA_SeqFac { get; init; } = string.Empty;
 

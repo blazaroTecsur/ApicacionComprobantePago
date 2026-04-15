@@ -122,7 +122,7 @@ namespace ComprobantePago.Infrastructure.Services
 
             // Impuesto: EXE cuando no hay IGV o hay monto exento; NR en caso contrario
             TaxCode1   = (c.ImpVentas2 == 0 || c.MontoExento > 0) ? "EXE" : "NR",
-            // AuthStatus no se envía — es un campo gestionado por Syteline
+            AuthStatus = "Falló",
 
             // Folio de origen
             aptZLA_SeqFac = c.Comprobante.ToString(),
