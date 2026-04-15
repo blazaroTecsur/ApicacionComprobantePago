@@ -97,6 +97,7 @@ namespace ComprobantePago.Infrastructure.Services
             DueDate  = c.FechaVen,
             DueDays  = c.DiasVto,
             DiscDate = c.FechaDcto,
+            DiscPct  = 0m,
 
             // Moneda
             AptCurrCode = c.Moneda,

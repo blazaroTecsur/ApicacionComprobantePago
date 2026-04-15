@@ -51,6 +51,9 @@ namespace ComprobantePago.Application.DTOs.Infor
         /// <summary>Fecha de descuento. Campo DiscDate.</summary>
         public string DiscDate { get; init; } = string.Empty;
 
+        /// <summary>Porcentaje de descuento. Campo DiscPct.</summary>
+        public decimal DiscPct { get; init; }
+
         // ── Moneda ────────────────────────────────────────────────────────────
 
         /// <summary>Código de moneda (PEN/USD). Campo AptCurrCode.</summary>
