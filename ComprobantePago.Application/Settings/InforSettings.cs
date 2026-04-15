@@ -46,6 +46,13 @@ namespace ComprobantePago.Application.Settings
             $"{SsoBaseUrl.TrimEnd('/')}/{Tenant}/as/token.oauth2";
 
         /// <summary>
+        /// Nombre de la configuración Mongoose de Syteline.
+        /// Se envía en el header IFS-SL-Config en cada request al IDO REST.
+        /// Ejemplo: "SL_Production", "TECSUR"
+        /// </summary>
+        public string Configuration { get; set; } = string.Empty;
+
+        /// <summary>
         /// Site de Syteline destino para los comprobantes (campo UbToSite en SLAptrxs).
         /// Ejemplo: "LIMA", "SITE1"
         /// </summary>
