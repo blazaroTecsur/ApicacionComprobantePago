@@ -35,7 +35,7 @@ namespace ComprobantePago.Infrastructure.Services
         {
             var dto = MapearCabecera(cabecera);
 
-            if (string.IsNullOrWhiteSpace(dto.VendNum) || dto.VendNum == "0")
+            if (string.IsNullOrWhiteSpace(dto.VendNum.Trim()) || dto.VendNum.Trim() == "0")
                 throw new InvalidOperationException(
                     $"El proveedor del comprobante '{dto.InvNum}' no tiene VendNum " +
                     $"asignado en el maestro de proveedores (IdProveedorExternal = 0 o vacío). " +
@@ -84,8 +84,8 @@ namespace ComprobantePago.Infrastructure.Services
             // "V" para facturas y demás; vacío para NC/ND (07/08) — se omite al filtrar
             Type = c.TipoSunat is "07" or "08" ? "" : "V",
 
-            // VendNum viene de tmaproveedor.IdProveedorExternal (sincronizado desde SLVendors)
-            VendNum   = c.VendNum,
+            // VendNum: longitud fija de 7 caracteres, rellenado con espacios a la izquierda
+            VendNum   = c.VendNum.PadLeft(7),
             InvDate   = c.FechaFactura,
             DistDate  = c.FechaDistribucion,
             UbToSite  = _settings.Site,
@@ -105,7 +105,7 @@ namespace ComprobantePago.Infrastructure.Services
             DiscPct  = 0.000m,
 
             // Moneda
-            VenCurrCode = c.Moneda,
+            AptCurrCode = c.Moneda,
             ExchRate    = c.TipoCambio,
 
             // Cuenta A/P
@@ -121,7 +121,7 @@ namespace ComprobantePago.Infrastructure.Services
 
             // Impuesto: EXE cuando no hay IGV o hay monto exento; NR en caso contrario
             TaxCode1   = (c.ImpVentas2 == 0 || c.MontoExento > 0) ? "EXE" : "NR",
-            AuthStatus = "Falló",
+            AuthStatus = "F",
 
             // Folio de origen
             aptZLA_SeqFac = c.Comprobante.ToString(),
