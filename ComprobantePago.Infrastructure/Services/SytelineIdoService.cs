@@ -1,3 +1,4 @@
+using ComprobantePago.Application.DTOs.Infor;
 using ComprobantePago.Application.Interfaces.Services;
 using ComprobantePago.Application.Settings;
 using Microsoft.Extensions.Logging;
@@ -89,11 +90,20 @@ namespace ComprobantePago.Infrastructure.Services
 
         public async Task<JsonElement> InsertItemAsync(
             string ido,
-            IDictionary<string, object?> properties,
+            IEnumerable<IdoProperty> properties,
             CancellationToken ct = default)
         {
-            var body = new { propertyList = properties };
-            var url  = $"{_settings.IdoBaseUrl}json/{Uri.EscapeDataString(ido)}/additem";
+            var guid      = Guid.NewGuid().ToString();
+            var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+
+            var body = new
+            {
+                Action     = 1,
+                ItemId     = $"PBT=[aptrx] apt.ID=[{guid}] apt.DT=[{timestamp}]",
+                Properties = properties.ToList()
+            };
+
+            var url = $"{_settings.IdoBaseUrl}json/{Uri.EscapeDataString(ido)}/additem";
             _logger.LogInformation("IDO AddItem → {Url}", url);
             return await EjecutarPostAsync(url, body, ct);
         }
