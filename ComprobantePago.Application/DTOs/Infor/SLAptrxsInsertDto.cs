@@ -34,8 +34,8 @@ namespace ComprobantePago.Application.DTOs.Infor
         /// <summary>Monto neto (base imponible). Campo PurchAmt.</summary>
         public decimal PurchAmt { get; init; }
 
-        /// <summary>IGV / impuesto de venta. Campo SalesTax.</summary>
-        public decimal SalesTax { get; init; }
+        /// <summary>IGV / impuesto de venta. Campo SalesTax_2.</summary>
+        public decimal SalesTax_2 { get; init; }
 
         /// <summary>Monto total de la factura. Campo InvAmt.</summary>
         public decimal InvAmt { get; init; }

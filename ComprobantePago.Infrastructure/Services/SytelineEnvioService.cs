@@ -94,7 +94,7 @@ namespace ComprobantePago.Infrastructure.Services
             // Cabecera
             InvNum      = c.Factura[..Math.Min(22, c.Factura.Length)],
             PurchAmt    = c.ImpoCompra,
-            SalesTax    = c.ImpVentas2,
+            SalesTax_2  = c.ImpVentas2,
             InvAmt      = c.MntoFactura,
             MiscCharges = c.CargosVarios,
             NonDiscAmt  = c.ImpSinDesc,

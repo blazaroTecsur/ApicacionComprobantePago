@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 
 namespace ComprobantePago.Infrastructure.Services
@@ -21,7 +22,9 @@ namespace ComprobantePago.Infrastructure.Services
 
         private static readonly JsonSerializerOptions _jsonOpts = new()
         {
-            PropertyNameCaseInsensitive = true
+            PropertyNameCaseInsensitive = true,
+            // Permite enviar caracteres como "ó", "á", etc. sin escapar a \uXXXX
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
         public SytelineIdoService(
