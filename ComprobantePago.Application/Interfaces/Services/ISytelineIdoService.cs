@@ -1,3 +1,4 @@
+using ComprobantePago.Application.DTOs.Infor;
 using System.Text.Json;
 
 namespace ComprobantePago.Application.Interfaces.Services
@@ -43,7 +44,7 @@ namespace ComprobantePago.Application.Interfaces.Services
         /// </summary>
         Task<JsonElement> InsertItemAsync(
             string ido,
-            IDictionary<string, object?> properties,
+            IEnumerable<IdoProperty> properties,
             CancellationToken ct = default);
 
         /// <summary>

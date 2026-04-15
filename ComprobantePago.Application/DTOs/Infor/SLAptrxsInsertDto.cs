@@ -23,6 +23,9 @@ namespace ComprobantePago.Application.DTOs.Infor
         /// <summary>Fecha de distribución. Campo DistDate.</summary>
         public string DistDate { get; init; } = string.Empty;
 
+        /// <summary>Site destino. Campo UbToSite — se envía con IsNull=true.</summary>
+        public string UbToSite { get; init; } = string.Empty;
+
         // ── Cabecera de la factura ────────────────────────────────────────────
 
         /// <summary>Número de factura (Serie-Numero). Campo InvNum.</summary>

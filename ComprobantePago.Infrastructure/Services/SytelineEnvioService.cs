@@ -41,8 +41,7 @@ namespace ComprobantePago.Infrastructure.Services
                     $"asignado en el maestro de proveedores (IdProveedorExternal = 0 o vacío). " +
                     $"Sincronice el maestro de proveedores con Syteline antes de enviar.");
 
-            // Omitir strings vacíos — el IDO de Syteline puede fallar con campos vacíos
-            var propList = FiltrarCamposVacios(dto);
+            var propList = ConstruirPropiedades(dto);
 
             _logger.LogInformation(
                 "Enviando comprobante {InvNum} de proveedor {VendNum} a SLAptrxs...",
@@ -88,6 +87,7 @@ namespace ComprobantePago.Infrastructure.Services
             VendNum   = c.VendNum.PadLeft(7),
             InvDate   = c.FechaFactura,
             DistDate  = c.FechaDistribucion,
+            UbToSite  = _settings.Site,
 
             // Cabecera
             InvNum      = c.Factura[..Math.Min(22, c.Factura.Length)],
@@ -133,23 +133,52 @@ namespace ComprobantePago.Infrastructure.Services
             aptZLA_TotalDetraccionLocal = c.TotalDetLocal,
         };
 
-        // ── Filtrar campos vacíos ─────────────────────────────────────────────
-        // Syteline puede fallar si recibe strings vacíos en campos que no acepta "".
-        // Se omiten las propiedades cuyo valor es null o string vacío.
-        private static Dictionary<string, object?> FiltrarCamposVacios(SLAptrxsInsertDto dto)
+        // ── Construir lista de IdoProperty ───────────────────────────────────
+        // UbToSite se envía con IsNull=true (Syteline lo usa para la secuencia de vouchers).
+        // Los campos string vacíos se omiten.
+        private static List<IdoProperty> ConstruirPropiedades(SLAptrxsInsertDto dto)
         {
-            var dict = new Dictionary<string, object?>();
+            var lista = new List<IdoProperty>();
 
             foreach (var prop in typeof(SLAptrxsInsertDto).GetProperties())
             {
                 var valor = prop.GetValue(dto);
+
+                // UbToSite: incluir siempre con IsNull=true
+                if (prop.Name == nameof(SLAptrxsInsertDto.UbToSite))
+                {
+                    lista.Add(new IdoProperty
+                    {
+                        IsNull = true,
+                        Name   = prop.Name,
+                        Value  = valor?.ToString() ?? string.Empty
+                    });
+                    continue;
+                }
+
+                // Omitir strings vacíos
                 if (valor is string s && string.IsNullOrEmpty(s)) continue;
                 if (valor is null) continue;
-                dict[prop.Name] = valor;
+
+                lista.Add(new IdoProperty
+                {
+                    IsNull = false,
+                    Name   = prop.Name,
+                    Value  = FormatearValor(valor)
+                });
             }
 
-            return dict;
+            return lista;
         }
+
+        private static string FormatearValor(object? valor) => valor switch
+        {
+            null    => "",
+            decimal d  => d.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            double  db => db.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            float   f  => f.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            _       => valor.ToString() ?? ""
+        };
 
         // ── Extraer Voucher de la respuesta ───────────────────────────────────
 

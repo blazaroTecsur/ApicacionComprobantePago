@@ -1,3 +1,4 @@
+using ComprobantePago.Application.DTOs.Infor;
 using ComprobantePago.Application.Interfaces.Services;
 using ComprobantePago.Application.Settings;
 using Microsoft.Extensions.Logging;
@@ -89,7 +90,7 @@ namespace ComprobantePago.Infrastructure.Services
 
         public async Task<JsonElement> InsertItemAsync(
             string ido,
-            IDictionary<string, object?> properties,
+            IEnumerable<IdoProperty> properties,
             CancellationToken ct = default)
         {
             var guid      = Guid.NewGuid().ToString();
@@ -97,40 +98,15 @@ namespace ComprobantePago.Infrastructure.Services
 
             var body = new
             {
-                Items = new[]
-                {
-                    new
-                    {
-                        Action        = 1,
-                        ItemId        = $"PBT=[aptrx] apt.ID=[{guid}] apt.DT=[{timestamp}]",
-                        ItemNo        = 0,
-                        UpdateLocking = "Row",
-                        Properties    = properties.Select(kvp => new
-                        {
-                            IsNull        = kvp.Value is null,
-                            Modified      = true,
-                            Name          = kvp.Key,
-                            Value         = FormatearValor(kvp.Value),
-                            OriginalValue = ""
-                        }).ToList()
-                    }
-                }
+                Action     = 1,
+                ItemId     = $"PBT=[aptrx] apt.ID=[{guid}] apt.DT=[{timestamp}]",
+                Properties = properties.ToList()
             };
 
-            // SaveCollection: POST /json/{ido}  (no /additem)
-            var url = $"{_settings.IdoBaseUrl}json/{Uri.EscapeDataString(ido)}";
-            _logger.LogInformation("IDO SaveCollection (insert) → {Url}", url);
+            var url = $"{_settings.IdoBaseUrl}json/{Uri.EscapeDataString(ido)}/additem";
+            _logger.LogInformation("IDO AddItem → {Url}", url);
             return await EjecutarPostAsync(url, body, ct);
         }
-
-        private static string FormatearValor(object? valor) => valor switch
-        {
-            null          => "",
-            decimal d     => d.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            double  db    => db.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            float   f     => f.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            _             => valor.ToString() ?? ""
-        };
 
         // ── POST /json/{ido}/additems — InsertItems ──────────────────────────
 
