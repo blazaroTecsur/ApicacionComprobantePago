@@ -51,6 +51,9 @@ namespace ComprobantePago.Application.DTOs.Infor
         /// <summary>Fecha de descuento. Campo DiscDate.</summary>
         public string DiscDate { get; init; } = string.Empty;
 
+        /// <summary>Porcentaje de descuento. Campo DiscPct.</summary>
+        public decimal DiscPct { get; init; }
+
         // ── Moneda ────────────────────────────────────────────────────────────
 
         /// <summary>Código de moneda (PEN/USD). Campo AptCurrCode.</summary>
@@ -91,11 +94,7 @@ namespace ComprobantePago.Application.DTOs.Infor
         /// </summary>
         public string TaxCode1 { get; init; } = string.Empty;
 
-        /// <summary>
-        /// Estado de autorización en Syteline. Campo AuthStatus.
-        /// Siempre "F" (Falló / pendiente de autorización manual en Syteline).
-        /// </summary>
-        public string AuthStatus { get; init; } = string.Empty;
+        // AuthStatus es un campo gestionado por Syteline — no se envía en additem.
 
         /// <summary>Folio / ID del comprobante de origen. Campo aptZLA_SeqFac.</summary>
         public string aptZLA_SeqFac { get; init; } = string.Empty;
