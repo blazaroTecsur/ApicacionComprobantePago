@@ -106,7 +106,7 @@ namespace ComprobantePago.Infrastructure.Services
             DiscPct  = 0.000m,
 
             // Moneda
-            AptCurrCode = c.Moneda,
+            VenCurrCode = c.Moneda,
             ExchRate    = c.TipoCambio,
 
             // Cuenta A/P
