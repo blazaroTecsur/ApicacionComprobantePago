@@ -97,22 +97,29 @@ namespace ComprobantePago.Infrastructure.Services
 
             var body = new
             {
-                Action        = 1,
-                ItemId        = $"PBT=[aptrx] apt.ID=[{guid}] apt.DT=[{timestamp}]",
-                ItemNo        = 0,
-                UpdateLocking = "Row",
-                Properties    = properties.Select(kvp => new
+                Items = new[]
                 {
-                    IsNull        = kvp.Value is null,
-                    Modified      = true,
-                    Name          = kvp.Key,
-                    Value         = FormatearValor(kvp.Value),
-                    OriginalValue = ""
-                }).ToList()
+                    new
+                    {
+                        Action        = 1,
+                        ItemId        = $"PBT=[aptrx] apt.ID=[{guid}] apt.DT=[{timestamp}]",
+                        ItemNo        = 0,
+                        UpdateLocking = "Row",
+                        Properties    = properties.Select(kvp => new
+                        {
+                            IsNull        = kvp.Value is null,
+                            Modified      = true,
+                            Name          = kvp.Key,
+                            Value         = FormatearValor(kvp.Value),
+                            OriginalValue = ""
+                        }).ToList()
+                    }
+                }
             };
 
-            var url = $"{_settings.IdoBaseUrl}json/{Uri.EscapeDataString(ido)}/additem";
-            _logger.LogInformation("IDO InsertItem → {Url}", url);
+            // SaveCollection: POST /json/{ido}  (no /additem)
+            var url = $"{_settings.IdoBaseUrl}json/{Uri.EscapeDataString(ido)}";
+            _logger.LogInformation("IDO SaveCollection (insert) → {Url}", url);
             return await EjecutarPostAsync(url, body, ct);
         }
 
