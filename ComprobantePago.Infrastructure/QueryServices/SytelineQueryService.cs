@@ -73,24 +73,24 @@ namespace ComprobantePago.Infrastructure.QueryServices
                     Comprobante = c.IdComprobante,
                     Factura = $"{c.Serie}-{c.Numero}",
                     FechaFactura = c.FechaEmision
-                                        .ToString("MM/dd/yyyy"),
+                                        .ToString("yyyy-MM-dd"),
                     FechaDistribucion = c.FechaRecepcion.HasValue
                                         ? c.FechaRecepcion.Value
-                                          .ToString("MM/dd/yyyy")
+                                          .ToString("yyyy-MM-dd")
                                         : c.FechaEmision
-                                          .ToString("MM/dd/yyyy"),
+                                          .ToString("yyyy-MM-dd"),
                     ImpoCompra = c.MontoNeto,
                     CargosVarios = c.MontoExento,
                     ImpVentas2 = c.MontoIGVCredito,
                     MntoFactura = c.MontoBruto,
                     ImpSinDesc = c.MontoIGVCredito,
-                    FechaDcto = finMes.ToString("MM/dd/yyyy"),
+                    FechaDcto = finMes.ToString("yyyy-MM-dd"),
                     DiasVto = int.TryParse(
                                         c.PlazoPago, out var dias)
                                         ? dias : 0,
                     FechaVen = c.FechaVencimiento.HasValue
                                         ? c.FechaVencimiento.Value
-                                          .ToString("MM/dd/yyyy")
+                                          .ToString("yyyy-MM-dd")
                                         : string.Empty,
                     Moneda = c.Moneda,
                     TipoCambio = c.TasaCambio,
