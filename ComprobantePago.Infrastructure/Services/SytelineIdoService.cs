@@ -89,13 +89,39 @@ namespace ComprobantePago.Infrastructure.Services
 
         public async Task<JsonElement> InsertItemAsync(
             string ido,
-            object payload,
+            IDictionary<string, object?> properties,
             CancellationToken ct = default)
         {
+            var guid      = Guid.NewGuid().ToString();
+            var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+            var idoLower  = ido.ToLowerInvariant();
+
+            var body = new
+            {
+                Action = 1,
+                ItemId = $"PBT=[{idoLower}] {idoLower}.ID=[{guid}] {idoLower}.DT=[{timestamp}]",
+                Properties = properties.Select(kvp => new
+                {
+                    IsNull   = kvp.Value is null,
+                    Modified = true,
+                    Name     = kvp.Key,
+                    Value    = FormatearValor(kvp.Value)
+                }).ToList()
+            };
+
             var url = $"{_settings.IdoBaseUrl}json/{Uri.EscapeDataString(ido)}/additem";
-            _logger.LogDebug("IDO InsertItem → {Url}", url);
-            return await EjecutarPostAsync(url, payload, ct);
+            _logger.LogInformation("IDO InsertItem → {Url}", url);
+            return await EjecutarPostAsync(url, body, ct);
         }
+
+        private static string FormatearValor(object? valor) => valor switch
+        {
+            null          => "",
+            decimal d     => d.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            double  db    => db.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            float   f     => f.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            _             => valor.ToString() ?? ""
+        };
 
         // ── POST /json/{ido}/additems — InsertItems ──────────────────────────
 

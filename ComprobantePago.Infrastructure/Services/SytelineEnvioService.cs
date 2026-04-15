@@ -43,13 +43,12 @@ namespace ComprobantePago.Infrastructure.Services
 
             // Omitir strings vacíos — el IDO de Syteline puede fallar con campos vacíos
             var propList = FiltrarCamposVacios(dto);
-            var payload  = new { propertyList = propList };
 
             _logger.LogInformation(
                 "Enviando comprobante {InvNum} de proveedor {VendNum} a SLAptrxs...",
                 dto.InvNum, dto.VendNum);
 
-            var respuesta = await _ido.InsertItemAsync("SLAptrxs", payload, ct);
+            var respuesta = await _ido.InsertItemAsync("SLAptrxs", propList, ct);
 
             var voucher = ExtraerVoucher(respuesta);
 
