@@ -139,11 +139,13 @@ namespace ComprobantePago.Infrastructure.Services
 
         private async Task<JsonElement> EjecutarPostAsync(string url, object? cuerpo, CancellationToken ct)
         {
+            var json = JsonSerializer.Serialize(cuerpo, _jsonOpts);
+
+            _logger.LogInformation("IDO POST → {Url} | Payload: {Payload}", url, json);
+
             using var request = new HttpRequestMessage(HttpMethod.Post, url)
             {
-                Content = new StringContent(
-                    JsonSerializer.Serialize(cuerpo, _jsonOpts),
-                    Encoding.UTF8, "application/json")
+                Content = new StringContent(json, Encoding.UTF8, "application/json")
             };
             await AgregarAuthHeaderAsync(request);
             using var respuesta = await _http.SendAsync(request, ct);
@@ -179,6 +181,9 @@ namespace ComprobantePago.Infrastructure.Services
         {
             var contenido = await respuesta.Content.ReadAsStringAsync(ct);
 
+            _logger.LogInformation("IDO Response ({Status}): {Body}",
+                (int)respuesta.StatusCode, contenido);
+
             if (!respuesta.IsSuccessStatusCode)
             {
                 _logger.LogError("Error IDO REST. Status: {Status} — {Body}",
@@ -187,10 +192,19 @@ namespace ComprobantePago.Infrastructure.Services
                     $"Error en API Infor Syteline ({respuesta.StatusCode}): {contenido}");
             }
 
-            _logger.LogDebug("IDO Response ({Status}): {Body}",
-                (int)respuesta.StatusCode, contenido);
+            // Syteline devuelve HTTP 200 incluso cuando la operación falla (MessageCode != 0).
+            // Detectamos el error y lanzamos excepción para que el llamador lo maneje.
+            var doc = JsonDocument.Parse(contenido).RootElement.Clone();
+            if (doc.TryGetProperty("MessageCode", out var msgCode) &&
+                msgCode.TryGetInt32(out var code) && code != 0)
+            {
+                var msg = doc.TryGetProperty("Message", out var m) ? m.GetString() : contenido;
+                _logger.LogError("IDO operación fallida. MessageCode: {Code} — {Message}", code, msg);
+                throw new InvalidOperationException(
+                    $"Syteline IDO error {code}: {msg}");
+            }
 
-            return JsonDocument.Parse(contenido).RootElement.Clone();
+            return doc;
         }
     }
 }
