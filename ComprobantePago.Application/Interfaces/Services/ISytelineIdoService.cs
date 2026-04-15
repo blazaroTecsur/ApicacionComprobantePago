@@ -38,12 +38,12 @@ namespace ComprobantePago.Application.Interfaces.Services
             CancellationToken ct = default);
 
         /// <summary>
-        /// Inserta un registro en un IDO.
+        /// Inserta un registro en un IDO usando el formato Action/ItemId/Properties.
         /// POST /json/{ido}/additem
         /// </summary>
         Task<JsonElement> InsertItemAsync(
             string ido,
-            object payload,
+            IDictionary<string, object?> properties,
             CancellationToken ct = default);
 
         /// <summary>
