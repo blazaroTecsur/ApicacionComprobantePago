@@ -82,6 +82,9 @@ namespace ComprobantePago.Infrastructure.Services
 
         private SLAptrxsInsertDto MapearCabecera(SytelineCabeceraDto c) => new()
         {
+            // "Ajuste" para NC/ND (07/08); "Comprobante" para el resto
+            Type = c.TipoSunat is "07" or "08" ? "Ajuste" : "Comprobante",
+
             // VendNum viene de tmaproveedor.IdProveedorExternal (sincronizado desde SLVendors)
             VendNum   = c.VendNum,
             InvDate   = c.FechaFactura,

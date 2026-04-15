@@ -8,6 +8,12 @@ namespace ComprobantePago.Application.DTOs.Infor
     {
         // ── Campos requeridos por SLAptrxs ───────────────────────────────────
 
+        /// <summary>
+        /// Tipo de transacción AP. Campo Type (requerido).
+        /// "Ajuste" para Notas de Crédito/Débito; "Comprobante" para los demás.
+        /// </summary>
+        public string Type { get; init; } = string.Empty;
+
         /// <summary>Código de proveedor Syteline (RUC o código empleado). Campo VendNum.</summary>
         public string VendNum { get; init; } = string.Empty;
 
