@@ -94,12 +94,11 @@ namespace ComprobantePago.Infrastructure.Services
         {
             var guid      = Guid.NewGuid().ToString();
             var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-            var idoLower  = ido.ToLowerInvariant();
 
             var body = new
             {
                 Action = 1,
-                ItemId = $"PBT=[{idoLower}] {idoLower}.ID=[{guid}] {idoLower}.DT=[{timestamp}]",
+                ItemId = $"PBT=[aptrx] apt.ID=[{guid}] apt.DT=[{timestamp}]",
                 Properties = properties.Select(kvp => new
                 {
                     IsNull   = kvp.Value is null,
