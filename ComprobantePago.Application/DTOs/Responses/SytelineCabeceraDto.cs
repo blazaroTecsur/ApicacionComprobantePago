@@ -45,5 +45,7 @@ namespace ComprobantePago.Application.DTOs.Responses
         public decimal MontoExento       { get; init; }
         public decimal MontoRetencion    { get; init; }
         public decimal PorcentajeIGV     { get; init; }
+        /// <summary>Código de tipo SUNAT: "07"=Nota Crédito, "08"=Nota Débito, otros=Comprobante.</summary>
+        public string TipoSunat          { get; init; } = string.Empty;
     }
 }

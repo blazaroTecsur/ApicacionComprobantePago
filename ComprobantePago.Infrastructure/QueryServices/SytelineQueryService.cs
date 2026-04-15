@@ -116,7 +116,8 @@ namespace ComprobantePago.Infrastructure.QueryServices
                     TotalDetLocal = c.MontoDetraccion,
                     MontoExento    = c.MontoExento,
                     MontoRetencion = c.MontoRetencion,
-                    PorcentajeIGV  = c.PorcentajeIGV
+                    PorcentajeIGV  = c.PorcentajeIGV,
+                    TipoSunat      = c.TipoSunat
                 });
             }
 
