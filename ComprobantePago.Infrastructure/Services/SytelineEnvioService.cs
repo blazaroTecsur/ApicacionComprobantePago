@@ -89,8 +89,8 @@ namespace ComprobantePago.Infrastructure.Services
 
             // VendNum: longitud fija de 7 caracteres, rellenado con espacios a la izquierda
             VendNum   = c.VendNum.PadLeft(7),
-            // Voucher: usamos el ID interno del comprobante como número único
-            Voucher   = c.Comprobante,
+            // VoucherManual=true: entornos sin secuencia de Syteline; false: Syteline lo genera
+            Voucher   = _settings.VoucherManual ? c.Comprobante : 0,
             InvDate   = c.FechaFactura,
             DistDate  = c.FechaDistribucion,
             UbToSite  = _settings.Site,
@@ -152,6 +152,8 @@ namespace ComprobantePago.Infrastructure.Services
 
                 if (valor is string s && string.IsNullOrEmpty(s)) continue;
                 if (valor is null) continue;
+                // Voucher=0 significa "dejar que Syteline genere" — no enviar
+                if (prop.Name == nameof(SLAptrxsInsertDto.Voucher) && valor is int vi && vi == 0) continue;
 
                 lista.Add(new IdoProperty
                 {

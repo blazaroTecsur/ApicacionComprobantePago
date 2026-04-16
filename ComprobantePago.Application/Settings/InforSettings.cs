@@ -58,6 +58,13 @@ namespace ComprobantePago.Application.Settings
         /// </summary>
         public string Site { get; set; } = string.Empty;
 
+        /// <summary>
+        /// Si es true, el Voucher se asigna con el ID interno del comprobante en lugar de
+        /// dejarlo que lo genere Syteline. Activar solo cuando el entorno de Syteline no
+        /// tiene la secuencia de vouchers configurada para el site (ej. entornos de prueba).
+        /// </summary>
+        public bool VoucherManual { get; set; } = false;
+
         /// <summary>URL base del servicio IDO REST</summary>
         public string IdoBaseUrl =>
             $"{BaseUrl.TrimEnd('/')}/{Tenant}/{AppId}/IDORequestService/MGRestService.svc/";
