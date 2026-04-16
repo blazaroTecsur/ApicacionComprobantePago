@@ -134,7 +134,8 @@ namespace ComprobantePago.Infrastructure.Services
         };
 
         // ── Construir lista de IdoProperty ───────────────────────────────────
-        // UbToSite se envía con IsNull=true (Syteline lo usa para la secuencia de vouchers).
+        // UbToSite y Voucher se envían con IsNull=true: Syteline usa ambos para
+        // asignar el número de voucher de la secuencia del site automáticamente.
         // Los campos string vacíos se omiten.
         private static List<IdoProperty> ConstruirPropiedades(SLAptrxsInsertDto dto)
         {
@@ -144,8 +145,10 @@ namespace ComprobantePago.Infrastructure.Services
             {
                 var valor = prop.GetValue(dto);
 
-                // UbToSite: incluir siempre con IsNull=true
-                if (prop.Name == nameof(SLAptrxsInsertDto.UbToSite))
+                // UbToSite y Voucher: incluir siempre con IsNull=true para que
+                // Syteline genere el voucher de la secuencia del site.
+                if (prop.Name == nameof(SLAptrxsInsertDto.UbToSite) ||
+                    prop.Name == nameof(SLAptrxsInsertDto.Voucher))
                 {
                     lista.Add(new IdoProperty
                     {

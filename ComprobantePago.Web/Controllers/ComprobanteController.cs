@@ -477,6 +477,12 @@ namespace ComprobantePago.Web.Controllers
                 try
                 {
                     var voucher = await _sytelineEnvio.EnviarCabeceraAsync(cabecera, ct);
+
+                    await _repository.DerivarAsync(new DerivarComprobanteCommand
+                    {
+                        Comprobante = new AccionComprobanteDto { Folio = cabecera.Comprobante.ToString() }
+                    });
+
                     resultados.Add(new { folio = cabecera.Factura, voucher });
                 }
                 catch (Exception ex)
