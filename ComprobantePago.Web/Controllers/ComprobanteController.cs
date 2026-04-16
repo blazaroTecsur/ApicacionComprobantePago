@@ -478,6 +478,11 @@ namespace ComprobantePago.Web.Controllers
                 {
                     var voucher = await _sytelineEnvio.EnviarCabeceraAsync(cabecera, ct);
 
+                    var distribuciones = await _sytelineService
+                        .ObtenerDistribucionSytelineAsync(new List<string> { cabecera.Folio });
+
+                    await _sytelineEnvio.EnviarDistribucionAsync(cabecera, distribuciones, voucher, ct);
+
                     await _repository.DerivarAsync(new DerivarComprobanteCommand
                     {
                         Comprobante = new AccionComprobanteDto { Folio = cabecera.Folio }
@@ -488,7 +493,7 @@ namespace ComprobantePago.Web.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError(ex,
-                        "Error al enviar cabecera {Factura} a Syteline.", cabecera.Factura);
+                        "Error al enviar comprobante {Factura} a Syteline.", cabecera.Factura);
                     errores.Add(new { folio = cabecera.Factura, error = ex.Message });
                 }
             }
