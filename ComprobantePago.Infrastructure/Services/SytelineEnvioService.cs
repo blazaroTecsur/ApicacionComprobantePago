@@ -49,7 +49,10 @@ namespace ComprobantePago.Infrastructure.Services
 
             var respuesta = await _ido.InsertItemAsync("SLAptrxs", propList, ct);
 
+            // additem nunca devuelve Properties — consultamos el voucher generado
             var voucher = ExtraerVoucher(respuesta);
+            if (voucher == 0)
+                voucher = await ConsultarVoucherAsync(dto.aptZLA_SeqFac, ct);
 
             _logger.LogInformation(
                 "Comprobante {InvNum} insertado en SLAptrxs. Voucher: {Voucher}",
@@ -182,6 +185,42 @@ namespace ComprobantePago.Infrastructure.Services
             float   f  => f.ToString(System.Globalization.CultureInfo.InvariantCulture),
             _       => valor.ToString() ?? ""
         };
+
+        // ── Consultar Voucher tras el insert ──────────────────────────────────
+        // additem no devuelve Properties; buscamos el registro recién creado por
+        // aptZLA_SeqFac (único por comprobante) y leemos el Voucher asignado.
+
+        private async Task<int> ConsultarVoucherAsync(string seqFac, CancellationToken ct)
+        {
+            try
+            {
+                var resultado = await _ido.LoadAsync(
+                    "SLAptrxs",
+                    props:     "Voucher",
+                    filter:    $"aptZLA_SeqFac = '{seqFac}'",
+                    recordCap: 1,
+                    ct:        ct);
+
+                _logger.LogInformation("SLAptrxs Load (SeqFac={SeqFac}): {Body}", seqFac, resultado.GetRawText());
+
+                if (resultado.TryGetProperty("Items", out var items) &&
+                    items.GetArrayLength() > 0)
+                {
+                    var item = items[0];
+                    if (item.TryGetProperty("Voucher", out var v))
+                    {
+                        if (v.ValueKind == JsonValueKind.Number && v.TryGetInt32(out var vi)) return vi;
+                        if (v.ValueKind == JsonValueKind.String && int.TryParse(v.GetString(), out var vs)) return vs;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "No se pudo consultar el voucher para aptZLA_SeqFac='{SeqFac}'", seqFac);
+            }
+
+            return 0;
+        }
 
         // ── Extraer Voucher de la respuesta ───────────────────────────────────
 
