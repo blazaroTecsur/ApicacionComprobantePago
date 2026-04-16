@@ -86,11 +86,15 @@ namespace ComprobantePago.Infrastructure.Services
             return await EjecutarGetAsync(url, ct);
         }
 
-        // ── POST /json/{ido}/additem — InsertItem ────────────────────────────
+        // ── POST /json/{ido}/additem[/adv] — InsertItem ─────────────────────
+        // Si se pasa refresh ("ALL" | "PROPS"), usa /additem/adv con los
+        // query params refresh y props para recibir los campos actualizados.
 
         public async Task<JsonElement> InsertItemAsync(
             string ido,
             IEnumerable<IdoProperty> properties,
+            string? refresh = null,
+            string? props   = null,
             CancellationToken ct = default)
         {
             var guid      = Guid.NewGuid().ToString();
@@ -103,7 +107,17 @@ namespace ComprobantePago.Infrastructure.Services
                 Properties = properties.ToList()
             };
 
-            var url = $"{_settings.IdoBaseUrl}json/{Uri.EscapeDataString(ido)}/additem";
+            var endpoint = refresh is not null ? "additem/adv" : "additem";
+            var url = $"{_settings.IdoBaseUrl}json/{Uri.EscapeDataString(ido)}/{endpoint}";
+
+            if (refresh is not null || props is not null)
+            {
+                var q = new List<string>();
+                if (refresh is not null) q.Add($"refresh={Uri.EscapeDataString(refresh)}");
+                if (props   is not null) q.Add($"props={Uri.EscapeDataString(props)}");
+                url += "?" + string.Join("&", q);
+            }
+
             _logger.LogInformation("IDO AddItem → {Url}", url);
             return await EjecutarPostAsync(url, body, ct);
         }

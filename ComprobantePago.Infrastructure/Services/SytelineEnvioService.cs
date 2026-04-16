@@ -47,7 +47,9 @@ namespace ComprobantePago.Infrastructure.Services
                 "Enviando comprobante {InvNum} de proveedor {VendNum} a SLAptrxs...",
                 dto.InvNum, dto.VendNum);
 
-            var respuesta = await _ido.InsertItemAsync("SLAptrxs", propList, ct);
+            // /additem/adv con refresh=PROPS devuelve el Voucher real asignado por Syteline
+            var respuesta = await _ido.InsertItemAsync("SLAptrxs", propList,
+                refresh: "PROPS", props: "Voucher", ct: ct);
 
             var voucher = ExtraerVoucher(respuesta);
             if (voucher == 0)

@@ -40,11 +40,14 @@ namespace ComprobantePago.Application.Interfaces.Services
 
         /// <summary>
         /// Inserta un registro en un IDO usando el formato Action/ItemId/Properties.
-        /// POST /json/{ido}/additem
+        /// POST /json/{ido}/additem  — sin refresh
+        /// POST /json/{ido}/additem/adv?refresh=PROPS&amp;props=... — con refresh de campos
         /// </summary>
         Task<JsonElement> InsertItemAsync(
             string ido,
             IEnumerable<IdoProperty> properties,
+            string? refresh = null,
+            string? props   = null,
             CancellationToken ct = default);
 
         /// <summary>
