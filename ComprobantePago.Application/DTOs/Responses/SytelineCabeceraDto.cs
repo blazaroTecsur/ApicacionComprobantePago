@@ -14,6 +14,8 @@ namespace ComprobantePago.Application.DTOs.Responses
 
         public string Nombre             { get; init; } = string.Empty;
         public int Comprobante           { get; init; }
+        /// <summary>Folio del comprobante en el sistema (clave para DerivarAsync).</summary>
+        public string Folio              { get; init; } = string.Empty;
         public string Factura            { get; init; } = string.Empty;
         public string FechaFactura       { get; init; } = string.Empty;
         public string FechaDistribucion  { get; init; } = string.Empty;
