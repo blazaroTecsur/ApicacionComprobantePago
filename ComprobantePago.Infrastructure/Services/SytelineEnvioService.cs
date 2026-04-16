@@ -47,7 +47,9 @@ namespace ComprobantePago.Infrastructure.Services
                 "Enviando comprobante {InvNum} de proveedor {VendNum} a SLAptrxs...",
                 dto.InvNum, dto.VendNum);
 
-            var respuesta = await _ido.InsertItemAsync("SLAptrxs", propList, ct);
+            // /additem/adv con refresh=PROPS devuelve el Voucher real asignado por Syteline
+            var respuesta = await _ido.InsertItemAsync("SLAptrxs", propList,
+                refresh: "PROPS", props: "Voucher", ct: ct);
 
             var voucher = ExtraerVoucher(respuesta);
             if (voucher == 0)
@@ -87,6 +89,8 @@ namespace ComprobantePago.Infrastructure.Services
 
             // VendNum: longitud fija de 7 caracteres, rellenado con espacios a la izquierda
             VendNum   = c.VendNum.PadLeft(7),
+            // Voucher: usamos el ID interno del comprobante como número único
+            Voucher   = c.Comprobante,
             InvDate   = c.FechaFactura,
             DistDate  = c.FechaDistribucion,
             UbToSite  = _settings.Site,
@@ -136,10 +140,8 @@ namespace ComprobantePago.Infrastructure.Services
         };
 
         // ── Construir lista de IdoProperty ───────────────────────────────────
-        // UbToSite se envía con IsNull=false para que el event handler de Syteline
-        // reciba el site real y genere el número de voucher de la secuencia.
-        // Voucher se omite completamente — Syteline lo asigna internamente.
-        // Los campos string vacíos se omiten.
+        // Todos los campos se envían con IsNull=false.
+        // Se omiten únicamente strings vacíos y nulls.
         private static List<IdoProperty> ConstruirPropiedades(SLAptrxsInsertDto dto)
         {
             var lista = new List<IdoProperty>();
@@ -148,22 +150,6 @@ namespace ComprobantePago.Infrastructure.Services
             {
                 var valor = prop.GetValue(dto);
 
-                // Voucher: omitir — Syteline lo genera en el servidor
-                if (prop.Name == nameof(SLAptrxsInsertDto.Voucher)) continue;
-
-                // UbToSite: IsNull=false para que el event handler reciba el site
-                if (prop.Name == nameof(SLAptrxsInsertDto.UbToSite))
-                {
-                    lista.Add(new IdoProperty
-                    {
-                        IsNull = false,
-                        Name   = prop.Name,
-                        Value  = valor?.ToString() ?? string.Empty
-                    });
-                    continue;
-                }
-
-                // Omitir strings vacíos
                 if (valor is string s && string.IsNullOrEmpty(s)) continue;
                 if (valor is null) continue;
 
