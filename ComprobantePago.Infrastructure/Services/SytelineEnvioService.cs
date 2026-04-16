@@ -50,6 +50,8 @@ namespace ComprobantePago.Infrastructure.Services
             var respuesta = await _ido.InsertItemAsync("SLAptrxs", propList, ct);
 
             var voucher = ExtraerVoucher(respuesta);
+            if (voucher == 0)
+                voucher = await ConsultarVoucherAsync(dto.aptZLA_SeqFac, ct);
 
             _logger.LogInformation(
                 "Comprobante {InvNum} insertado en SLAptrxs. Voucher: {Voucher}",
@@ -134,8 +136,9 @@ namespace ComprobantePago.Infrastructure.Services
         };
 
         // ── Construir lista de IdoProperty ───────────────────────────────────
-        // UbToSite y Voucher se envían con IsNull=true: Syteline usa ambos para
-        // asignar el número de voucher de la secuencia del site automáticamente.
+        // UbToSite se envía con IsNull=false para que el event handler de Syteline
+        // reciba el site real y genere el número de voucher de la secuencia.
+        // Voucher se omite completamente — Syteline lo asigna internamente.
         // Los campos string vacíos se omiten.
         private static List<IdoProperty> ConstruirPropiedades(SLAptrxsInsertDto dto)
         {
@@ -145,14 +148,15 @@ namespace ComprobantePago.Infrastructure.Services
             {
                 var valor = prop.GetValue(dto);
 
-                // UbToSite y Voucher: incluir siempre con IsNull=true para que
-                // Syteline genere el voucher de la secuencia del site.
-                if (prop.Name == nameof(SLAptrxsInsertDto.UbToSite) ||
-                    prop.Name == nameof(SLAptrxsInsertDto.Voucher))
+                // Voucher: omitir — Syteline lo genera en el servidor
+                if (prop.Name == nameof(SLAptrxsInsertDto.Voucher)) continue;
+
+                // UbToSite: IsNull=false para que el event handler reciba el site
+                if (prop.Name == nameof(SLAptrxsInsertDto.UbToSite))
                 {
                     lista.Add(new IdoProperty
                     {
-                        IsNull = true,
+                        IsNull = false,
                         Name   = prop.Name,
                         Value  = valor?.ToString() ?? string.Empty
                     });
@@ -182,6 +186,42 @@ namespace ComprobantePago.Infrastructure.Services
             float   f  => f.ToString(System.Globalization.CultureInfo.InvariantCulture),
             _       => valor.ToString() ?? ""
         };
+
+        // ── Consultar Voucher tras el insert ──────────────────────────────────
+        // additem no devuelve Properties; buscamos el registro recién creado por
+        // aptZLA_SeqFac (único por comprobante) y leemos el Voucher asignado.
+
+        private async Task<int> ConsultarVoucherAsync(string seqFac, CancellationToken ct)
+        {
+            try
+            {
+                var resultado = await _ido.LoadAsync(
+                    "SLAptrxs",
+                    props:     "Voucher",
+                    filter:    $"aptZLA_SeqFac = '{seqFac}'",
+                    recordCap: 1,
+                    ct:        ct);
+
+                _logger.LogInformation("SLAptrxs Load (SeqFac={SeqFac}): {Body}", seqFac, resultado.GetRawText());
+
+                if (resultado.TryGetProperty("Items", out var items) &&
+                    items.GetArrayLength() > 0)
+                {
+                    var item = items[0];
+                    if (item.TryGetProperty("Voucher", out var v))
+                    {
+                        if (v.ValueKind == JsonValueKind.Number && v.TryGetInt32(out var vi)) return vi;
+                        if (v.ValueKind == JsonValueKind.String && int.TryParse(v.GetString(), out var vs)) return vs;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "No se pudo consultar el voucher para aptZLA_SeqFac='{SeqFac}'", seqFac);
+            }
+
+            return 0;
+        }
 
         // ── Extraer Voucher de la respuesta ───────────────────────────────────
 
