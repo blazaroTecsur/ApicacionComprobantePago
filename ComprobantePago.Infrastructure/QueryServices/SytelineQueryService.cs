@@ -113,8 +113,16 @@ namespace ComprobantePago.Infrastructure.QueryServices
                     UsaDetraccion = c.TieneDetraccion ? "1" : "",
                     Detraccion = c.TipoDetraccion ?? string.Empty,
                     Tasa = c.PorcentajeDetraccion ?? 0,
-                    TotalDetraccion = c.MontoDetraccion,
-                    TotalDetLocal = c.MontoDetraccion,
+                    TotalDetraccion = c.MontoDetraccion > 0
+                        ? c.MontoDetraccion
+                        : c.TieneDetraccion && c.PorcentajeDetraccion.HasValue
+                            ? Math.Round(c.MontoTotal * c.PorcentajeDetraccion.Value / 100, 2)
+                            : 0,
+                    TotalDetLocal = c.MontoDetraccion > 0
+                        ? (c.Moneda == "PEN" ? c.MontoDetraccion : Math.Round(c.MontoDetraccion * c.TasaCambio, 2))
+                        : c.TieneDetraccion && c.PorcentajeDetraccion.HasValue
+                            ? Math.Round(c.MontoTotal * c.PorcentajeDetraccion.Value / 100 * (c.Moneda == "PEN" ? 1 : c.TasaCambio), 2)
+                            : 0,
                     MontoExento    = c.MontoExento,
                     MontoRetencion = c.MontoRetencion,
                     PorcentajeIGV  = c.PorcentajeIGV,

@@ -131,7 +131,7 @@ namespace ComprobantePago.Infrastructure.Services
             SalesTax_2  = c.ImpVentas2,
             InvAmt      = c.MntoFactura,
             MiscCharges = c.CargosVarios,
-            NonDiscAmt  = c.ImpSinDesc,
+            NonDiscAmt  = c.CargosVarios,
 
             // Vencimiento
             DueDate  = c.FechaVen,
