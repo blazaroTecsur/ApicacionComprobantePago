@@ -157,26 +157,7 @@ namespace ComprobantePago.Infrastructure.Services
                 distSeq += 5;
             }
 
-            // 2. Línea NR (trazabilidad del impuesto no recuperable, Amount=0)
-            if (lineaIgv != null && cabecera.ImpVentas2 != 0)
-            {
-                var dto = new SLAptrxdsInsertDto
-                {
-                    VendNum   = vendNum,
-                    Voucher   = voucher,
-                    DistSeq   = distSeq,
-                    Acct      = lineaIgv.CuentaContable[..Math.Min(12, lineaIgv.CuentaContable.Length)],
-                    Amount    = 0,
-                    TaxBasis  = cabecera.ImpoCompra,
-                    TaxCode   = "NR",
-                    TaxSystem = "1",
-                };
-                _logger.LogInformation("IDO SLAptrxds NR → Voucher={Voucher} DistSeq={Seq}", voucher, distSeq);
-                await _ido.InsertItemAsync("SLAptrxds", ConstruirPropiedades(dto), ct: ct);
-                distSeq += 5;
-            }
-
-            // 3. Línea IGV
+            // 2. Línea IGV
             if (lineaIgv != null)
             {
                 var dto = new SLAptrxdsInsertDto
