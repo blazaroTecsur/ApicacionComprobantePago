@@ -231,20 +231,35 @@ namespace ComprobantePago.Infrastructure.Services
             return 0;
         }
 
-        // ── Extraer Voucher del response de LoadCollection ────────────────────
-        // LoadAsync devuelve Items[] con propiedades como claves directas.
+        // ── Extraer Voucher del response de LoadCollection (/adv) ─────────────
+        // Items[n] es un array de {Name, Value} — tomamos el primero (orderBy DESC).
 
         private static int ExtraerVoucherDeItems(JsonElement resultado)
         {
-            if (resultado.TryGetProperty("Items", out var items) &&
-                items.GetArrayLength() > 0)
+            if (!resultado.TryGetProperty("Items", out var items) || items.GetArrayLength() == 0)
+                return 0;
+
+            var firstItem = items[0];
+
+            // Formato /adv: Items[0] es array de {Name, Value}
+            if (firstItem.ValueKind == JsonValueKind.Array)
             {
-                var item = items[0];
-                if (item.TryGetProperty("Voucher", out var v))
+                foreach (var prop in firstItem.EnumerateArray())
                 {
-                    if (v.ValueKind == JsonValueKind.Number && v.TryGetInt32(out var vi)) return vi;
-                    if (v.ValueKind == JsonValueKind.String && int.TryParse(v.GetString(), out var vs)) return vs;
+                    if (prop.TryGetProperty("Name",  out var name) &&
+                        name.GetString() == "Voucher"              &&
+                        prop.TryGetProperty("Value", out var value) &&
+                        int.TryParse(value.GetString(), out var v))
+                    {
+                        return v;
+                    }
                 }
+            }
+            // Formato sin /adv: Items[0] es objeto con claves directas
+            else if (firstItem.TryGetProperty("Voucher", out var vp))
+            {
+                if (vp.ValueKind == JsonValueKind.Number && vp.TryGetInt32(out var vi)) return vi;
+                if (vp.ValueKind == JsonValueKind.String && int.TryParse(vp.GetString(), out var vs)) return vs;
             }
 
             return 0;
