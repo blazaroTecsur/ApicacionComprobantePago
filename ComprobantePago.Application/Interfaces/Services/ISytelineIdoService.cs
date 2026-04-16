@@ -14,11 +14,12 @@ namespace ComprobantePago.Application.Interfaces.Services
         /// GET /json/{ido}?props=...&amp;filter=...&amp;recordCap=N&amp;orderBy=...
         /// </summary>
         Task<JsonElement> LoadAsync(
-            string ido,
+            string  ido,
             string? props     = null,
             string? filter    = null,
             int     recordCap = 0,
             string? orderBy   = null,
+            bool    adv       = false,
             CancellationToken ct = default);
 
         /// <summary>

@@ -40,7 +40,9 @@ namespace ComprobantePago.Infrastructure.Services
             _logger       = logger;
         }
 
-        // ── GET /json/{ido} — LoadCollection ─────────────────────────────────
+        // ── GET /json/{ido}[/{props}/adv] — LoadCollection ───────────────────
+        // adv=true → props van en la URL (/json/{ido}/{props}/adv) y devuelve
+        //            objetos con nombres de campo; adv=false → query params.
 
         public async Task<JsonElement> LoadAsync(
             string  ido,
@@ -48,15 +50,20 @@ namespace ComprobantePago.Infrastructure.Services
             string? filter    = null,
             int     recordCap = 0,
             string? orderBy   = null,
+            bool    adv       = false,
             CancellationToken ct = default)
         {
-            var url = $"{_settings.IdoBaseUrl}json/{Uri.EscapeDataString(ido)}";
+            string url;
+            if (adv && !string.IsNullOrWhiteSpace(props))
+                url = $"{_settings.IdoBaseUrl}json/{Uri.EscapeDataString(ido)}/{Uri.EscapeDataString(props)}/adv";
+            else
+                url = $"{_settings.IdoBaseUrl}json/{Uri.EscapeDataString(ido)}";
 
             var q = new List<string>();
-            if (!string.IsNullOrWhiteSpace(props))     q.Add($"props={Uri.EscapeDataString(props)}");
-            if (!string.IsNullOrWhiteSpace(filter))    q.Add($"filter={Uri.EscapeDataString(filter)}");
-            if (recordCap > 0)                         q.Add($"recordCap={recordCap}");
-            if (!string.IsNullOrWhiteSpace(orderBy))   q.Add($"orderBy={Uri.EscapeDataString(orderBy)}");
+            if (!adv && !string.IsNullOrWhiteSpace(props)) q.Add($"props={Uri.EscapeDataString(props)}");
+            if (!string.IsNullOrWhiteSpace(filter))        q.Add($"filter={Uri.EscapeDataString(filter)}");
+            if (recordCap > 0)                             q.Add($"recordCap={recordCap}");
+            if (!string.IsNullOrWhiteSpace(orderBy))       q.Add($"orderBy={Uri.EscapeDataString(orderBy)}");
             if (q.Count > 0) url += "?" + string.Join("&", q);
 
             _logger.LogDebug("IDO Load → {Url}", url);
