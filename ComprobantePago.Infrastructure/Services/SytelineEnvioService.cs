@@ -33,33 +33,33 @@ namespace ComprobantePago.Infrastructure.Services
             SytelineCabeceraDto cabecera,
             CancellationToken ct = default)
         {
-            var dto = MapearCabecera(cabecera);
-
-            if (string.IsNullOrWhiteSpace(dto.VendNum.Trim()) || dto.VendNum.Trim() == "0")
+            // Validar que el proveedor tenga VendNum asignado
+            var vendNum = cabecera.VendNum.PadLeft(7);
+            if (string.IsNullOrWhiteSpace(vendNum.Trim()) || vendNum.Trim() == "0")
                 throw new InvalidOperationException(
-                    $"El proveedor del comprobante '{dto.InvNum}' no tiene VendNum " +
+                    $"El proveedor del comprobante '{cabecera.Factura}' no tiene VendNum " +
                     $"asignado en el maestro de proveedores (IdProveedorExternal = 0 o vacío). " +
                     $"Sincronice el maestro de proveedores con Syteline antes de enviar.");
 
+            // Obtener el siguiente número de voucher disponible en Syteline
+            var voucher  = await ObtenerSiguienteVoucherAsync(ct);
+            var dto      = MapearCabecera(cabecera, voucher);
             var propList = ConstruirPropiedades(dto);
 
             _logger.LogInformation(
-                "Enviando comprobante {InvNum} de proveedor {VendNum} a SLAptrxs...",
-                dto.InvNum, dto.VendNum);
+                "Enviando comprobante {InvNum} de proveedor {VendNum} a SLAptrxs con Voucher {Voucher}...",
+                dto.InvNum, dto.VendNum, voucher);
 
-            // /additem/adv con refresh=PROPS devuelve el Voucher real asignado por Syteline
             var respuesta = await _ido.InsertItemAsync("SLAptrxs", propList,
                 refresh: "PROPS", props: "Voucher", ct: ct);
 
-            var voucher = ExtraerVoucher(respuesta);
-            if (voucher == 0)
-                voucher = await ConsultarVoucherAsync(dto.aptZLA_SeqFac, ct);
+            var voucherConfirmado = ExtraerVoucher(respuesta);
 
             _logger.LogInformation(
                 "Comprobante {InvNum} insertado en SLAptrxs. Voucher: {Voucher}",
-                dto.InvNum, voucher);
+                dto.InvNum, voucherConfirmado > 0 ? voucherConfirmado : voucher);
 
-            return voucher;
+            return voucherConfirmado > 0 ? voucherConfirmado : voucher;
         }
 
         // ── Insertar múltiples cabeceras ──────────────────────────────────────
@@ -80,20 +80,49 @@ namespace ComprobantePago.Infrastructure.Services
             return vouchers;
         }
 
+        // ── Obtener siguiente número de Voucher ───────────────────────────────
+        // Consulta el máximo Voucher existente en SLAptrxs para este site y
+        // devuelve max + 1. Si no hay registros, devuelve 1.
+
+        private async Task<int> ObtenerSiguienteVoucherAsync(CancellationToken ct)
+        {
+            try
+            {
+                var resultado = await _ido.LoadAsync(
+                    "SLAptrxs",
+                    props:     "Voucher",
+                    orderBy:   "Voucher DESC",
+                    recordCap: 1,
+                    ct:        ct);
+
+                _logger.LogInformation("SLAptrxs MaxVoucher: {Body}", resultado.GetRawText());
+
+                var max = ExtraerVoucherDeItems(resultado);
+                var siguiente = max + 1;
+
+                _logger.LogInformation("Próximo Voucher a usar: {Voucher}", siguiente);
+                return siguiente;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "No se pudo obtener el último Voucher de SLAptrxs. Se usará 1.");
+                return 1;
+            }
+        }
+
         // ── Mapeo SytelineCabeceraDto → SLAptrxsInsertDto ────────────────────
 
-        private SLAptrxsInsertDto MapearCabecera(SytelineCabeceraDto c) => new()
+        private SLAptrxsInsertDto MapearCabecera(SytelineCabeceraDto c, int voucher) => new()
         {
             // "V" para facturas y demás; vacío para NC/ND (07/08) — se omite al filtrar
             Type = c.TipoSunat is "07" or "08" ? "" : "V",
 
             // VendNum: longitud fija de 7 caracteres, rellenado con espacios a la izquierda
-            VendNum   = c.VendNum.PadLeft(7),
-            // VoucherManual=true: entornos sin secuencia de Syteline; false: Syteline lo genera
-            Voucher   = _settings.VoucherManual ? c.Comprobante : 0,
-            InvDate   = c.FechaFactura,
-            DistDate  = c.FechaDistribucion,
-            UbToSite  = _settings.Site,
+            VendNum  = c.VendNum.PadLeft(7),
+            Voucher  = voucher,
+            InvDate  = c.FechaFactura,
+            DistDate = c.FechaDistribucion,
+            UbToSite = _settings.Site,
 
             // Cabecera
             InvNum      = c.Factura[..Math.Min(22, c.Factura.Length)],
@@ -152,8 +181,6 @@ namespace ComprobantePago.Infrastructure.Services
 
                 if (valor is string s && string.IsNullOrEmpty(s)) continue;
                 if (valor is null) continue;
-                // Voucher=0 significa "dejar que Syteline genere" — no enviar
-                if (prop.Name == nameof(SLAptrxsInsertDto.Voucher) && valor is int vi && vi == 0) continue;
 
                 lista.Add(new IdoProperty
                 {
@@ -168,54 +195,18 @@ namespace ComprobantePago.Infrastructure.Services
 
         private static string FormatearValor(object? valor) => valor switch
         {
-            null    => "",
+            null       => "",
             decimal d  => d.ToString(System.Globalization.CultureInfo.InvariantCulture),
             double  db => db.ToString(System.Globalization.CultureInfo.InvariantCulture),
             float   f  => f.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            _       => valor.ToString() ?? ""
+            _          => valor.ToString() ?? ""
         };
 
-        // ── Consultar Voucher tras el insert ──────────────────────────────────
-        // additem no devuelve Properties; buscamos el registro recién creado por
-        // aptZLA_SeqFac (único por comprobante) y leemos el Voucher asignado.
-
-        private async Task<int> ConsultarVoucherAsync(string seqFac, CancellationToken ct)
-        {
-            try
-            {
-                var resultado = await _ido.LoadAsync(
-                    "SLAptrxs",
-                    props:     "Voucher",
-                    filter:    $"aptZLA_SeqFac = '{seqFac}'",
-                    recordCap: 1,
-                    ct:        ct);
-
-                _logger.LogInformation("SLAptrxs Load (SeqFac={SeqFac}): {Body}", seqFac, resultado.GetRawText());
-
-                if (resultado.TryGetProperty("Items", out var items) &&
-                    items.GetArrayLength() > 0)
-                {
-                    var item = items[0];
-                    if (item.TryGetProperty("Voucher", out var v))
-                    {
-                        if (v.ValueKind == JsonValueKind.Number && v.TryGetInt32(out var vi)) return vi;
-                        if (v.ValueKind == JsonValueKind.String && int.TryParse(v.GetString(), out var vs)) return vs;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "No se pudo consultar el voucher para aptZLA_SeqFac='{SeqFac}'", seqFac);
-            }
-
-            return 0;
-        }
-
-        // ── Extraer Voucher de la respuesta ───────────────────────────────────
+        // ── Extraer Voucher del response de additem ───────────────────────────
+        // /additem/adv devuelve UpdatedItems[0].Properties[] con Name/Value.
 
         private static int ExtraerVoucher(JsonElement respuesta)
         {
-            // Formato Action/Properties: el voucher viene en UpdatedItems[0].Properties
             if (respuesta.TryGetProperty("UpdatedItems", out var items) &&
                 items.GetArrayLength() > 0)
             {
@@ -233,6 +224,25 @@ namespace ComprobantePago.Infrastructure.Services
                             return v;
                         }
                     }
+                }
+            }
+
+            return 0;
+        }
+
+        // ── Extraer Voucher del response de LoadCollection ────────────────────
+        // LoadAsync devuelve Items[] con propiedades como claves directas.
+
+        private static int ExtraerVoucherDeItems(JsonElement resultado)
+        {
+            if (resultado.TryGetProperty("Items", out var items) &&
+                items.GetArrayLength() > 0)
+            {
+                var item = items[0];
+                if (item.TryGetProperty("Voucher", out var v))
+                {
+                    if (v.ValueKind == JsonValueKind.Number && v.TryGetInt32(out var vi)) return vi;
+                    if (v.ValueKind == JsonValueKind.String && int.TryParse(v.GetString(), out var vs)) return vs;
                 }
             }
 
