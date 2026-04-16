@@ -111,6 +111,112 @@ namespace ComprobantePago.Infrastructure.Services
             }
         }
 
+        // ── Insertar distribución (SLAptrxds) ─────────────────────────────────
+
+        public async Task EnviarDistribucionAsync(
+            SytelineCabeceraDto cabecera,
+            IEnumerable<SytelineDistribucionDto> lineas,
+            int voucher,
+            CancellationToken ct = default)
+        {
+            var lista   = lineas.OrderBy(l => l.SecDist).ToList();
+            var vendNum = cabecera.VendNum.PadLeft(7);
+            var distSeq = 5;
+
+            if (lista.Count == 0)
+            {
+                _logger.LogWarning("Sin líneas de distribución para {Factura}", cabecera.Factura);
+                return;
+            }
+
+            var lineaIgv    = lista.FirstOrDefault(l => l.CodImp == "IGV18");
+            var lineaExento = lista.FirstOrDefault(l => l.CodImp == "EXO");
+            var expenseLines = lista.Where(l => l.EsLineaPrincipal).ToList();
+
+            // 1. Líneas de gasto (una por cada imputación principal)
+            foreach (var linea in expenseLines)
+            {
+                var dto = new SLAptrxdsInsertDto
+                {
+                    VendNum     = vendNum,
+                    Voucher     = voucher,
+                    DistSeq     = distSeq,
+                    Acct        = linea.CuentaContable[..Math.Min(12, linea.CuentaContable.Length)],
+                    AcctUnit1   = linea.CodUnidad1.Length > 0 ? linea.CodUnidad1[..Math.Min(4, linea.CodUnidad1.Length)] : "",
+                    AcctUnit3   = linea.CodUnidad3.Length > 0 ? linea.CodUnidad3[..Math.Min(4, linea.CodUnidad3.Length)] : "",
+                    AcctUnit4   = linea.CodUnidad4.Length > 0 ? linea.CodUnidad4[..Math.Min(4, linea.CodUnidad4.Length)] : "",
+                    Amount      = linea.Importe,
+                    DIOTTransType = cabecera.ImpVentas2 != 0 ? "1" : "",
+                    TaxRegNum   = linea.NumRegFiscal.Length > 0 ? linea.NumRegFiscal[..Math.Min(25, linea.NumRegFiscal.Length)] : "",
+                    TaxRegNumType = !string.IsNullOrEmpty(linea.NumRegFiscal) ? "T" : "",
+                    ProjNum     = linea.Proyecto.Length > 0 ? linea.Proyecto[..Math.Min(10, linea.Proyecto.Length)] : "",
+                };
+                _logger.LogInformation("IDO SLAptrxds Gasto → Voucher={Voucher} DistSeq={Seq} Acct={Acct} Amount={Amt}",
+                    voucher, distSeq, dto.Acct, dto.Amount);
+                await _ido.InsertItemAsync("SLAptrxds", ConstruirPropiedades(dto), ct: ct);
+                distSeq += 5;
+            }
+
+            // 2. Línea NR (trazabilidad del impuesto no recuperable, Amount=0)
+            if (lineaIgv != null && cabecera.ImpVentas2 != 0)
+            {
+                var dto = new SLAptrxdsInsertDto
+                {
+                    VendNum   = vendNum,
+                    Voucher   = voucher,
+                    DistSeq   = distSeq,
+                    Acct      = lineaIgv.CuentaContable[..Math.Min(12, lineaIgv.CuentaContable.Length)],
+                    Amount    = 0,
+                    TaxBasis  = cabecera.ImpoCompra,
+                    TaxCode   = "NR",
+                    TaxSystem = "1",
+                };
+                _logger.LogInformation("IDO SLAptrxds NR → Voucher={Voucher} DistSeq={Seq}", voucher, distSeq);
+                await _ido.InsertItemAsync("SLAptrxds", ConstruirPropiedades(dto), ct: ct);
+                distSeq += 5;
+            }
+
+            // 3. Línea IGV
+            if (lineaIgv != null)
+            {
+                var dto = new SLAptrxdsInsertDto
+                {
+                    VendNum   = vendNum,
+                    Voucher   = voucher,
+                    DistSeq   = distSeq,
+                    Acct      = lineaIgv.CuentaContable[..Math.Min(12, lineaIgv.CuentaContable.Length)],
+                    Amount    = lineaIgv.Importe,
+                    TaxBasis  = lineaIgv.BaseImp,
+                    TaxCode   = "IGV18",
+                    TaxSystem = "2",
+                };
+                _logger.LogInformation("IDO SLAptrxds IGV → Voucher={Voucher} DistSeq={Seq} Amount={Amt}",
+                    voucher, distSeq, dto.Amount);
+                await _ido.InsertItemAsync("SLAptrxds", ConstruirPropiedades(dto), ct: ct);
+                distSeq += 5;
+            }
+
+            // 4. Línea exento
+            if (lineaExento != null)
+            {
+                var dto = new SLAptrxdsInsertDto
+                {
+                    VendNum  = vendNum,
+                    Voucher  = voucher,
+                    DistSeq  = distSeq,
+                    Acct     = lineaExento.CuentaContable[..Math.Min(12, lineaExento.CuentaContable.Length)],
+                    AcctUnit1 = lineaExento.CodUnidad1.Length > 0 ? lineaExento.CodUnidad1[..Math.Min(4, lineaExento.CodUnidad1.Length)] : "",
+                    AcctUnit3 = lineaExento.CodUnidad3.Length > 0 ? lineaExento.CodUnidad3[..Math.Min(4, lineaExento.CodUnidad3.Length)] : "",
+                    AcctUnit4 = lineaExento.CodUnidad4.Length > 0 ? lineaExento.CodUnidad4[..Math.Min(4, lineaExento.CodUnidad4.Length)] : "",
+                    Amount    = lineaExento.Importe,
+                    TaxCodeE  = "EXE",
+                };
+                _logger.LogInformation("IDO SLAptrxds Exento → Voucher={Voucher} DistSeq={Seq} Amount={Amt}",
+                    voucher, distSeq, dto.Amount);
+                await _ido.InsertItemAsync("SLAptrxds", ConstruirPropiedades(dto), ct: ct);
+            }
+        }
+
         // ── Mapeo SytelineCabeceraDto → SLAptrxsInsertDto ────────────────────
 
         private SLAptrxsInsertDto MapearCabecera(SytelineCabeceraDto c, int voucher) => new()
@@ -172,11 +278,11 @@ namespace ComprobantePago.Infrastructure.Services
         // ── Construir lista de IdoProperty ───────────────────────────────────
         // Todos los campos se envían con IsNull=false.
         // Se omiten únicamente strings vacíos y nulls.
-        private static List<IdoProperty> ConstruirPropiedades(SLAptrxsInsertDto dto)
+        private static List<IdoProperty> ConstruirPropiedades(object dto)
         {
             var lista = new List<IdoProperty>();
 
-            foreach (var prop in typeof(SLAptrxsInsertDto).GetProperties())
+            foreach (var prop in dto.GetType().GetProperties())
             {
                 var valor = prop.GetValue(dto);
 

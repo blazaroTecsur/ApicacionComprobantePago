@@ -3,7 +3,7 @@ using ComprobantePago.Application.DTOs.Responses;
 namespace ComprobantePago.Application.Interfaces.Services
 {
     /// <summary>
-    /// Envía comprobantes aprobados al IDO SLAptrxs de Infor Syteline.
+    /// Envía comprobantes aprobados al IDO SLAptrxs/SLAptrxds de Infor Syteline.
     /// </summary>
     public interface ISytelineEnvioService
     {
@@ -20,6 +20,16 @@ namespace ComprobantePago.Application.Interfaces.Services
         /// </summary>
         Task<IEnumerable<int>> EnviarCabecerasAsync(
             IEnumerable<SytelineCabeceraDto> cabeceras,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Inserta las líneas de distribución (SLAptrxds) para un comprobante ya registrado.
+        /// Genera: línea(s) de gasto, línea NR (si hay IGV), línea IGV y línea exento (si aplica).
+        /// </summary>
+        Task EnviarDistribucionAsync(
+            SytelineCabeceraDto cabecera,
+            IEnumerable<SytelineDistribucionDto> lineas,
+            int voucher,
             CancellationToken ct = default);
     }
 }
