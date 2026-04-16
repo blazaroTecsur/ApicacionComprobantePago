@@ -49,7 +49,6 @@ namespace ComprobantePago.Infrastructure.Services
 
             var respuesta = await _ido.InsertItemAsync("SLAptrxs", propList, ct);
 
-            // additem nunca devuelve Properties — consultamos el voucher generado
             var voucher = ExtraerVoucher(respuesta);
             if (voucher == 0)
                 voucher = await ConsultarVoucherAsync(dto.aptZLA_SeqFac, ct);
@@ -137,8 +136,9 @@ namespace ComprobantePago.Infrastructure.Services
         };
 
         // ── Construir lista de IdoProperty ───────────────────────────────────
-        // UbToSite y Voucher se envían con IsNull=true: Syteline usa ambos para
-        // asignar el número de voucher de la secuencia del site automáticamente.
+        // UbToSite se envía con IsNull=false para que el event handler de Syteline
+        // reciba el site real y genere el número de voucher de la secuencia.
+        // Voucher se omite completamente — Syteline lo asigna internamente.
         // Los campos string vacíos se omiten.
         private static List<IdoProperty> ConstruirPropiedades(SLAptrxsInsertDto dto)
         {
@@ -148,14 +148,15 @@ namespace ComprobantePago.Infrastructure.Services
             {
                 var valor = prop.GetValue(dto);
 
-                // UbToSite y Voucher: incluir siempre con IsNull=true para que
-                // Syteline genere el voucher de la secuencia del site.
-                if (prop.Name == nameof(SLAptrxsInsertDto.UbToSite) ||
-                    prop.Name == nameof(SLAptrxsInsertDto.Voucher))
+                // Voucher: omitir — Syteline lo genera en el servidor
+                if (prop.Name == nameof(SLAptrxsInsertDto.Voucher)) continue;
+
+                // UbToSite: IsNull=false para que el event handler reciba el site
+                if (prop.Name == nameof(SLAptrxsInsertDto.UbToSite))
                 {
                     lista.Add(new IdoProperty
                     {
-                        IsNull = true,
+                        IsNull = false,
                         Name   = prop.Name,
                         Value  = valor?.ToString() ?? string.Empty
                     });
