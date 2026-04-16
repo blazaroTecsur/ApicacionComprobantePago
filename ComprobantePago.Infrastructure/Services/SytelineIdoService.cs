@@ -62,7 +62,7 @@ namespace ComprobantePago.Infrastructure.Services
             var q = new List<string>();
             if (!adv && !string.IsNullOrWhiteSpace(props)) q.Add($"props={Uri.EscapeDataString(props)}");
             if (!string.IsNullOrWhiteSpace(filter))        q.Add($"filter={Uri.EscapeDataString(filter)}");
-            if (recordCap > 0)                             q.Add($"recordCap={recordCap}");
+            if (recordCap > 0)                             q.Add($"rowcap={recordCap}");
             if (!string.IsNullOrWhiteSpace(orderBy))       q.Add($"orderBy={Uri.EscapeDataString(orderBy)}");
             if (q.Count > 0) url += "?" + string.Join("&", q);
 
