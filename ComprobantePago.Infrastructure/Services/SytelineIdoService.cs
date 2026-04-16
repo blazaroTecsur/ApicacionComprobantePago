@@ -227,10 +227,13 @@ namespace ComprobantePago.Infrastructure.Services
                     $"Error en API Infor Syteline ({respuesta.StatusCode}): {contenido}");
             }
 
-            // Syteline: MessageCode 200 = éxito. Cualquier otro código es error.
+            // Syteline usa dos códigos de éxito según la operación:
+            //   0   → LoadCollection (GET)
+            //   200 → InsertItem / UpdateItem (POST/PUT)
+            // Cualquier otro código es error de negocio.
             var doc = JsonDocument.Parse(contenido).RootElement.Clone();
             if (doc.TryGetProperty("MessageCode", out var msgCode) &&
-                msgCode.TryGetInt32(out var code) && code != 200)
+                msgCode.TryGetInt32(out var code) && code != 200 && code != 0)
             {
                 var msg = doc.TryGetProperty("Message", out var m) ? m.GetString() : contenido;
                 _logger.LogError("IDO operación fallida. MessageCode: {Code} — {Message}", code, msg);
