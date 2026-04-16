@@ -55,18 +55,14 @@ namespace ComprobantePago.Infrastructure.Services
         {
             string url;
             if (adv && !string.IsNullOrWhiteSpace(props))
-            {
-                url = recordCap > 0
-                    ? $"{_settings.IdoBaseUrl}json/{Uri.EscapeDataString(ido)}/{Uri.EscapeDataString(props)}/{recordCap}/adv"
-                    : $"{_settings.IdoBaseUrl}json/{Uri.EscapeDataString(ido)}/{Uri.EscapeDataString(props)}/adv";
-            }
+                url = $"{_settings.IdoBaseUrl}json/{Uri.EscapeDataString(ido)}/{Uri.EscapeDataString(props)}/adv";
             else
                 url = $"{_settings.IdoBaseUrl}json/{Uri.EscapeDataString(ido)}";
 
             var q = new List<string>();
             if (!adv && !string.IsNullOrWhiteSpace(props)) q.Add($"props={Uri.EscapeDataString(props)}");
             if (!string.IsNullOrWhiteSpace(filter))        q.Add($"filter={Uri.EscapeDataString(filter)}");
-            if (!adv && recordCap > 0)                     q.Add($"recordCap={recordCap}");
+            if (recordCap > 0)                             q.Add($"recordCap={recordCap}");
             if (!string.IsNullOrWhiteSpace(orderBy))       q.Add($"orderBy={Uri.EscapeDataString(orderBy)}");
             if (q.Count > 0) url += "?" + string.Join("&", q);
 
