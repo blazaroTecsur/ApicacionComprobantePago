@@ -93,6 +93,7 @@ namespace ComprobantePago.Infrastructure.Services
                     props:     "Voucher",
                     orderBy:   "Voucher DESC",
                     recordCap: 1,
+                    adv:       true,
                     ct:        ct);
 
                 _logger.LogInformation("SLAptrxs MaxVoucher: {Body}", resultado.GetRawText());
