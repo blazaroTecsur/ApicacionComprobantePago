@@ -71,6 +71,7 @@ namespace ComprobantePago.Infrastructure.QueryServices
                     VendNum   = vendNum,
                     Nombre    = c.EsEmpleado ? (c.EmpleadoNombre ?? string.Empty) : c.RazonSocialReceptor,
                     Comprobante = c.IdComprobante,
+                    Folio       = c.Folio,
                     Factura = $"{c.Serie}-{c.Numero}",
                     FechaFactura = c.FechaEmision
                                         .ToString("yyyy-MM-dd"),
