@@ -146,6 +146,19 @@ namespace ComprobantePago.Infrastructure.QueryServices
                 .OrderBy(x => x.FechaAprobacion)
                 .ToListAsync();
 
+            // Lookup IdProveedorExternal para empleados (el RucReceptor es el proveedor pagado)
+            var empleadoRucs = comprobantes
+                .Where(c => c.EsEmpleado)
+                .Select(c => c.RucReceptor)
+                .Distinct()
+                .ToList();
+
+            var empleadoVendNums = empleadoRucs.Count > 0
+                ? await _contexto.Proveedores
+                    .Where(p => empleadoRucs.Contains(p.Ruc) && p.IdProveedorExternal != 0)
+                    .ToDictionaryAsync(p => p.Ruc, p => p.IdProveedorExternal.ToString())
+                : new Dictionary<string, string>();
+
             var resultado = new List<SytelineDistribucionDto>();
 
             foreach (var c in comprobantes)
@@ -214,6 +227,12 @@ namespace ComprobantePago.Infrastructure.QueryServices
                     var nomProvDist    = c.EsEmpleado && idx == 0 ? c.RazonSocialReceptor  : (idx == 0 ? (c.RazonSocialBenef ?? string.Empty) : string.Empty);
                     var numRegFiscDist = c.EsEmpleado && idx == 0 ? c.RucReceptor         : (idx == 0 ? (c.RucBeneficiario ?? string.Empty) : string.Empty);
 
+                    // Para empleados en la línea principal: VendNum del proveedor real (padded a 7)
+                    var aptZCO = c.EsEmpleado && idx == 0
+                        && empleadoVendNums.TryGetValue(c.RucReceptor, out var evn)
+                        ? evn.PadLeft(7)
+                        : string.Empty;
+
                     resultado.Add(new SytelineDistribucionDto
                     {
                         Proveedor         = proveedorExport,
@@ -243,8 +262,9 @@ namespace ComprobantePago.Infrastructure.QueryServices
                         CodUnidad1        = imp.CodUnidad1Cuenta ?? string.Empty,
                         CodUnidad3        = imp.CodUnidad3Cuenta ?? string.Empty,
                         CodUnidad4        = imp.CodUnidad4Cuenta ?? string.Empty,
-                        EsLineaPrincipal  = idx == 0,
-                        TipoDoc           = c.TipoSunat
+                        EsLineaPrincipal     = idx == 0,
+                        TipoDoc              = c.TipoSunat,
+                        AptZCO_APD_VendNum   = aptZCO
                     });
                 }
             }
