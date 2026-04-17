@@ -150,7 +150,7 @@ namespace ComprobantePago.Infrastructure.Services
                     TaxRegNum          = linea.EsEmpleado && linea.NumRegFiscal.Length > 0 ? linea.NumRegFiscal[..Math.Min(25, linea.NumRegFiscal.Length)] : "",
                     TaxRegNumType      = linea.EsEmpleado && !string.IsNullOrEmpty(linea.NumRegFiscal) ? "T" : "",
                     ProjNum            = linea.Proyecto.Length > 0 ? linea.Proyecto[..Math.Min(10, linea.Proyecto.Length)] : "",
-                    aptZCO_APD_VendNum = linea.EsEmpleado ? linea.AptZCO_APD_VendNum : "",
+                    aptZCO_APD_VendNum = linea.EsEmpleado && linea.AptZCO_APD_VendNum.Length > 0 ? linea.AptZCO_APD_VendNum.PadLeft(7) : "",
                 };
                 _logger.LogInformation("IDO SLAptrxds Gasto → Voucher={Voucher} DistSeq={Seq} Acct={Acct} Amount={Amt}",
                     voucher, distSeq, dto.Acct, dto.Amount);
