@@ -291,7 +291,8 @@ namespace ComprobantePago.Infrastructure.QueryServices
                         EsLineaPrincipal     = idx == 0,
                         EsEmpleado           = c.EsEmpleado,
                         TipoDoc              = c.TipoSunat,
-                        AptZCO_APD_VendNum   = aptZCO
+                        AptZCO_APD_VendNum   = aptZCO,
+                        NombreProveedor      = c.RazonSocialReceptor
                     });
                 }
             }
