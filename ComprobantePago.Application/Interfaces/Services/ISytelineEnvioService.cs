@@ -9,9 +9,9 @@ namespace ComprobantePago.Application.Interfaces.Services
     {
         /// <summary>
         /// Inserta una cabecera de comprobante en SLAptrxs.
-        /// Devuelve el número de voucher asignado por Syteline.
+        /// Devuelve el voucher asignado y el ItemId interno de Syteline (necesario para rollback).
         /// </summary>
-        Task<int> EnviarCabeceraAsync(
+        Task<(int Voucher, string ItemId)> EnviarCabeceraAsync(
             SytelineCabeceraDto cabecera,
             CancellationToken ct = default);
 
@@ -21,6 +21,12 @@ namespace ComprobantePago.Application.Interfaces.Services
         Task<IEnumerable<int>> EnviarCabecerasAsync(
             IEnumerable<SytelineCabeceraDto> cabeceras,
             CancellationToken ct = default);
+
+        /// <summary>
+        /// Elimina una cabecera de SLAptrxs usando el ItemId devuelto por el insert.
+        /// Usar como rollback cuando la inserción de distribución falla.
+        /// </summary>
+        Task EliminarCabeceraAsync(string itemId, CancellationToken ct = default);
 
         /// <summary>
         /// Devuelve el siguiente número de voucher disponible en SLAptrxs (max actual + 1).

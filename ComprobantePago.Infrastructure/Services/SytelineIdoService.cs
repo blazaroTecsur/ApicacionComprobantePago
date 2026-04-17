@@ -153,6 +153,19 @@ namespace ComprobantePago.Infrastructure.Services
             return await EjecutarPutAsync(url, payload, ct);
         }
 
+        // ── POST /json/{ido}/deleteitem — DeleteItem ──────────────────────────
+
+        public async Task<JsonElement> DeleteItemAsync(
+            string ido,
+            string itemId,
+            CancellationToken ct = default)
+        {
+            var url  = $"{_settings.IdoBaseUrl}json/{Uri.EscapeDataString(ido)}/deleteitem";
+            var body = new { Action = 3, ItemId = itemId };
+            _logger.LogInformation("IDO DeleteItem → {Url} | ItemId: {ItemId}", url, itemId);
+            return await EjecutarPostAsync(url, body, ct);
+        }
+
         // ── GET /json/configurations ──────────────────────────────────────────
 
         public async Task<JsonElement> ObtenerConfiguracionesAsync(CancellationToken ct = default)
