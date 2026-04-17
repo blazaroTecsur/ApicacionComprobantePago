@@ -241,8 +241,8 @@ namespace ComprobantePago.Infrastructure.QueryServices
                     var nomProvDist    = c.EsEmpleado && idx == 0 ? c.RazonSocialReceptor  : (idx == 0 ? (c.RazonSocialBenef ?? string.Empty) : string.Empty);
 
                     // Para empleados en línea principal:
-                    //   TaxRegNum      = IdProveedorExternal del proveedor (ej. "21")
-                    //   aptZCO_APD     = RUC del proveedor (ej. "2031665659")
+                    //   TaxRegNum      = RUC del proveedor (ej. "2031665659")
+                    //   aptZCO_APD     = IdProveedorExternal del proveedor (ej. "21")
                     // Para no-empleados en línea principal:
                     //   TaxRegNum      = RUC del beneficiario
                     //   aptZCO_APD     = vacío
@@ -250,8 +250,8 @@ namespace ComprobantePago.Infrastructure.QueryServices
                     if (c.EsEmpleado && idx == 0)
                     {
                         empleadoVendNums.TryGetValue(c.RucReceptor, out var eVendId);
-                        numRegFiscDist = eVendId ?? string.Empty;  // IdProveedorExternal como string
-                        aptZCO         = c.RucReceptor;            // RUC del proveedor
+                        numRegFiscDist = c.RucReceptor;            // RUC del proveedor
+                        aptZCO         = eVendId ?? string.Empty;  // IdProveedorExternal como string
                     }
                     else
                     {
