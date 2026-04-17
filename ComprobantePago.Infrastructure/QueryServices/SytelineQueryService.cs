@@ -225,13 +225,25 @@ namespace ComprobantePago.Infrastructure.QueryServices
 
                     var nroProvDist    = c.EsEmpleado && idx == 0 ? c.RucReceptor         : (idx == 0 ? (c.RucBeneficiario ?? string.Empty) : string.Empty);
                     var nomProvDist    = c.EsEmpleado && idx == 0 ? c.RazonSocialReceptor  : (idx == 0 ? (c.RazonSocialBenef ?? string.Empty) : string.Empty);
-                    var numRegFiscDist = c.EsEmpleado && idx == 0 ? c.RucReceptor         : (idx == 0 ? (c.RucBeneficiario ?? string.Empty) : string.Empty);
 
-                    // Para empleados en la línea principal: VendNum del proveedor real (padded a 7)
-                    var aptZCO = c.EsEmpleado && idx == 0
-                        && empleadoVendNums.TryGetValue(c.RucReceptor, out var evn)
-                        ? evn.PadLeft(7)
-                        : string.Empty;
+                    // Para empleados en línea principal:
+                    //   TaxRegNum      = IdProveedorExternal del proveedor (ej. "21")
+                    //   aptZCO_APD     = RUC del proveedor (ej. "2031665659")
+                    // Para no-empleados en línea principal:
+                    //   TaxRegNum      = RUC del beneficiario
+                    //   aptZCO_APD     = vacío
+                    string numRegFiscDist, aptZCO;
+                    if (c.EsEmpleado && idx == 0)
+                    {
+                        empleadoVendNums.TryGetValue(c.RucReceptor, out var eVendId);
+                        numRegFiscDist = eVendId ?? string.Empty;  // IdProveedorExternal como string
+                        aptZCO         = c.RucReceptor;            // RUC del proveedor
+                    }
+                    else
+                    {
+                        numRegFiscDist = idx == 0 ? (c.RucBeneficiario ?? string.Empty) : string.Empty;
+                        aptZCO         = string.Empty;
+                    }
 
                     resultado.Add(new SytelineDistribucionDto
                     {
