@@ -63,5 +63,14 @@ namespace ComprobantePago.Application.DTOs.Infor
 
         /// <summary>Número de proyecto (max 10). Campo ProjNum.</summary>
         public string ProjNum { get; init; } = string.Empty;
+
+        // ── Campos extendidos Perú ─────────────────────────────────────────────
+
+        /// <summary>
+        /// VendNum del proveedor real pagado por el empleado (7 chars, padded).
+        /// Solo se rellena en la línea principal de comprobantes de empleado.
+        /// Campo aptZCO_APD_VendNum.
+        /// </summary>
+        public string aptZCO_APD_VendNum { get; init; } = string.Empty;
     }
 }

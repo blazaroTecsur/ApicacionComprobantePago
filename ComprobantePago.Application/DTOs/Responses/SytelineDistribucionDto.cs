@@ -20,6 +20,12 @@ namespace ComprobantePago.Application.DTOs.Responses
         public string NroProveedor       { get; init; } = string.Empty;
         public string NombreProv         { get; init; } = string.Empty;
         public string NumRegFiscal       { get; init; } = string.Empty;
+        /// <summary>
+        /// VendNum del proveedor real (IdProveedorExternal, 7 chars).
+        /// Solo se rellena en la línea principal de comprobantes de empleado,
+        /// donde VendNum = código externo del empleado y este campo = proveedor pagado.
+        /// </summary>
+        public string AptZCO_APD_VendNum { get; init; } = string.Empty;
 
         // ── Por subfila ──────────────────────────────
         public int SecDist               { get; init; }
@@ -35,6 +41,7 @@ namespace ComprobantePago.Application.DTOs.Responses
         public string CodUnidad3         { get; init; } = string.Empty;
         public string CodUnidad4         { get; init; } = string.Empty;
         public bool EsLineaPrincipal     { get; init; }
+        public bool EsEmpleado           { get; init; }
         public string TipoDoc            { get; init; } = string.Empty;
     }
 }
