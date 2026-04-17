@@ -43,5 +43,7 @@ namespace ComprobantePago.Application.DTOs.Responses
         public bool EsLineaPrincipal     { get; init; }
         public bool EsEmpleado           { get; init; }
         public string TipoDoc            { get; init; } = string.Empty;
+        /// <summary>Razón social del proveedor real (c.RazonSocialReceptor), siempre, independiente de si es empleado.</summary>
+        public string NombreProveedor    { get; init; } = string.Empty;
     }
 }
