@@ -27,7 +27,7 @@ namespace ComprobantePago.Infrastructure.QueryServices
                 .OrderBy(x => x.FechaAprobacion)
                 .ToListAsync();
 
-            // Índice RUC → IdProveedorExternal para resolver VendNum sin N+1
+            // Índice RUC → IdProveedorExternal para resolver VendNum de proveedores
             var rucs = comprobantes
                 .Where(c => !c.EsEmpleado)
                 .Select(c => c.RucReceptor)
@@ -37,6 +37,20 @@ namespace ComprobantePago.Infrastructure.QueryServices
             var vendNums = await _contexto.Proveedores
                 .Where(p => rucs.Contains(p.Ruc))
                 .ToDictionaryAsync(p => p.Ruc, p => p.IdProveedorExternal.ToString());
+
+            // Índice Codigo → IdEmpleadoExternal para resolver VendNum de empleados
+            var empleadoCodigos = comprobantes
+                .Where(c => c.EsEmpleado && c.EmpleadoCodigo != null)
+                .Select(c => c.EmpleadoCodigo!)
+                .Distinct()
+                .ToList();
+
+            var empleadoExternals = empleadoCodigos.Count > 0
+                ? await _contexto.Empleados
+                    .Where(e => empleadoCodigos.Contains(e.Codigo)
+                             && !string.IsNullOrEmpty(e.IdEmpleadoExternal))
+                    .ToDictionaryAsync(e => e.Codigo, e => e.IdEmpleadoExternal)
+                : new Dictionary<string, string>();
 
             var result = new List<SytelineCabeceraDto>();
 
@@ -54,13 +68,13 @@ namespace ComprobantePago.Infrastructure.QueryServices
                         c.FechaEmision.Year,
                         c.FechaEmision.Month));
 
-                // VendNum: para empleados se usa el código; para proveedores se
-                // resuelve desde IdProveedorExternal de tmaproveedor.
-                // IdProveedorExternal = 0 significa que el proveedor aún no está
-                // sincronizado con Syteline — se retorna vacío para que el envío falle
-                // con un mensaje claro en lugar de enviar un VendNum inválido.
+                // VendNum: empleados → IdEmpleadoExternal de tmaempleado;
+                // proveedores → IdProveedorExternal de tmaproveedor (0 = no sincronizado,
+                // se devuelve vacío para que el envío falle con mensaje claro).
                 var vendNum = c.EsEmpleado
-                    ? (c.EmpleadoCodigo ?? string.Empty)
+                    ? (c.EmpleadoCodigo != null &&
+                       empleadoExternals.TryGetValue(c.EmpleadoCodigo, out var extId)
+                           ? extId : string.Empty)
                     : vendNums.TryGetValue(c.RucReceptor, out var vn) && vn != "0"
                         ? vn
                         : string.Empty;
