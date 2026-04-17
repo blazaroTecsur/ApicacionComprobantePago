@@ -78,5 +78,8 @@ namespace ComprobantePago.Application.DTOs.Infor
 
         /// <summary>Nombre/razón social del proveedor o empleado. Campo VendorName.</summary>
         public string VendorName { get; init; } = string.Empty;
+
+        /// <summary>"0" para empleados; vacío (no se envía) para proveedores. Campo ForeignTaxRegNum.</summary>
+        public string ForeignTaxRegNum { get; init; } = string.Empty;
     }
 }
