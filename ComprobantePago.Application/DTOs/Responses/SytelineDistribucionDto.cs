@@ -5,6 +5,8 @@ namespace ComprobantePago.Application.DTOs.Responses
         // ── Cabecera (repetida en las 3 subfilas) ───
         public string Proveedor          { get; init; } = string.Empty;
         public int Comprobante           { get; init; }
+        /// <summary>Número de voucher Syteline pre-asignado para el Excel. 0 si no fue asignado.</summary>
+        public int VoucherSyteline       { get; set; }
         public string Nombre             { get; init; } = string.Empty;
         public string FechaDistribucion  { get; init; } = string.Empty;
         public string Factura            { get; init; } = string.Empty;

@@ -86,8 +86,8 @@ namespace ComprobantePago.Infrastructure.Services
                 ws.Cell(row, col++).Value = "Comprobante";
                 // 4-Cancelación (fijo)
                 ws.Cell(row, col++).Value = 0;
-                // 5-Comprobante
-                ws.Cell(row, col++).Value = d.Comprobante;
+                // 5-Comprobante (voucher Syteline pre-asignado; si no hay, usa IdComprobante)
+                ws.Cell(row, col++).Value = d.VoucherSyteline > 0 ? d.VoucherSyteline : d.Comprobante;
                 // 6-Factura
                 ws.Cell(row, col++).Value = d.Factura;
                 // 7-Fecha factura
@@ -310,8 +310,8 @@ namespace ComprobantePago.Infrastructure.Services
 
                 // 1-Proveedor
                 ws.Cell(row, col++).Value = d.Proveedor;
-                // 2-Comprobante
-                ws.Cell(row, col++).Value = d.Comprobante;
+                // 2-Comprobante (voucher Syteline pre-asignado; si no hay, usa IdComprobante)
+                ws.Cell(row, col++).Value = d.VoucherSyteline > 0 ? d.VoucherSyteline : d.Comprobante;
                 // 3-Nombre
                 ws.Cell(row, col++).Value = d.Nombre;
                 // 4-Tipo (fijo)

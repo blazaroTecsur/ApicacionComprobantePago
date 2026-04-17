@@ -84,7 +84,7 @@ namespace ComprobantePago.Infrastructure.Services
         // Consulta el máximo Voucher existente en SLAptrxs para este site y
         // devuelve max + 1. Si no hay registros, devuelve 1.
 
-        private async Task<int> ObtenerSiguienteVoucherAsync(CancellationToken ct)
+        public async Task<int> ObtenerSiguienteVoucherAsync(CancellationToken ct = default)
         {
             try
             {

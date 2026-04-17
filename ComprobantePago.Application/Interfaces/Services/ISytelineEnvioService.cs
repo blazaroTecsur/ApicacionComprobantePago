@@ -23,6 +23,12 @@ namespace ComprobantePago.Application.Interfaces.Services
             CancellationToken ct = default);
 
         /// <summary>
+        /// Devuelve el siguiente número de voucher disponible en SLAptrxs (max actual + 1).
+        /// Usar para pre-asignar vouchers antes de exportar el Excel.
+        /// </summary>
+        Task<int> ObtenerSiguienteVoucherAsync(CancellationToken ct = default);
+
+        /// <summary>
         /// Inserta las líneas de distribución (SLAptrxds) para un comprobante ya registrado.
         /// Genera: línea(s) de gasto, línea NR (si hay IGV), línea IGV y línea exento (si aplica).
         /// </summary>

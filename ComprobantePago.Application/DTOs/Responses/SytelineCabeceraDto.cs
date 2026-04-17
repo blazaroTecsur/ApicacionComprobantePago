@@ -14,6 +14,8 @@ namespace ComprobantePago.Application.DTOs.Responses
 
         public string Nombre             { get; init; } = string.Empty;
         public int Comprobante           { get; init; }
+        /// <summary>Número de voucher Syteline pre-asignado para el Excel (max+n). 0 si no fue asignado.</summary>
+        public int VoucherSyteline       { get; set; }
         /// <summary>Folio del comprobante en el sistema (clave para DerivarAsync).</summary>
         public string Folio              { get; init; } = string.Empty;
         public string Factura            { get; init; } = string.Empty;
