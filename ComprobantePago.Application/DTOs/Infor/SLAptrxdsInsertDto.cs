@@ -72,5 +72,11 @@ namespace ComprobantePago.Application.DTOs.Infor
         /// Campo aptZCO_APD_VendNum.
         /// </summary>
         public string aptZCO_APD_VendNum { get; init; } = string.Empty;
+
+        /// <summary>Tipo de documento SUNAT (ej. "01"=Factura). Campo aptZLA_TipoDocumento.</summary>
+        public string aptZLA_TipoDocumento { get; init; } = string.Empty;
+
+        /// <summary>Nombre/razón social del proveedor o empleado. Campo VendorName.</summary>
+        public string VendorName { get; init; } = string.Empty;
     }
 }
