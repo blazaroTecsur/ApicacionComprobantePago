@@ -147,10 +147,10 @@ namespace ComprobantePago.Infrastructure.Services
                     AcctUnit4   = linea.CodUnidad4.Length > 0 ? linea.CodUnidad4[..Math.Min(4, linea.CodUnidad4.Length)] : "",
                     Amount      = linea.Importe,
                     DIOTTransType      = cabecera.ImpVentas2 != 0 ? "1" : "",
-                    TaxRegNum          = linea.NumRegFiscal.Length > 0 ? linea.NumRegFiscal[..Math.Min(25, linea.NumRegFiscal.Length)] : "",
-                    TaxRegNumType      = !string.IsNullOrEmpty(linea.NumRegFiscal) ? "T" : "",
+                    TaxRegNum          = linea.EsEmpleado && linea.NumRegFiscal.Length > 0 ? linea.NumRegFiscal[..Math.Min(25, linea.NumRegFiscal.Length)] : "",
+                    TaxRegNumType      = linea.EsEmpleado && !string.IsNullOrEmpty(linea.NumRegFiscal) ? "T" : "",
                     ProjNum            = linea.Proyecto.Length > 0 ? linea.Proyecto[..Math.Min(10, linea.Proyecto.Length)] : "",
-                    aptZCO_APD_VendNum = linea.AptZCO_APD_VendNum,
+                    aptZCO_APD_VendNum = linea.EsEmpleado ? linea.AptZCO_APD_VendNum : "",
                 };
                 _logger.LogInformation("IDO SLAptrxds Gasto → Voucher={Voucher} DistSeq={Seq} Acct={Acct} Amount={Amt}",
                     voucher, distSeq, dto.Acct, dto.Amount);

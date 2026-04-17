@@ -275,6 +275,7 @@ namespace ComprobantePago.Infrastructure.QueryServices
                         CodUnidad3        = imp.CodUnidad3Cuenta ?? string.Empty,
                         CodUnidad4        = imp.CodUnidad4Cuenta ?? string.Empty,
                         EsLineaPrincipal     = idx == 0,
+                        EsEmpleado           = c.EsEmpleado,
                         TipoDoc              = c.TipoSunat,
                         AptZCO_APD_VendNum   = aptZCO
                     });
