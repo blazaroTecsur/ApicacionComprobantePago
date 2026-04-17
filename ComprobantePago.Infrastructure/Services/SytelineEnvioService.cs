@@ -178,7 +178,7 @@ namespace ComprobantePago.Infrastructure.Services
                     ProjNum            = linea.Proyecto.Length > 0 ? linea.Proyecto[..Math.Min(10, linea.Proyecto.Length)] : "",
                     aptZCO_APD_VendNum  = linea.EsEmpleado && linea.AptZCO_APD_VendNum.Length > 0 ? linea.AptZCO_APD_VendNum : "",
                     aptZLA_TipoDocumento = linea.TipoDoc.Length > 0 ? linea.TipoDoc[..Math.Min(2, linea.TipoDoc.Length)] : "",
-                    VendorName           = linea.NombreProveedor.Length > 0 ? linea.NombreProveedor[..Math.Min(60, linea.NombreProveedor.Length)] : "",
+                    VendorName           = linea.EsEmpleado && linea.NombreProveedor.Length > 0 ? linea.NombreProveedor[..Math.Min(60, linea.NombreProveedor.Length)] : "",
                 };
                 _logger.LogInformation("IDO SLAptrxds Gasto → Voucher={Voucher} DistSeq={Seq} Acct={Acct} Amount={Amt}",
                     voucher, distSeq, dto.Acct, dto.Amount);
