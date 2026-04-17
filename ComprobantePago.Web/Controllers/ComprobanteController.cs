@@ -494,9 +494,11 @@ namespace ComprobantePago.Web.Controllers
 
             foreach (var cabecera in cabeceras)
             {
+                string itemIdCabecera = string.Empty;
                 try
                 {
-                    var voucher = await _sytelineEnvio.EnviarCabeceraAsync(cabecera, ct);
+                    var (voucher, itemId) = await _sytelineEnvio.EnviarCabeceraAsync(cabecera, ct);
+                    itemIdCabecera = itemId;
 
                     var distribuciones = await _sytelineService
                         .ObtenerDistribucionSytelineAsync(new List<string> { cabecera.Folio });
@@ -514,6 +516,22 @@ namespace ComprobantePago.Web.Controllers
                 {
                     _logger.LogError(ex,
                         "Error al enviar comprobante {Factura} a Syteline.", cabecera.Factura);
+
+                    // Si la cabecera ya fue insertada, revertirla para no dejarla huérfana
+                    if (!string.IsNullOrEmpty(itemIdCabecera))
+                    {
+                        _logger.LogWarning(
+                            "Revirtiendo cabecera de {Factura} (ItemId={ItemId}) por fallo en distribución.",
+                            cabecera.Factura, itemIdCabecera);
+                        try { await _sytelineEnvio.EliminarCabeceraAsync(itemIdCabecera, ct); }
+                        catch (Exception rollbackEx)
+                        {
+                            _logger.LogError(rollbackEx,
+                                "No se pudo revertir la cabecera de {Factura}. Requiere limpieza manual en Syteline.",
+                                cabecera.Factura);
+                        }
+                    }
+
                     errores.Add(new { folio = cabecera.Factura, error = ex.Message });
                 }
             }

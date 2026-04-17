@@ -70,6 +70,15 @@ namespace ComprobantePago.Application.Interfaces.Services
             CancellationToken ct = default);
 
         /// <summary>
+        /// Elimina un registro de un IDO por su ItemId.
+        /// POST /json/{ido}/deleteitem
+        /// </summary>
+        Task<JsonElement> DeleteItemAsync(
+            string ido,
+            string itemId,
+            CancellationToken ct = default);
+
+        /// <summary>
         /// Lista las configuraciones IDO disponibles.
         /// GET /json/configurations
         /// </summary>

@@ -29,7 +29,7 @@ namespace ComprobantePago.Infrastructure.Services
 
         // ── Insertar una cabecera ─────────────────────────────────────────────
 
-        public async Task<int> EnviarCabeceraAsync(
+        public async Task<(int Voucher, string ItemId)> EnviarCabeceraAsync(
             SytelineCabeceraDto cabecera,
             CancellationToken ct = default)
         {
@@ -54,12 +54,14 @@ namespace ComprobantePago.Infrastructure.Services
                 refresh: "PROPS", props: "Voucher", ct: ct);
 
             var voucherConfirmado = ExtraerVoucher(respuesta);
+            var itemId            = ExtraerItemId(respuesta);
+            var finalVoucher      = voucherConfirmado > 0 ? voucherConfirmado : voucher;
 
             _logger.LogInformation(
-                "Comprobante {InvNum} insertado en SLAptrxs. Voucher: {Voucher}",
-                dto.InvNum, voucherConfirmado > 0 ? voucherConfirmado : voucher);
+                "Comprobante {InvNum} insertado en SLAptrxs. Voucher: {Voucher} ItemId: {ItemId}",
+                dto.InvNum, finalVoucher, itemId);
 
-            return voucherConfirmado > 0 ? voucherConfirmado : voucher;
+            return (finalVoucher, itemId);
         }
 
         // ── Insertar múltiples cabeceras ──────────────────────────────────────
@@ -73,11 +75,35 @@ namespace ComprobantePago.Infrastructure.Services
             foreach (var cabecera in cabeceras)
             {
                 ct.ThrowIfCancellationRequested();
-                var voucher = await EnviarCabeceraAsync(cabecera, ct);
+                var (voucher, _) = await EnviarCabeceraAsync(cabecera, ct);
                 vouchers.Add(voucher);
             }
 
             return vouchers;
+        }
+
+        // ── Eliminar cabecera (rollback compensatorio) ────────────────────────
+
+        public async Task EliminarCabeceraAsync(string itemId, CancellationToken ct = default)
+        {
+            if (string.IsNullOrEmpty(itemId))
+            {
+                _logger.LogWarning("No se puede revertir cabecera: ItemId vacío.");
+                return;
+            }
+
+            try
+            {
+                await _ido.DeleteItemAsync("SLAptrxs", itemId, ct);
+                _logger.LogInformation("Cabecera Syteline revertida. ItemId={ItemId}", itemId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "No se pudo revertir cabecera Syteline. ItemId={ItemId} — requiere limpieza manual.",
+                    itemId);
+                throw;
+            }
         }
 
         // ── Obtener siguiente número de Voucher ───────────────────────────────
@@ -317,6 +343,19 @@ namespace ComprobantePago.Infrastructure.Services
             }
 
             return 0;
+        }
+
+        // ── Extraer ItemId del response de additem ────────────────────────────
+
+        private static string ExtraerItemId(JsonElement respuesta)
+        {
+            if (respuesta.TryGetProperty("UpdatedItems", out var items) &&
+                items.GetArrayLength() > 0 &&
+                items[0].TryGetProperty("ItemID", out var itemId))
+            {
+                return itemId.GetString() ?? string.Empty;
+            }
+            return string.Empty;
         }
 
         // ── Extraer Voucher del response de LoadCollection (/adv) ─────────────
