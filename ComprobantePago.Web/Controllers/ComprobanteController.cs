@@ -433,9 +433,22 @@ namespace ComprobantePago.Web.Controllers
 
         /// <summary>Exporta la distribución SyteLine en formato Excel para los folios indicados.</summary>
         [HttpPost]
-        public async Task<IActionResult> ExportarDistribucionSyteline([FromForm] List<string> folios)
+        public async Task<IActionResult> ExportarDistribucionSyteline(
+            [FromForm] List<string> folios,
+            CancellationToken ct)
         {
-            var datos = await _sytelineService.ObtenerDistribucionSytelineAsync(folios);
+            // Pre-asignar vouchers con el mismo criterio que el envío API
+            var cabeceras    = (await _sytelineService.ObtenerCabecerasSytelineAsync(folios)).ToList();
+            var voucherBase  = await _sytelineEnvio.ObtenerSiguienteVoucherAsync(ct);
+            var voucherMap   = cabeceras
+                .Select((c, i) => (c.Comprobante, Voucher: voucherBase + i))
+                .ToDictionary(x => x.Comprobante, x => x.Voucher);
+
+            var datos = (await _sytelineService.ObtenerDistribucionSytelineAsync(folios)).ToList();
+            foreach (var d in datos)
+                if (voucherMap.TryGetValue(d.Comprobante, out var v))
+                    d.VoucherSyteline = v;
+
             var excel = _excelService.GenerarDistribucion(datos);
             return File(excel,
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -444,9 +457,16 @@ namespace ComprobantePago.Web.Controllers
 
         /// <summary>Exporta la cabecera SyteLine en formato Excel para los folios indicados.</summary>
         [HttpPost]
-        public async Task<IActionResult> ExportarCabeceraSyteline([FromForm] List<string> folios)
+        public async Task<IActionResult> ExportarCabeceraSyteline(
+            [FromForm] List<string> folios,
+            CancellationToken ct)
         {
-            var datos = await _sytelineService.ObtenerCabecerasSytelineAsync(folios);
+            var datos       = (await _sytelineService.ObtenerCabecerasSytelineAsync(folios)).ToList();
+            var voucherBase = await _sytelineEnvio.ObtenerSiguienteVoucherAsync(ct);
+
+            for (int i = 0; i < datos.Count; i++)
+                datos[i].VoucherSyteline = voucherBase + i;
+
             var excel = _excelService.GenerarCabecera(datos);
             return File(excel,
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
