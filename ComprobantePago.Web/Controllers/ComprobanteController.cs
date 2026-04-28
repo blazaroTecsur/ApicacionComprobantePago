@@ -507,7 +507,8 @@ namespace ComprobantePago.Web.Controllers
 
                     await _repository.DerivarAsync(new DerivarComprobanteCommand
                     {
-                        Comprobante = new AccionComprobanteDto { Folio = cabecera.Folio }
+                        Comprobante     = new AccionComprobanteDto { Folio = cabecera.Folio },
+                        VoucherSyteline = voucher
                     });
 
                     resultados.Add(new { folio = cabecera.Factura, voucher });

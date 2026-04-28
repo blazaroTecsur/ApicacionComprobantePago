@@ -226,9 +226,11 @@ namespace ComprobantePago.Infrastructure.Repositories
         public async Task DerivarAsync(DerivarComprobanteCommand command)
         {
             var c = await ObtenerPorFolioAsync(command.Comprobante.Folio);
-            c.EstaDerivado = true;
-            c.UsuarioAct   = "SYSTEM";
-            c.FechaAct     = DateTime.Now;
+            c.EstaDerivado    = true;
+            c.UsuarioAct      = "SYSTEM";
+            c.FechaAct        = DateTime.Now;
+            if (command.VoucherSyteline.HasValue)
+                c.VoucherSyteline = command.VoucherSyteline.Value;
             await _unitOfWork.SaveChangesAsync();
         }
 
