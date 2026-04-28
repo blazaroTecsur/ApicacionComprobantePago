@@ -54,6 +54,10 @@ function inicializarTabla() {
                 render: d => renderEstado(d)
             },
             {
+                data: 'voucherSyteline',
+                render: d => d ? `<span class="badge bg-dark">${d}</span>` : ''
+            },
+            {
                 data: 'folio',
                 orderable: false,
                 width: '60px',

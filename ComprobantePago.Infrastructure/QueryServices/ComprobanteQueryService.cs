@@ -55,7 +55,8 @@ namespace ComprobantePago.Infrastructure.QueryServices
                     Fecha = x.FechaEmision.ToString("dd/MM/yyyy"),
                     Moneda = x.Moneda,
                     MontoTotal = x.MontoTotal,
-                    Estado = x.CodigoEstado
+                    Estado = x.CodigoEstado,
+                    VoucherSyteline = x.VoucherSyteline
                 })
                 .ToListAsync();
         }

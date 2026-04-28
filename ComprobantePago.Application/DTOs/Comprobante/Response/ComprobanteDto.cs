@@ -11,5 +11,6 @@ namespace ComprobantePago.Application.DTOs.Comprobante.Response
         public string Moneda         { get; init; } = string.Empty;
         public decimal MontoTotal    { get; init; }
         public string Estado         { get; init; } = string.Empty;
+        public int? VoucherSyteline  { get; init; }
     }
 }
