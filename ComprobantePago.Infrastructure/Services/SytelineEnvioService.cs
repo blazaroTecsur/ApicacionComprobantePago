@@ -172,7 +172,7 @@ namespace ComprobantePago.Infrastructure.Services
                     AcctUnit3   = linea.CodUnidad3.Length > 0 ? linea.CodUnidad3[..Math.Min(4, linea.CodUnidad3.Length)] : "",
                     AcctUnit4   = linea.CodUnidad4.Length > 0 ? linea.CodUnidad4[..Math.Min(4, linea.CodUnidad4.Length)] : "",
                     Amount      = linea.Importe,
-                    DIOTTransType      = cabecera.ImpVentas2 != 0 ? "1" : "",
+                    DIOTTransType      = linea.EsEmpleado ? "1" : "0",
                     TaxRegNum          = linea.EsEmpleado && linea.NumRegFiscal.Length > 0 ? linea.NumRegFiscal[..Math.Min(25, linea.NumRegFiscal.Length)] : "",
                     TaxRegNumType      = linea.EsEmpleado && !string.IsNullOrEmpty(linea.NumRegFiscal) ? "T" : "",
                     ProjNum            = linea.Proyecto.Length > 0 ? linea.Proyecto[..Math.Min(10, linea.Proyecto.Length)] : "",
