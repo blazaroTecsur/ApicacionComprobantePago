@@ -20,21 +20,20 @@
                     <option value="">-- Todos --</option>
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label">Proveedor</label>
                 <input type="text" class="form-control form-control-sm"
                        id="index_txtProveedor" placeholder="RUC o razón social">
             </div>
             <div class="col-md-2">
                 <label class="form-label">Folio</label>
-                <div class="input-group input-group-sm">
-                    <input type="text" class="form-control" id="index_txtFolio">
-                    <button type="button" class="btn btn-success btn-sm" id="index_btnBuscar">
-                        <i class="bi bi-search"></i>
-                    </button>
-                </div>
+                <input type="text" class="form-control form-control-sm" id="index_txtFolio">
             </div>
-            <div class="col-md-3 d-flex align-items-end gap-2 flex-wrap">
+            <div class="col-md-4 d-flex align-items-end gap-2 flex-wrap">
+                <button type="button" class="btn btn-success btn-sm"
+                        id="index_btnBuscar">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
                 <button type="button" class="btn btn-primary btn-sm"
                         id="index_btnNuevo">
                     <i class="bi bi-file-earmark-plus"></i> Nuevo
