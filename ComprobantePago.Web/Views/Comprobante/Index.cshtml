@@ -29,7 +29,7 @@
                 <label class="form-label">Folio</label>
                 <div class="input-group input-group-sm">
                     <input type="text" class="form-control" id="index_txtFolio">
-                    <button type="button" class="btn btn-success" id="index_btnBuscar">
+                    <button type="button" class="btn btn-primary btn-sm" id="index_btnBuscar">
                         <i class="bi bi-search"></i>
                     </button>
                 </div>
@@ -44,12 +44,12 @@
                         title="Enviar cabecera al IDO SLAptrxs de Infor Syteline">
                     <i class="bi bi-send"></i> Enviar a Syteline
                 </button>
-                <button type="button" class="btn btn-success btn-sm"
+                <button type="button" class="btn btn-success btn-sm d-none"
                         id="index_btnExportarCabecera"
                         title="Exportar cabecera en Excel (respaldo)">
                     <i class="bi bi-file-excel"></i> Excel Cabecera
                 </button>
-                <button type="button" class="btn btn-success btn-sm"
+                <button type="button" class="btn btn-success btn-sm d-none"
                         id="index_btnExportarImputacion"
                         title="Exportar imputación en Excel (respaldo)">
                     <i class="bi bi-file-excel"></i> Excel Imputación
@@ -80,6 +80,7 @@
                     <th>MONEDA</th>
                     <th>MONTO TOTAL</th>
                     <th>ESTADO</th>
+                    <th>VOUCHER</th>
                     <th>ACCIONES</th>
                 </tr>
             </thead>
