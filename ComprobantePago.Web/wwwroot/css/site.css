@@ -1,5 +1,5 @@
 /* ============================================================
-   VARIABLES — Paleta corporativa moderna
+   VARIABLES ï¿½ Paleta corporativa moderna
 ============================================================ */
 :root {
     --corp-blue: #185FA5;
@@ -303,11 +303,17 @@ body {
     padding: 0;
 }
 
+    .dataTables_wrapper .row:first-child,
+    .dataTables_wrapper .dt-row:first-child {
+        background: #f4f6fb;
+        border-bottom: 0.5px solid var(--corp-border);
+        margin-left: 0;
+        margin-right: 0;
+    }
+
     .dataTables_wrapper .dataTables_length,
     .dataTables_wrapper .dataTables_filter {
         padding: 10px 14px;
-        background: #f4f6fb;
-        border-bottom: 0.5px solid var(--corp-border);
     }
 
         .dataTables_wrapper .dataTables_length label,
