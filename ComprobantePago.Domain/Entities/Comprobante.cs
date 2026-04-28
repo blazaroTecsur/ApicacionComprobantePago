@@ -70,6 +70,7 @@
         public bool EsEmpleado { get; set; }
         public string? EmpleadoCodigo { get; set; }
         public string? EmpleadoNombre { get; set; }
+        public int? VoucherSyteline { get; set; }
 
         // Navegación
         public ICollection<ImputacionContable> Imputaciones { get; set; }
