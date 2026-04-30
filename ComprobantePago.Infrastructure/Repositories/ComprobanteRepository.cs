@@ -227,6 +227,7 @@ namespace ComprobantePago.Infrastructure.Repositories
         {
             var c = await ObtenerPorFolioAsync(command.Comprobante.Folio);
             c.EstaDerivado    = true;
+            c.CodigoEstado    = "DERIVADO SYT";
             c.UsuarioAct      = "SYSTEM";
             c.FechaAct        = DateTime.Now;
             if (command.VoucherSyteline.HasValue)

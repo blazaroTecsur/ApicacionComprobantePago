@@ -128,7 +128,8 @@ function renderEstado(estado) {
         'AUTORIZADO': 'info',
         'APROBADO': 'success',
         'ANULADO': 'danger',
-        'DERIVADO': 'warning'
+        'DERIVADO': 'warning',
+        'DERIVADO SYT': 'dark'
     };
     const color = colores[estado] || 'secondary';
     return `<span class="badge bg-${color}">${estado}</span>`;
