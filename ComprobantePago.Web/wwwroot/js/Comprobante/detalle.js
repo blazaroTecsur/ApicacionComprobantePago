@@ -316,6 +316,10 @@ function mostrarBotonesSegunEstado(estado) {
             $('#btnImprimirComprobante, #btnVistaPrevia')
                 .removeClass('d-none');
             break;
+        case 'DERIVADO SYT':
+            $('#btnImprimirComprobante, #btnVistaPrevia')
+                .removeClass('d-none');
+            break;
     }
 }
 
