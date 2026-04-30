@@ -281,6 +281,27 @@ function poblarMontos(data) {
     $('#txtMontoBruto').val(CorporativoCore.formatearMonto(montoBruto));
 }
 
+function bloquearTodosLosCampos() {
+    // Campos del detalle
+    $('#btnBuscarProveedorPrincipal, #btnBuscarRucBenef, #btnBuscarCRPrincipal')
+        .prop('disabled', true);
+    $('#ddlTipoDocumento, #ddlTipoSunat, #ddlMoneda, #dldLugarPago, #ddlTipoDetraccion')
+        .prop('disabled', true);
+    $('#TieneDetraccion, #NoTieneDetraccion').prop('disabled', true);
+    $('#txtSerie, #txtNumero, #txtFechaRecepcion, #txtCR, #txtPlazoPago, #txtTasaCambio, ' +
+      '#txtObservacion, #txtRucBenef, #txtRazonSocialBenef, ' +
+      '#txtPorcentajeDetraccion, #txtConstanciaDeposito, ' +
+      '#txtMontoIGVCreditoPorcentajeIGV')
+        .prop('readonly', true);
+    $('#txtFechaEmision, #txtFechaDeposito').prop('disabled', true);
+    $('.monto').prop('readonly', true);
+    // Empleado
+    $('#btnBuscarEmpleado').prop('disabled', true);
+    $('#chkEsEmpleado').prop('disabled', true);
+    // Barras de imputación
+    $('#barraOpcionesImputacion, #barraAccionesImputacion').addClass('d-none');
+}
+
 // ── Mostrar botones según estado ──────────────
 function mostrarBotonesSegunEstado(estado) {
     ocultarTodosLosBotones();
@@ -299,24 +320,29 @@ function mostrarBotonesSegunEstado(estado) {
                 .removeClass('d-none');
             break;
         case 'ENVIADO':
+            bloquearTodosLosCampos();
             $('#btnAutorizarDetalle, #btnImprimirComprobante')
                 .removeClass('d-none');
             $('#btnVistaPrevia, #btnAnular').removeClass('d-none');
             break;
         case 'AUTORIZADO':
+            bloquearTodosLosCampos();
             $('#btnAprobarDetalle, #btnImprimirComprobante')
                 .removeClass('d-none');
             $('#btnVistaPrevia, #btnAnular').removeClass('d-none');
             break;
         case 'APROBADO':
+            bloquearTodosLosCampos();
             $('#btnImprimirComprobante, #btnVistaPrevia')
                 .removeClass('d-none');
             break;
         case 'ANULADO':
+            bloquearTodosLosCampos();
             $('#btnImprimirComprobante, #btnVistaPrevia')
                 .removeClass('d-none');
             break;
         case 'DERIVADO SYT':
+            bloquearTodosLosCampos();
             $('#btnImprimirComprobante, #btnVistaPrevia')
                 .removeClass('d-none');
             break;
