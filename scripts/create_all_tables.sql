@@ -434,7 +434,7 @@ IF NOT EXISTS (SELECT 1 FROM rcotiposunat WHERE Codigo = 'R1')
 
 IF NOT EXISTS (SELECT 1 FROM rcotiposunat WHERE Codigo = '14')
     INSERT INTO rcotiposunat (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
-    VALUES ('R1', 'Recibos Servicios Públicos', 1, 'SYSTEM', GETDATE());
+    VALUES ('14', 'Recibos Servicios Públicos', 1, 'SYSTEM', GETDATE());
 
 IF NOT EXISTS (SELECT 1 FROM rcotiposunat WHERE Codigo = 'VALES')
     INSERT INTO rcotiposunat (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
