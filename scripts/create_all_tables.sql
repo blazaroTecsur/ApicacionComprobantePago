@@ -1,6 +1,6 @@
 -- ============================================================
 -- SCRIPT COMPLETO: Tablas e Inserts
--- Base de datos: ComprobantePago
+-- Base de datos: erp_tecsur_pinterna
 -- Motor: SQL Server
 -- Generado: 2026-05-04
 -- ============================================================
@@ -101,6 +101,7 @@ CREATE TABLE tmacuentacontable (
     IdCuentaContable INT          IDENTITY(1,1) NOT NULL,
     Codigo           VARCHAR(20)  NOT NULL,
     Descripcion      VARCHAR(200) NOT NULL,
+    Tipo             VARCHAR(20)  NOT NULL,
     Activo           BIT          NOT NULL DEFAULT 1,
     UsuarioReg       VARCHAR(50)  NOT NULL,
     FechaReg         DATETIME2    NOT NULL DEFAULT GETDATE(),
@@ -185,8 +186,10 @@ CREATE TABLE tmaempleado (
     CorreoElect          VARCHAR(200) NULL,
     FechaContratacion    DATETIME2    NULL,
     FechaRescision       DATETIME2    NULL,
-    FechaCreacion        DATETIME2    NOT NULL DEFAULT GETDATE(),
-    FechaActualizacion   DATETIME2    NOT NULL DEFAULT GETDATE(),
+    UsuarioReg      VARCHAR(50)  NOT NULL,
+    FechaReg        DATETIME2    NOT NULL DEFAULT GETDATE(),
+    UsuarioAct      VARCHAR(50)  NULL,
+    FechaAct        DATETIME2    NULL,
     CONSTRAINT PK_tmaempleado PRIMARY KEY (IdEmpleado),
     CONSTRAINT UQ_tmaempleado_IdEmpleadoExternal UNIQUE (IdEmpleadoExternal)
 );
@@ -214,7 +217,9 @@ CREATE TABLE tmaproveedor (
     UsuarioAct               VARCHAR(30)  NULL,
     FechaAct                 DATETIME2    NULL,
     CONSTRAINT PK_tmaproveedor PRIMARY KEY (IdProveedor),
-    CONSTRAINT UQ_tmaproveedor_IdProveedorExternal UNIQUE (IdProveedorExternal)
+    CONSTRAINT UQ_tmaproveedor_IdProveedorExternal UNIQUE (IdProveedorExternal),
+    CONSTRAINT UQ_tmaproveedor_Ruc UNIQUE (Ruc),
+    CONSTRAINT UQ_tmaproveedor_NombreProveedor UNIQUE (NombreProveedor)
 );
 
 -- ============================================================
@@ -331,6 +336,8 @@ CREATE TABLE rcodocumentoelectronico (
     Contenido     VARBINARY(MAX) NOT NULL,
     FechaReg      DATETIME2      NOT NULL DEFAULT GETDATE(),
     UsuarioReg    VARCHAR(50)    NOT NULL,
+    UsuarioAct    VARCHAR(50)    NULL,
+    FechaAct      DATETIME2      NULL,
     CONSTRAINT PK_rcodocumentoelectronico PRIMARY KEY (IdDocumento)
 );
 
@@ -379,23 +386,19 @@ IF NOT EXISTS (SELECT 1 FROM rcoestadocomprobante WHERE Codigo = 'DERIVADO SYT')
 
 IF NOT EXISTS (SELECT 1 FROM rcotipodocumento WHERE Codigo = 'FAC')
     INSERT INTO rcotipodocumento (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
-    VALUES ('FAC', 'Factura', 1, 'SYSTEM', GETDATE());
+    VALUES ('FP', 'Facturas Proveedor', 1, 'SYSTEM', GETDATE());
 
 IF NOT EXISTS (SELECT 1 FROM rcotipodocumento WHERE Codigo = 'NCR')
     INSERT INTO rcotipodocumento (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
-    VALUES ('NCR', 'Nota de Crédito', 1, 'SYSTEM', GETDATE());
+    VALUES ('VC', 'Vale Caja', 1, 'SYSTEM', GETDATE());
 
 IF NOT EXISTS (SELECT 1 FROM rcotipodocumento WHERE Codigo = 'NDB')
     INSERT INTO rcotipodocumento (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
-    VALUES ('NDB', 'Nota de Débito', 1, 'SYSTEM', GETDATE());
+    VALUES ('PV', 'Provisional', 1, 'SYSTEM', GETDATE());
 
 IF NOT EXISTS (SELECT 1 FROM rcotipodocumento WHERE Codigo = 'LIQ')
     INSERT INTO rcotipodocumento (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
-    VALUES ('LIQ', 'Liquidación de Compra', 1, 'SYSTEM', GETDATE());
-
-IF NOT EXISTS (SELECT 1 FROM rcotipodocumento WHERE Codigo = 'REC')
-    INSERT INTO rcotipodocumento (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
-    VALUES ('REC', 'Recibo por Honorarios', 1, 'SYSTEM', GETDATE());
+    VALUES ('VT', 'Pago Trabajadores', 1, 'SYSTEM', GETDATE());
 
 -- ============================================================
 -- INSERTS CATÁLOGO — rcotiposunat
@@ -420,6 +423,22 @@ IF NOT EXISTS (SELECT 1 FROM rcotiposunat WHERE Codigo = '40')
 IF NOT EXISTS (SELECT 1 FROM rcotiposunat WHERE Codigo = '03')
     INSERT INTO rcotiposunat (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
     VALUES ('03', 'Boleta de Venta', 1, 'SYSTEM', GETDATE());
+
+IF NOT EXISTS (SELECT 1 FROM rcotiposunat WHERE Codigo = '04')
+    INSERT INTO rcotiposunat (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
+    VALUES ('04', 'Liquidación de Compra', 1, 'SYSTEM', GETDATE());
+
+IF NOT EXISTS (SELECT 1 FROM rcotiposunat WHERE Codigo = 'R1')
+    INSERT INTO rcotiposunat (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
+    VALUES ('R1', 'Recibo por Honorarios', 1, 'SYSTEM', GETDATE());
+
+IF NOT EXISTS (SELECT 1 FROM rcotiposunat WHERE Codigo = '14')
+    INSERT INTO rcotiposunat (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
+    VALUES ('R1', 'Recibos Servicios Públicos', 1, 'SYSTEM', GETDATE());
+
+IF NOT EXISTS (SELECT 1 FROM rcotiposunat WHERE Codigo = 'VALES')
+    INSERT INTO rcotiposunat (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
+    VALUES ('VALES', 'Vales', 1, 'SYSTEM', GETDATE());
 
 -- ============================================================
 -- INSERTS CATÁLOGO — rcomoneda
