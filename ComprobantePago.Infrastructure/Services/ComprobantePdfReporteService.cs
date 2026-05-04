@@ -73,7 +73,6 @@ namespace ComprobantePago.Infrastructure.Services
                                 left.Item().Text($"Moneda          : {d.Moneda}");
                                 left.Item().Text($"Tasa de cambio  : S/.{d.TasaCambio:F4}");
                                 left.Item().Text($"Fecha recepción : {d.FechaRecepcion}");
-                                left.Item().Text($"Cr              : {d.LugarPago}");
                                 left.Item().Text($"Lugar de Pago   : {d.DescLugarPago}");
                                 left.Item().Text($"Reembolsar a RUC: {d.RucBenef}");
                                 left.Item().Text($"Orden Compra    : {(string.IsNullOrWhiteSpace(d.OrdenCompra) ? "NINGUNO" : d.OrdenCompra)}");
