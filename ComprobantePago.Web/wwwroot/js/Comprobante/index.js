@@ -77,7 +77,7 @@ function inicializarTabla() {
 // ── Cargar combos ─────────────────────────────
 function cargarTipos() {
     CorporativoQuery.ajaxGet(
-        '/Comprobante/ObtenerTiposDocumento',
+        BASE_URL + '/Comprobante/ObtenerTiposDocumento',
         function (data) {
             let options = '<option value="">-- Todos --</option>';
             data.forEach(t =>
@@ -89,7 +89,7 @@ function cargarTipos() {
 
 function cargarEstados() {
     CorporativoQuery.ajaxGet(
-        '/Comprobante/ObtenerEstados',
+        BASE_URL + '/Comprobante/ObtenerEstados',
         function (data) {
             let options = '<option value="">-- Todos --</option>';
             data.forEach(e =>
@@ -109,7 +109,7 @@ function buscar() {
     };
 
     CorporativoQuery.ajaxPost(
-        '/Comprobante/Buscar',
+        BASE_URL + '/Comprobante/Buscar',
         filtros,
         function (data) {
             tablaComprobantes.clear().rows.add(data).draw();
@@ -230,7 +230,7 @@ function enviarASyteline() {
         .html('<span class="spinner-border spinner-border-sm me-1"></span> Enviando...');
 
     $.ajax({
-        url: '/Comprobante/EnviarCabeceraASyteline',
+        url: BASE_URL + '/Comprobante/EnviarCabeceraASyteline',
         method: 'POST',
         contentType: 'application/json',
         headers: { 'RequestVerificationToken': token },
@@ -286,7 +286,7 @@ function exportarCabecera() {
     }
 
     const folios = seleccionados.map(s => s.folio);
-    enviarFormExportar('/Comprobante/ExportarCabeceraSyteline', folios);
+    enviarFormExportar(BASE_URL + '/Comprobante/ExportarCabeceraSyteline', folios);
 }
 
 // ── Exportar imputación Syteline ──────────────
@@ -308,7 +308,7 @@ function exportarImputacion() {
     }
 
     const folios = seleccionados.map(s => s.folio);
-    enviarFormExportar('/Comprobante/ExportarDistribucionSyteline', folios);
+    enviarFormExportar(BASE_URL + '/Comprobante/ExportarDistribucionSyteline', folios);
 }
 
 // ── Enviar form dinámico para descarga ────────
@@ -357,7 +357,7 @@ function bindEventos() {
 
     // Nuevo
     $('#index_btnNuevo').on('click', function () {
-        window.location.href = '/Comprobante/Detalle';
+        window.location.href = BASE_URL + '/Comprobante/Detalle';
     });
 
     // Ver detalle

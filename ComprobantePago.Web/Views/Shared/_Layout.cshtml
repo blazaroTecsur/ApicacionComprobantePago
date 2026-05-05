@@ -73,6 +73,16 @@
         </div>
     </footer>
 
+    <!-- Variables globales de sesión -->
+    <script type="text/javascript">
+        const BASE_URL = '@Url.Content("~")';
+        window.ROLES = @Html.Raw(Json.Serialize(
+                        User.Claims
+                        .Where(c => c.Type == "permission")
+                        .Select(c => c.Value)
+                        ));
+    </script>
+
     <!-- jQuery -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <!-- Bootstrap -->
