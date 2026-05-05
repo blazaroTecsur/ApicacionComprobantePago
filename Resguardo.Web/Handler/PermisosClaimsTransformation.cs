@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Caching.Memory;
+using Resguardo.Application.Services;
 using System.Security.Claims;
-using ComprobantePago.Application.Services;
 
-namespace ComprobantePago.Web.Handler
+namespace Resguardo.Web.Handler
 {
     public class PermisosClaimsTransformation : IClaimsTransformation
     {

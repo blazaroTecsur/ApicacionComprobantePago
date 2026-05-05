@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 
-namespace ComprobantePago.Web.Authorization
+namespace Resguardo.Web.Authorization
 {
     public class PermissionAttribute : AuthorizeAttribute
     {

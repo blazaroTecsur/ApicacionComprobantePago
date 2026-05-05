@@ -1,9 +1,9 @@
-namespace ComprobantePago.Web.Models
+﻿namespace Resguardo.Web.Models
 {
     public class ErrorViewModel
     {
-        public string? RequestId { get; set; }
-
-        public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+        public int StatusCode { get; set; }
+        public string? TraceId { get; set; }
+        public string UserMessage { get; set; } = string.Empty;
     }
 }

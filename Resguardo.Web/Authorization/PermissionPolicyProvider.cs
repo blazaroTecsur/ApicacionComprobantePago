@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 
-namespace ComprobantePago.Web.Authorization
+namespace Resguardo.Web.Authorization
 {
     public class PermissionPolicyProvider : IAuthorizationPolicyProvider
     {

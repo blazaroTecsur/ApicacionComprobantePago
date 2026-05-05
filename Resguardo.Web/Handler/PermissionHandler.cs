@@ -1,7 +1,7 @@
-﻿using ComprobantePago.Web.Authorization;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
+using Resguardo.Web.Authorization;
 
-namespace ComprobantePago.Web.Handler
+namespace Resguardo.Web.Handler
 {
     public class PermissionHandler : AuthorizationHandler<PermissionRequirement>
     {

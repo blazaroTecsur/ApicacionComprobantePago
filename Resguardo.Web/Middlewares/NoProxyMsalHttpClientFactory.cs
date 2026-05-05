@@ -1,6 +1,6 @@
 ﻿using Microsoft.Identity.Client;
 
-namespace ComprobantePago.Web.Middlewares
+namespace Resguardo.Web.Middlewares
 {
     public class NoProxyMsalHttpClientFactory : IMsalHttpClientFactory
     {

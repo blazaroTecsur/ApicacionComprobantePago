@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 
-namespace ComprobantePago.Web.Handler
+namespace Resguardo.Web.Handler
 {
     public class InternalAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
     {        
