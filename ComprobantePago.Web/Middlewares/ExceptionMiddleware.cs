@@ -1,16 +1,11 @@
-using ComprobantePago.Application.Common;
 using ComprobantePago.Application.Exceptions;
+using ComprobantePago.Web.Models;
 using FluentValidation;
 using Serilog.Context;
 using System.Diagnostics;
 
 namespace ComprobantePago.Web.Middlewares
 {
-    /// <summary>
-    /// Manejo centralizado de excepciones.
-    /// Las solicitudes AJAX/API reciben BaseResponse con HTTP 200 para compatibilidad con cliente.
-    /// Las solicitudes de navegador son redirigidas a la página de error.
-    /// </summary>
     public class ExceptionMiddleware
     {
         private readonly RequestDelegate _next;
@@ -43,24 +38,45 @@ namespace ComprobantePago.Web.Middlewares
         {
             var traceId = Activity.Current?.Id ?? context.TraceIdentifier;
 
-            bool isAjaxRequest =
+            bool isApiRequest =
                 context.Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
                 context.Request.Path.StartsWithSegments("/api")                  ||
                 context.Request.Headers["Accept"].ToString().Contains("application/json");
 
-            var (statusCode, mensajeUsuario) = ex switch
+            var (statusCode, errorDetail) = ex switch
             {
-                ValidationException fluentEx =>
-                    (400, string.Join("; ", fluentEx.Errors.Select(e => e.ErrorMessage))),
+                ValidationException fluentEx => (400, new ErrorDetail
+                {
+                    Code    = "VALIDATION_ERROR",
+                    UserMessage = "Por favor corrige los errores en el formulario.",
+                    ValidationErrors = fluentEx.Errors
+                        .GroupBy(e => e.PropertyName)
+                        .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray()),
+                    TraceId = traceId
+                }),
 
-                AppException appEx =>
-                    (appEx.StatusCode, appEx.UserMessage),
+                AppException appEx => (appEx.StatusCode, new ErrorDetail
+                {
+                    Code             = appEx.Code,
+                    UserMessage      = appEx.UserMessage,
+                    TechnicalMessage = _env.IsDevelopment() ? appEx.Message : null,
+                    TraceId          = traceId
+                }),
 
-                UnauthorizedAccessException =>
-                    (401, "No tienes permisos para realizar esta acción."),
+                UnauthorizedAccessException => (401, new ErrorDetail
+                {
+                    Code        = "UNAUTHORIZED",
+                    UserMessage = "No tienes permisos para realizar esta acción.",
+                    TraceId     = traceId
+                }),
 
-                _ =>
-                    (500, "Ocurrió un error inesperado. Por favor intenta de nuevo.")
+                _ => (500, new ErrorDetail
+                {
+                    Code             = "INTERNAL_ERROR",
+                    UserMessage      = "Ocurrió un error inesperado. Por favor intenta de nuevo.",
+                    TechnicalMessage = _env.IsDevelopment() ? ex.ToString() : null,
+                    TraceId          = traceId
+                })
             };
 
             using (LogContext.PushProperty("TraceId", traceId))
@@ -69,32 +85,26 @@ namespace ComprobantePago.Web.Middlewares
             {
                 if (statusCode >= 500)
                     _logger.LogError(ex,
-                        "Error interno [{TraceId}] | Usuario: {User}",
-                        traceId,
+                        "Error interno | Code: {ErrorCode} | User: {User}",
+                        errorDetail.Code,
                         context.User?.Identity?.Name ?? "anónimo");
                 else
                     _logger.LogWarning(
-                        "Error controlado [{TraceId}] | HTTP {StatusCode} | {Message}",
-                        traceId, statusCode, ex.Message);
+                        "Error controlado | Code: {ErrorCode} | Status: {StatusCode} | User: {User}",
+                        errorDetail.Code, statusCode,
+                        context.User?.Identity?.Name ?? "anónimo");
             }
 
-            if (isAjaxRequest)
+            context.Response.StatusCode = statusCode;
+
+            if (isApiRequest)
             {
-                // Devuelve siempre HTTP 200 con BaseResponse para compatibilidad con cliente JS
-                context.Response.StatusCode  = 200;
                 context.Response.ContentType = "application/json";
-
-                var mensaje = _env.IsDevelopment()
-                    ? $"{mensajeUsuario} [TraceId: {traceId}]"
-                    : mensajeUsuario;
-
-                await context.Response.WriteAsJsonAsync(
-                    BaseResponse.Error(mensaje));
+                await context.Response.WriteAsJsonAsync(ApiResponse<object>.Fail(errorDetail));
             }
             else
             {
-                context.Response.Redirect(
-                    $"/Home/Error?code={statusCode}&traceId={traceId}");
+                context.Response.Redirect($"/Home/Error?code={statusCode}&traceId={traceId}");
             }
         }
     }
