@@ -1,161 +1,139 @@
 -- ============================================================
 -- SCRIPT COMPLETO: Tablas e Inserts
 -- Base de datos: ComprobantePago
--- Motor: SQL Server
--- Generado: 2026-05-04
+-- Motor: MySQL 8.0+
+-- Generado: 2026-05-05
 -- ============================================================
 
 -- ============================================================
 -- TABLAS CATÁLOGO
 -- ============================================================
 
--- rcoestadocomprobante
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'rcoestadocomprobante') AND type = 'U')
-CREATE TABLE rcoestadocomprobante (
-    IdEstadoComprobante INT           IDENTITY(1,1) NOT NULL,
+CREATE TABLE IF NOT EXISTS rcoestadocomprobante (
+    IdEstadoComprobante INT           NOT NULL AUTO_INCREMENT,
     Codigo              VARCHAR(20)   NOT NULL,
     Descripcion         VARCHAR(100)  NOT NULL,
-    Activo              BIT           NOT NULL DEFAULT 1,
+    Activo              TINYINT(1)    NOT NULL DEFAULT 1,
     UsuarioReg          VARCHAR(50)   NOT NULL,
-    FechaReg            DATETIME2     NOT NULL DEFAULT GETDATE(),
+    FechaReg            DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UsuarioAct          VARCHAR(50)   NULL,
-    FechaAct            DATETIME2     NULL,
-    CONSTRAINT PK_rcoestadocomprobante PRIMARY KEY (IdEstadoComprobante)
-);
+    FechaAct            DATETIME      NULL,
+    PRIMARY KEY (IdEstadoComprobante)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- rcotipodocumento
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'rcotipodocumento') AND type = 'U')
-CREATE TABLE rcotipodocumento (
-    IdTipoDocumento INT          IDENTITY(1,1) NOT NULL,
+CREATE TABLE IF NOT EXISTS rcotipodocumento (
+    IdTipoDocumento INT          NOT NULL AUTO_INCREMENT,
     Codigo          VARCHAR(5)   NOT NULL,
     Descripcion     VARCHAR(100) NOT NULL,
-    Activo          BIT          NOT NULL DEFAULT 1,
+    Activo          TINYINT(1)   NOT NULL DEFAULT 1,
     UsuarioReg      VARCHAR(50)  NOT NULL,
-    FechaReg        DATETIME2    NOT NULL DEFAULT GETDATE(),
+    FechaReg        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UsuarioAct      VARCHAR(50)  NULL,
-    FechaAct        DATETIME2    NULL,
-    CONSTRAINT PK_rcotipodocumento PRIMARY KEY (IdTipoDocumento)
-);
+    FechaAct        DATETIME     NULL,
+    PRIMARY KEY (IdTipoDocumento)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- rcotiposunat
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'rcotiposunat') AND type = 'U')
-CREATE TABLE rcotiposunat (
-    IdTipoSunat INT          IDENTITY(1,1) NOT NULL,
+CREATE TABLE IF NOT EXISTS rcotiposunat (
+    IdTipoSunat INT          NOT NULL AUTO_INCREMENT,
     Codigo      VARCHAR(5)   NOT NULL,
     Descripcion VARCHAR(100) NOT NULL,
-    Activo      BIT          NOT NULL DEFAULT 1,
+    Activo      TINYINT(1)   NOT NULL DEFAULT 1,
     UsuarioReg  VARCHAR(50)  NOT NULL,
-    FechaReg    DATETIME2    NOT NULL DEFAULT GETDATE(),
+    FechaReg    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UsuarioAct  VARCHAR(50)  NULL,
-    FechaAct    DATETIME2    NULL,
-    CONSTRAINT PK_rcotiposunat PRIMARY KEY (IdTipoSunat)
-);
+    FechaAct    DATETIME     NULL,
+    PRIMARY KEY (IdTipoSunat)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- rcomoneda
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'rcomoneda') AND type = 'U')
-CREATE TABLE rcomoneda (
-    IdMoneda    INT          IDENTITY(1,1) NOT NULL,
+CREATE TABLE IF NOT EXISTS rcomoneda (
+    IdMoneda    INT          NOT NULL AUTO_INCREMENT,
     Codigo      VARCHAR(5)   NOT NULL,
     Descripcion VARCHAR(100) NOT NULL,
     Simbolo     VARCHAR(5)   NULL,
-    Activo      BIT          NOT NULL DEFAULT 1,
+    Activo      TINYINT(1)   NOT NULL DEFAULT 1,
     UsuarioReg  VARCHAR(50)  NOT NULL,
-    FechaReg    DATETIME2    NOT NULL DEFAULT GETDATE(),
+    FechaReg    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UsuarioAct  VARCHAR(50)  NULL,
-    FechaAct    DATETIME2    NULL,
-    CONSTRAINT PK_rcomoneda PRIMARY KEY (IdMoneda)
-);
+    FechaAct    DATETIME     NULL,
+    PRIMARY KEY (IdMoneda)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- rcolugarpago
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'rcolugarpago') AND type = 'U')
-CREATE TABLE rcolugarpago (
-    IdLugarPago INT          IDENTITY(1,1) NOT NULL,
+CREATE TABLE IF NOT EXISTS rcolugarpago (
+    IdLugarPago INT          NOT NULL AUTO_INCREMENT,
     Codigo      VARCHAR(5)   NOT NULL,
     Descripcion VARCHAR(100) NOT NULL,
-    Activo      BIT          NOT NULL DEFAULT 1,
+    Activo      TINYINT(1)   NOT NULL DEFAULT 1,
     UsuarioReg  VARCHAR(50)  NOT NULL,
-    FechaReg    DATETIME2    NOT NULL DEFAULT GETDATE(),
+    FechaReg    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UsuarioAct  VARCHAR(50)  NULL,
-    FechaAct    DATETIME2    NULL,
-    CONSTRAINT PK_rcolugarpago PRIMARY KEY (IdLugarPago)
-);
+    FechaAct    DATETIME     NULL,
+    PRIMARY KEY (IdLugarPago)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- rcotipodetraccion
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'rcotipodetraccion') AND type = 'U')
-CREATE TABLE rcotipodetraccion (
-    IdTipoDetraccion INT           IDENTITY(1,1) NOT NULL,
+CREATE TABLE IF NOT EXISTS rcotipodetraccion (
+    IdTipoDetraccion INT           NOT NULL AUTO_INCREMENT,
     Codigo           VARCHAR(5)    NOT NULL,
     Descripcion      VARCHAR(200)  NOT NULL,
     Porcentaje       DECIMAL(5,2)  NOT NULL DEFAULT 0,
-    Activo           BIT           NOT NULL DEFAULT 1,
+    Activo           TINYINT(1)    NOT NULL DEFAULT 1,
     UsuarioReg       VARCHAR(50)   NOT NULL,
-    FechaReg         DATETIME2     NOT NULL DEFAULT GETDATE(),
+    FechaReg         DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UsuarioAct       VARCHAR(50)   NULL,
-    FechaAct         DATETIME2     NULL,
-    CONSTRAINT PK_rcotipodetraccion PRIMARY KEY (IdTipoDetraccion)
-);
+    FechaAct         DATETIME      NULL,
+    PRIMARY KEY (IdTipoDetraccion)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- tmacuentacontable
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'tmacuentacontable') AND type = 'U')
-CREATE TABLE tmacuentacontable (
-    IdCuentaContable INT          IDENTITY(1,1) NOT NULL,
+CREATE TABLE IF NOT EXISTS tmacuentacontable (
+    IdCuentaContable INT          NOT NULL AUTO_INCREMENT,
     Codigo           VARCHAR(20)  NOT NULL,
     Descripcion      VARCHAR(200) NOT NULL,
-    Activo           BIT          NOT NULL DEFAULT 1,
+    Activo           TINYINT(1)   NOT NULL DEFAULT 1,
     UsuarioReg       VARCHAR(50)  NOT NULL,
-    FechaReg         DATETIME2    NOT NULL DEFAULT GETDATE(),
+    FechaReg         DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UsuarioAct       VARCHAR(50)  NULL,
-    FechaAct         DATETIME2    NULL,
-    CONSTRAINT PK_tmacuentacontable PRIMARY KEY (IdCuentaContable)
-);
+    FechaAct         DATETIME     NULL,
+    PRIMARY KEY (IdCuentaContable)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- tmacodigounidad1
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'tmacodigounidad1') AND type = 'U')
-CREATE TABLE tmacodigounidad1 (
-    IdCodigoUnidad1 INT          IDENTITY(1,1) NOT NULL,
+CREATE TABLE IF NOT EXISTS tmacodigounidad1 (
+    IdCodigoUnidad1 INT          NOT NULL AUTO_INCREMENT,
     Codigo          VARCHAR(10)  NOT NULL,
     Descripcion     VARCHAR(200) NOT NULL,
     Empresa         VARCHAR(50)  NOT NULL,
-    Activo          BIT          NOT NULL DEFAULT 1,
+    Activo          TINYINT(1)   NOT NULL DEFAULT 1,
     UsuarioReg      VARCHAR(50)  NOT NULL,
-    FechaReg        DATETIME2    NOT NULL DEFAULT GETDATE(),
+    FechaReg        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UsuarioAct      VARCHAR(50)  NULL,
-    FechaAct        DATETIME2    NULL,
-    CONSTRAINT PK_tmacodigounidad1 PRIMARY KEY (IdCodigoUnidad1)
-);
+    FechaAct        DATETIME     NULL,
+    PRIMARY KEY (IdCodigoUnidad1)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- tmacodigounidad3
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'tmacodigounidad3') AND type = 'U')
-CREATE TABLE tmacodigounidad3 (
-    IdCodigoUnidad3 INT          IDENTITY(1,1) NOT NULL,
+CREATE TABLE IF NOT EXISTS tmacodigounidad3 (
+    IdCodigoUnidad3 INT          NOT NULL AUTO_INCREMENT,
     Codigo          VARCHAR(10)  NOT NULL,
     Descripcion     VARCHAR(200) NOT NULL,
-    Activo          BIT          NOT NULL DEFAULT 1,
+    Activo          TINYINT(1)   NOT NULL DEFAULT 1,
     UsuarioReg      VARCHAR(50)  NOT NULL,
-    FechaReg        DATETIME2    NOT NULL DEFAULT GETDATE(),
+    FechaReg        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UsuarioAct      VARCHAR(50)  NULL,
-    FechaAct        DATETIME2    NULL,
-    CONSTRAINT PK_tmacodigounidad3 PRIMARY KEY (IdCodigoUnidad3)
-);
+    FechaAct        DATETIME     NULL,
+    PRIMARY KEY (IdCodigoUnidad3)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- tmacodigounidad4
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'tmacodigounidad4') AND type = 'U')
-CREATE TABLE tmacodigounidad4 (
-    IdCodigoUnidad4 INT          IDENTITY(1,1) NOT NULL,
+CREATE TABLE IF NOT EXISTS tmacodigounidad4 (
+    IdCodigoUnidad4 INT          NOT NULL AUTO_INCREMENT,
     Codigo          VARCHAR(10)  NOT NULL,
     Descripcion     VARCHAR(200) NOT NULL,
-    Activo          BIT          NOT NULL DEFAULT 1,
+    Activo          TINYINT(1)   NOT NULL DEFAULT 1,
     UsuarioReg      VARCHAR(50)  NOT NULL,
-    FechaReg        DATETIME2    NOT NULL DEFAULT GETDATE(),
+    FechaReg        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UsuarioAct      VARCHAR(50)  NULL,
-    FechaAct        DATETIME2    NULL,
-    CONSTRAINT PK_tmacodigounidad4 PRIMARY KEY (IdCodigoUnidad4)
-);
+    FechaAct        DATETIME     NULL,
+    PRIMARY KEY (IdCodigoUnidad4)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- tmaempleado
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'tmaempleado') AND type = 'U')
-CREATE TABLE tmaempleado (
-    IdEmpleado           INT          IDENTITY(1,1) NOT NULL,
+CREATE TABLE IF NOT EXISTS tmaempleado (
+    IdEmpleado           INT          NOT NULL AUTO_INCREMENT,
     IdEmpleadoExternal   VARCHAR(20)  NOT NULL,
     Codigo               VARCHAR(20)  NOT NULL,
     NombreCompleto       VARCHAR(200) NOT NULL,
@@ -183,18 +161,16 @@ CREATE TABLE tmaempleado (
     CP                   VARCHAR(20)  NULL,
     Telefono             VARCHAR(50)  NULL,
     CorreoElect          VARCHAR(200) NULL,
-    FechaContratacion    DATETIME2    NULL,
-    FechaRescision       DATETIME2    NULL,
-    FechaCreacion        DATETIME2    NOT NULL DEFAULT GETDATE(),
-    FechaActualizacion   DATETIME2    NOT NULL DEFAULT GETDATE(),
-    CONSTRAINT PK_tmaempleado PRIMARY KEY (IdEmpleado),
-    CONSTRAINT UQ_tmaempleado_IdEmpleadoExternal UNIQUE (IdEmpleadoExternal)
-);
+    FechaContratacion    DATETIME     NULL,
+    FechaRescision       DATETIME     NULL,
+    FechaCreacion        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FechaActualizacion   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (IdEmpleado),
+    UNIQUE KEY UQ_tmaempleado_IdEmpleadoExternal (IdEmpleadoExternal)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- tmaproveedor
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'tmaproveedor') AND type = 'U')
-CREATE TABLE tmaproveedor (
-    IdProveedor              INT          IDENTITY(1,1) NOT NULL,
+CREATE TABLE IF NOT EXISTS tmaproveedor (
+    IdProveedor              INT          NOT NULL AUTO_INCREMENT,
     IdProveedorExternal      INT          NOT NULL,
     NombreProveedor          VARCHAR(255) NULL,
     TipoPersona              VARCHAR(20)  NOT NULL,
@@ -210,21 +186,19 @@ CREATE TABLE tmaproveedor (
     CorreoInternoContacto    VARCHAR(100) NULL,
     Ruc                      VARCHAR(20)  NOT NULL,
     UsuarioReg               VARCHAR(30)  NULL,
-    FechaReg                 DATETIME2    NOT NULL DEFAULT GETDATE(),
+    FechaReg                 DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UsuarioAct               VARCHAR(30)  NULL,
-    FechaAct                 DATETIME2    NULL,
-    CONSTRAINT PK_tmaproveedor PRIMARY KEY (IdProveedor),
-    CONSTRAINT UQ_tmaproveedor_IdProveedorExternal UNIQUE (IdProveedorExternal)
-);
+    FechaAct                 DATETIME     NULL,
+    PRIMARY KEY (IdProveedor),
+    UNIQUE KEY UQ_tmaproveedor_IdProveedorExternal (IdProveedorExternal)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
 -- TABLAS TRANSACCIONALES
 -- ============================================================
 
--- rcocomprobante
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'rcocomprobante') AND type = 'U')
-CREATE TABLE rcocomprobante (
-    IdComprobante        INT           IDENTITY(1,1) NOT NULL,
+CREATE TABLE IF NOT EXISTS rcocomprobante (
+    IdComprobante        INT           NOT NULL AUTO_INCREMENT,
     Folio                VARCHAR(20)   NOT NULL,
     RucReceptor          VARCHAR(11)   NOT NULL,
     RazonSocialReceptor  VARCHAR(200)  NOT NULL,
@@ -232,27 +206,27 @@ CREATE TABLE rcocomprobante (
     TipoSunat            VARCHAR(5)    NOT NULL,
     Serie                VARCHAR(10)   NOT NULL,
     Numero               VARCHAR(20)   NOT NULL,
-    FechaEmision         DATETIME2     NOT NULL,
-    FechaRecepcion       DATETIME2     NULL,
+    FechaEmision         DATETIME      NOT NULL,
+    FechaRecepcion       DATETIME      NULL,
     Moneda               VARCHAR(5)    NOT NULL,
     TasaCambio           DECIMAL(10,4) NOT NULL DEFAULT 1,
     LugarPago            VARCHAR(50)   NULL,
     PlazoPago            VARCHAR(10)   NULL,
-    FechaVencimiento     DATETIME2     NULL,
+    FechaVencimiento     DATETIME      NULL,
     RucBeneficiario      VARCHAR(11)   NULL,
     RazonSocialBenef     VARCHAR(200)  NULL,
     Observacion          VARCHAR(500)  NULL,
     OrdenCompra          VARCHAR(50)   NULL,
-    FactMultiple         BIT           NOT NULL DEFAULT 0,
+    FactMultiple         TINYINT(1)    NOT NULL DEFAULT 0,
     TipoDocAsociado      VARCHAR(5)    NULL,
     SerieAsociado        VARCHAR(10)   NULL,
     NumeroAsociado       VARCHAR(20)   NULL,
-    TieneDetraccion      BIT           NOT NULL DEFAULT 0,
+    TieneDetraccion      TINYINT(1)    NOT NULL DEFAULT 0,
     TipoDetraccion       VARCHAR(10)   NULL,
     PorcentajeDetraccion DECIMAL(5,2)  NULL,
     MontoDetraccion      DECIMAL(18,2) NOT NULL DEFAULT 0,
     ConstanciaDeposito   VARCHAR(20)   NULL,
-    FechaDeposito        DATETIME2     NULL,
+    FechaDeposito        DATETIME      NULL,
     MontoNeto            DECIMAL(18,2) NOT NULL DEFAULT 0,
     MontoExento          DECIMAL(18,2) NOT NULL DEFAULT 0,
     PorcentajeIGV        DECIMAL(5,2)  NOT NULL DEFAULT 0,
@@ -264,42 +238,40 @@ CREATE TABLE rcocomprobante (
     MontoMultas          DECIMAL(18,2) NOT NULL DEFAULT 0,
     ValorAduana          DECIMAL(18,2) NOT NULL DEFAULT 0,
     MontoRedondeo        DECIMAL(18,2) NOT NULL DEFAULT 0,
-    EsDocumentoElectronico BIT         NOT NULL DEFAULT 1,
+    EsDocumentoElectronico TINYINT(1)  NOT NULL DEFAULT 1,
     AplicaIGV            VARCHAR(1)    NOT NULL DEFAULT 'N',
     RequiereDetraccion   VARCHAR(1)    NOT NULL DEFAULT 'N',
     RequiereAduana       VARCHAR(1)    NOT NULL DEFAULT 'N',
-    TienePdf             BIT           NOT NULL DEFAULT 0,
-    EdicionManual        BIT           NOT NULL DEFAULT 0,
-    EstaDerivado         BIT           NOT NULL DEFAULT 0,
+    TienePdf             TINYINT(1)    NOT NULL DEFAULT 0,
+    EdicionManual        TINYINT(1)    NOT NULL DEFAULT 0,
+    EstaDerivado         TINYINT(1)    NOT NULL DEFAULT 0,
     CodigoEstado         VARCHAR(20)   NOT NULL DEFAULT 'NUEVO',
     EstadoSunat          VARCHAR(20)   NULL,
     RolDigitacion        VARCHAR(200)  NULL,
-    FechaDigitacion      DATETIME2     NULL,
+    FechaDigitacion      DATETIME      NULL,
     RolAutorizacion      VARCHAR(200)  NULL,
-    FechaAutorizacion    DATETIME2     NULL,
+    FechaAutorizacion    DATETIME      NULL,
     RolAprobacion        VARCHAR(200)  NULL,
-    FechaAprobacion      DATETIME2     NULL,
+    FechaAprobacion      DATETIME      NULL,
     RolAnulacion         VARCHAR(200)  NULL,
-    FechaAnulacion       DATETIME2     NULL,
+    FechaAnulacion       DATETIME      NULL,
     Mensaje              VARCHAR(500)  NULL,
     Origen               VARCHAR(10)   NULL,
     SPO                  VARCHAR(50)   NULL,
     UsuarioReg           VARCHAR(50)   NOT NULL,
-    FechaReg             DATETIME2     NOT NULL DEFAULT GETDATE(),
+    FechaReg             DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UsuarioAct           VARCHAR(50)   NULL,
-    FechaAct             DATETIME2     NULL,
-    EsEmpleado           BIT           NOT NULL DEFAULT 0,
+    FechaAct             DATETIME      NULL,
+    EsEmpleado           TINYINT(1)    NOT NULL DEFAULT 0,
     EmpleadoCodigo       VARCHAR(20)   NULL,
     EmpleadoNombre       VARCHAR(200)  NULL,
     VoucherSyteline      INT           NULL,
-    CONSTRAINT PK_rcocomprobante PRIMARY KEY (IdComprobante),
-    CONSTRAINT UQ_rcocomprobante_Folio UNIQUE (Folio)
-);
+    PRIMARY KEY (IdComprobante),
+    UNIQUE KEY UQ_rcocomprobante_Folio (Folio)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- rcoimputacioncontable
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'rcoimputacioncontable') AND type = 'U')
-CREATE TABLE rcoimputacioncontable (
-    IdImputacionContable INT           IDENTITY(1,1) NOT NULL,
+CREATE TABLE IF NOT EXISTS rcoimputacioncontable (
+    IdImputacionContable INT           NOT NULL AUTO_INCREMENT,
     Folio                VARCHAR(20)   NOT NULL,
     Secuencia            INT           NOT NULL DEFAULT 0,
     AliasCuenta          VARCHAR(50)   NULL,
@@ -312,275 +284,248 @@ CREATE TABLE rcoimputacioncontable (
     CodUnidad3Cuenta     VARCHAR(10)   NULL,
     CodUnidad4Cuenta     VARCHAR(10)   NULL,
     UsuarioReg           VARCHAR(50)   NOT NULL,
-    FechaReg             DATETIME2     NOT NULL DEFAULT GETDATE(),
+    FechaReg             DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UsuarioAct           VARCHAR(50)   NULL,
-    FechaAct             DATETIME2     NULL,
-    CONSTRAINT PK_rcoimputacioncontable PRIMARY KEY (IdImputacionContable),
+    FechaAct             DATETIME      NULL,
+    PRIMARY KEY (IdImputacionContable),
     CONSTRAINT FK_rcoimputacioncontable_Folio
         FOREIGN KEY (Folio) REFERENCES rcocomprobante (Folio)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- rcodocumentoelectronico
-IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'rcodocumentoelectronico') AND type = 'U')
-CREATE TABLE rcodocumentoelectronico (
-    IdDocumento   INT            IDENTITY(1,1) NOT NULL,
-    Folio         VARCHAR(20)    NOT NULL,
-    TipoArchivo   VARCHAR(10)    NOT NULL,
-    SubTipo       VARCHAR(30)    NOT NULL DEFAULT '',
-    NombreArchivo VARCHAR(255)   NOT NULL,
-    Contenido     VARBINARY(MAX) NOT NULL,
-    FechaReg      DATETIME2      NOT NULL DEFAULT GETDATE(),
-    UsuarioReg    VARCHAR(50)    NOT NULL,
-    CONSTRAINT PK_rcodocumentoelectronico PRIMARY KEY (IdDocumento)
-);
-
-CREATE INDEX IX_rcodocumentoelectronico_Folio
-    ON rcodocumentoelectronico (Folio);
+CREATE TABLE IF NOT EXISTS rcodocumentoelectronico (
+    IdDocumento   INT          NOT NULL AUTO_INCREMENT,
+    Folio         VARCHAR(20)  NOT NULL,
+    TipoArchivo   VARCHAR(10)  NOT NULL,
+    SubTipo       VARCHAR(30)  NOT NULL DEFAULT '',
+    NombreArchivo VARCHAR(255) NOT NULL,
+    Contenido     LONGBLOB     NOT NULL,
+    FechaReg      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UsuarioReg    VARCHAR(50)  NOT NULL,
+    PRIMARY KEY (IdDocumento),
+    INDEX IX_rcodocumentoelectronico_Folio (Folio)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
 -- INSERTS CATÁLOGO — rcoestadocomprobante
 -- ============================================================
 
-IF NOT EXISTS (SELECT 1 FROM rcoestadocomprobante WHERE Codigo = 'NUEVO')
-    INSERT INTO rcoestadocomprobante (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
-    VALUES ('NUEVO', 'Nuevo', 1, 'SYSTEM', GETDATE());
+INSERT INTO rcoestadocomprobante (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
+SELECT 'NUEVO', 'Nuevo', 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcoestadocomprobante WHERE Codigo = 'NUEVO');
 
-IF NOT EXISTS (SELECT 1 FROM rcoestadocomprobante WHERE Codigo = 'REGISTRADO')
-    INSERT INTO rcoestadocomprobante (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
-    VALUES ('REGISTRADO', 'Registrado', 1, 'SYSTEM', GETDATE());
+INSERT INTO rcoestadocomprobante (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
+SELECT 'REGISTRADO', 'Registrado', 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcoestadocomprobante WHERE Codigo = 'REGISTRADO');
 
-IF NOT EXISTS (SELECT 1 FROM rcoestadocomprobante WHERE Codigo = 'ENVIADO')
-    INSERT INTO rcoestadocomprobante (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
-    VALUES ('ENVIADO', 'Enviado', 1, 'SYSTEM', GETDATE());
+INSERT INTO rcoestadocomprobante (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
+SELECT 'ENVIADO', 'Enviado', 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcoestadocomprobante WHERE Codigo = 'ENVIADO');
 
-IF NOT EXISTS (SELECT 1 FROM rcoestadocomprobante WHERE Codigo = 'AUTORIZADO')
-    INSERT INTO rcoestadocomprobante (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
-    VALUES ('AUTORIZADO', 'Autorizado', 1, 'SYSTEM', GETDATE());
+INSERT INTO rcoestadocomprobante (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
+SELECT 'AUTORIZADO', 'Autorizado', 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcoestadocomprobante WHERE Codigo = 'AUTORIZADO');
 
-IF NOT EXISTS (SELECT 1 FROM rcoestadocomprobante WHERE Codigo = 'APROBADO')
-    INSERT INTO rcoestadocomprobante (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
-    VALUES ('APROBADO', 'Aprobado', 1, 'SYSTEM', GETDATE());
+INSERT INTO rcoestadocomprobante (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
+SELECT 'APROBADO', 'Aprobado', 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcoestadocomprobante WHERE Codigo = 'APROBADO');
 
-IF NOT EXISTS (SELECT 1 FROM rcoestadocomprobante WHERE Codigo = 'ANULADO')
-    INSERT INTO rcoestadocomprobante (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
-    VALUES ('ANULADO', 'Anulado', 1, 'SYSTEM', GETDATE());
+INSERT INTO rcoestadocomprobante (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
+SELECT 'ANULADO', 'Anulado', 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcoestadocomprobante WHERE Codigo = 'ANULADO');
 
-IF NOT EXISTS (SELECT 1 FROM rcoestadocomprobante WHERE Codigo = 'DERIVADO')
-    INSERT INTO rcoestadocomprobante (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
-    VALUES ('DERIVADO', 'Derivado', 1, 'SYSTEM', GETDATE());
+INSERT INTO rcoestadocomprobante (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
+SELECT 'DERIVADO', 'Derivado', 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcoestadocomprobante WHERE Codigo = 'DERIVADO');
 
-IF NOT EXISTS (SELECT 1 FROM rcoestadocomprobante WHERE Codigo = 'DERIVADO SYT')
-    INSERT INTO rcoestadocomprobante (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
-    VALUES ('DERIVADO SYT', 'Derivado a Syteline', 1, 'SYSTEM', GETDATE());
+INSERT INTO rcoestadocomprobante (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
+SELECT 'DERIVADO SYT', 'Derivado a Syteline', 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcoestadocomprobante WHERE Codigo = 'DERIVADO SYT');
 
 -- ============================================================
 -- INSERTS CATÁLOGO — rcotipodocumento
 -- ============================================================
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodocumento WHERE Codigo = 'FAC')
-    INSERT INTO rcotipodocumento (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
-    VALUES ('FAC', 'Factura', 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodocumento (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
+SELECT 'FAC', 'Factura', 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodocumento WHERE Codigo = 'FAC');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodocumento WHERE Codigo = 'NCR')
-    INSERT INTO rcotipodocumento (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
-    VALUES ('NCR', 'Nota de Crédito', 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodocumento (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
+SELECT 'NCR', 'Nota de Crédito', 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodocumento WHERE Codigo = 'NCR');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodocumento WHERE Codigo = 'NDB')
-    INSERT INTO rcotipodocumento (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
-    VALUES ('NDB', 'Nota de Débito', 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodocumento (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
+SELECT 'NDB', 'Nota de Débito', 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodocumento WHERE Codigo = 'NDB');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodocumento WHERE Codigo = 'LIQ')
-    INSERT INTO rcotipodocumento (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
-    VALUES ('LIQ', 'Liquidación de Compra', 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodocumento (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
+SELECT 'LIQ', 'Liquidación de Compra', 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodocumento WHERE Codigo = 'LIQ');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodocumento WHERE Codigo = 'REC')
-    INSERT INTO rcotipodocumento (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
-    VALUES ('REC', 'Recibo por Honorarios', 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodocumento (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
+SELECT 'REC', 'Recibo por Honorarios', 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodocumento WHERE Codigo = 'REC');
 
 -- ============================================================
 -- INSERTS CATÁLOGO — rcotiposunat
 -- ============================================================
 
-IF NOT EXISTS (SELECT 1 FROM rcotiposunat WHERE Codigo = '01')
-    INSERT INTO rcotiposunat (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
-    VALUES ('01', 'Factura', 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotiposunat (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
+SELECT '01', 'Factura', 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotiposunat WHERE Codigo = '01');
 
-IF NOT EXISTS (SELECT 1 FROM rcotiposunat WHERE Codigo = '07')
-    INSERT INTO rcotiposunat (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
-    VALUES ('07', 'Nota de Crédito', 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotiposunat (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
+SELECT '07', 'Nota de Crédito', 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotiposunat WHERE Codigo = '07');
 
-IF NOT EXISTS (SELECT 1 FROM rcotiposunat WHERE Codigo = '08')
-    INSERT INTO rcotiposunat (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
-    VALUES ('08', 'Nota de Débito', 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotiposunat (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
+SELECT '08', 'Nota de Débito', 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotiposunat WHERE Codigo = '08');
 
-IF NOT EXISTS (SELECT 1 FROM rcotiposunat WHERE Codigo = '40')
-    INSERT INTO rcotiposunat (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
-    VALUES ('40', 'Recibo por Honorarios', 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotiposunat (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
+SELECT '40', 'Recibo por Honorarios', 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotiposunat WHERE Codigo = '40');
 
-IF NOT EXISTS (SELECT 1 FROM rcotiposunat WHERE Codigo = '03')
-    INSERT INTO rcotiposunat (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
-    VALUES ('03', 'Boleta de Venta', 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotiposunat (Codigo, Descripcion, Activo, UsuarioReg, FechaReg)
+SELECT '03', 'Boleta de Venta', 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotiposunat WHERE Codigo = '03');
 
 -- ============================================================
 -- INSERTS CATÁLOGO — rcomoneda
 -- ============================================================
 
-IF NOT EXISTS (SELECT 1 FROM rcomoneda WHERE Codigo = 'PEN')
-    INSERT INTO rcomoneda (Codigo, Descripcion, Simbolo, Activo, UsuarioReg, FechaReg)
-    VALUES ('PEN', 'Sol Peruano', 'S/.', 1, 'SYSTEM', GETDATE());
+INSERT INTO rcomoneda (Codigo, Descripcion, Simbolo, Activo, UsuarioReg, FechaReg)
+SELECT 'PEN', 'Sol Peruano', 'S/.', 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcomoneda WHERE Codigo = 'PEN');
 
-IF NOT EXISTS (SELECT 1 FROM rcomoneda WHERE Codigo = 'USD')
-    INSERT INTO rcomoneda (Codigo, Descripcion, Simbolo, Activo, UsuarioReg, FechaReg)
-    VALUES ('USD', 'Dólar Americano', '$', 1, 'SYSTEM', GETDATE());
+INSERT INTO rcomoneda (Codigo, Descripcion, Simbolo, Activo, UsuarioReg, FechaReg)
+SELECT 'USD', 'Dólar Americano', '$', 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcomoneda WHERE Codigo = 'USD');
 
 -- ============================================================
 -- INSERTS CATÁLOGO — rcotipodetraccion (SUNAT)
 -- ============================================================
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '001')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('001', 'Azúcar y melaza de caña', 10.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '001', 'Azúcar y melaza de caña', 10.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '001');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '003')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('003', 'Alcohol etílico', 10.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '003', 'Alcohol etílico', 10.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '003');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '004')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('004', 'Recursos hidrobiológicos', 4.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '004', 'Recursos hidrobiológicos', 4.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '004');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '005')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('005', 'Maíz amarillo duro', 4.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '005', 'Maíz amarillo duro', 4.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '005');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '006')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('006', 'Algodón', 10.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '006', 'Algodón', 10.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '006');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '007')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('007', 'Caña de azúcar', 10.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '007', 'Caña de azúcar', 10.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '007');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '008')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('008', 'Madera', 4.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '008', 'Madera', 4.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '008');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '009')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('009', 'Arena y piedra', 10.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '009', 'Arena y piedra', 10.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '009');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '010')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('010', 'Residuos, subproductos, desechos, recortes y desperdicios', 15.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '010', 'Residuos, subproductos, desechos, recortes y desperdicios', 15.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '010');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '011')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('011', 'Bienes gravados con el IGV por renuncia a la exoneración', 10.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '011', 'Bienes gravados con el IGV por renuncia a la exoneración', 10.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '011');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '012')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('012', 'Intermediación laboral y tercerización', 12.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '012', 'Intermediación laboral y tercerización', 12.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '012');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '014')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('014', 'Carnes y despojos comestibles', 4.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '014', 'Carnes y despojos comestibles', 4.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '014');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '017')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('017', 'Harina, polvo y "pellets" de pescado', 4.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '017', 'Harina, polvo y "pellets" de pescado', 4.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '017');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '019')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('019', 'Arrendamiento de bienes', 12.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '019', 'Arrendamiento de bienes', 12.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '019');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '020')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('020', 'Mantenimiento y reparación de bienes muebles', 12.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '020', 'Mantenimiento y reparación de bienes muebles', 12.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '020');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '021')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('021', 'Movimiento de carga', 4.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '021', 'Movimiento de carga', 4.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '021');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '022')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('022', 'Otros servicios empresariales', 12.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '022', 'Otros servicios empresariales', 12.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '022');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '023')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('023', 'Leche', 4.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '023', 'Leche', 4.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '023');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '024')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('024', 'Comisión mercantil', 12.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '024', 'Comisión mercantil', 12.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '024');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '025')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('025', 'Fabricación de bienes por encargo', 12.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '025', 'Fabricación de bienes por encargo', 12.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '025');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '026')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('026', 'Servicio de transporte de personas', 10.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '026', 'Servicio de transporte de personas', 10.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '026');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '030')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('030', 'Contratos de construcción', 4.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '030', 'Contratos de construcción', 4.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '030');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '031')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('031', 'Oro gravado con el IGV', 12.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '031', 'Oro gravado con el IGV', 12.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '031');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '032')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('032', 'Páprika y otros frutos de los géneros capsicum o pimienta', 4.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '032', 'Páprika y otros frutos de los géneros capsicum o pimienta', 4.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '032');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '034')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('034', 'Minerales metálicos no auríferos', 10.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '034', 'Minerales metálicos no auríferos', 10.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '034');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '035')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('035', 'Bienes exonerados del IGV', 1.50, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '035', 'Bienes exonerados del IGV', 1.50, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '035');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '036')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('036', 'Oro y demás minerales metálicos exonerados del IGV', 4.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '036', 'Oro y demás minerales metálicos exonerados del IGV', 4.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '036');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '039')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('039', 'Minerales no metálicos', 12.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '039', 'Minerales no metálicos', 12.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '039');
 
-IF NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '040')
-    INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
-    VALUES ('040', 'Bien inmueble gravado con IGV', 4.00, 1, 'SYSTEM', GETDATE());
+INSERT INTO rcotipodetraccion (Codigo, Descripcion, Porcentaje, Activo, UsuarioReg, FechaReg)
+SELECT '040', 'Bien inmueble gravado con IGV', 4.00, 1, 'SYSTEM', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM rcotipodetraccion WHERE Codigo = '040');
 
 -- ============================================================
 -- ALTER TABLE (columnas agregadas después de creación inicial)
 -- ============================================================
 
--- VoucherSyteline en rcocomprobante
-IF NOT EXISTS (
-    SELECT 1 FROM sys.columns
-    WHERE object_id = OBJECT_ID('rcocomprobante') AND name = 'VoucherSyteline'
-)
-    ALTER TABLE rcocomprobante ADD VoucherSyteline INT NULL;
-
--- EsEmpleado en rcocomprobante
-IF NOT EXISTS (
-    SELECT 1 FROM sys.columns
-    WHERE object_id = OBJECT_ID('rcocomprobante') AND name = 'EsEmpleado'
-)
-    ALTER TABLE rcocomprobante ADD EsEmpleado BIT NOT NULL DEFAULT 0;
-
--- EmpleadoCodigo en rcocomprobante
-IF NOT EXISTS (
-    SELECT 1 FROM sys.columns
-    WHERE object_id = OBJECT_ID('rcocomprobante') AND name = 'EmpleadoCodigo'
-)
-    ALTER TABLE rcocomprobante ADD EmpleadoCodigo VARCHAR(20) NULL;
-
--- EmpleadoNombre en rcocomprobante
-IF NOT EXISTS (
-    SELECT 1 FROM sys.columns
-    WHERE object_id = OBJECT_ID('rcocomprobante') AND name = 'EmpleadoNombre'
-)
-    ALTER TABLE rcocomprobante ADD EmpleadoNombre VARCHAR(200) NULL;
+ALTER TABLE rcocomprobante ADD COLUMN IF NOT EXISTS VoucherSyteline  INT          NULL;
+ALTER TABLE rcocomprobante ADD COLUMN IF NOT EXISTS EsEmpleado       TINYINT(1)   NOT NULL DEFAULT 0;
+ALTER TABLE rcocomprobante ADD COLUMN IF NOT EXISTS EmpleadoCodigo   VARCHAR(20)  NULL;
+ALTER TABLE rcocomprobante ADD COLUMN IF NOT EXISTS EmpleadoNombre   VARCHAR(200) NULL;
