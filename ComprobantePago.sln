@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComprobantePago.Web", "Comp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComprobantePago.Tests", "ComprobantePago.Tests\ComprobantePago.Tests.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComprobantePago.Web.Shell", "ComprobantePago.Web.Shell\ComprobantePago.Web.csproj", "{D7E8F9A0-B1C2-4D3E-A5F6-789012345ABC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Resguardo.Web", "Resguardo.Web\ComprobantePago.Web.csproj", "{D7E8F9A0-B1C2-4D3E-A5F6-789012345ABC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
