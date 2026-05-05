@@ -57,7 +57,7 @@ namespace ComprobantePago.Infrastructure.Services
                 var body = new Dictionary<string, string>
                 {
                     { "grant_type", "password" },
-                    { "username",   $"{_settings.Tenant}#{_settings.ServiceAccountKey}" },
+                    { "username",   _settings.ServiceAccountKey },
                     { "password",   _settings.ServiceAccountSecret },
                     { "scope",      "Infor-ION" }
                 };

@@ -2,9 +2,9 @@
 {
     public class BuscarComprobanteDto
     {
-        public string Tipo { get; set; }
-        public string Estado { get; set; }
-        public string Proveedor { get; set; }
-        public string Folio { get; set; }
+        public string? Tipo { get; set; }
+        public string? Estado { get; set; }
+        public string? Proveedor { get; set; }
+        public string? Folio { get; set; }
     }
 }

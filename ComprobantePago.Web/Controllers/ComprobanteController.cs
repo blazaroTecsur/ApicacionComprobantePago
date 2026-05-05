@@ -172,7 +172,7 @@ namespace ComprobantePago.Web.Controllers
             return Ok(new { exito = true, folio });
         }
 
-        /// <summary>Envía el comprobante al siguiente estado.</summary>
+        /// <summary>Envía el comprobante al siguiente estado.</summary>x
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Policy = "RequiereDigitador")]

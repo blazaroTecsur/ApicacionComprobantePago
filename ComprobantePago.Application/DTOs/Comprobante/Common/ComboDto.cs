@@ -2,8 +2,8 @@
 {
     public class ComboDto
     {
-        public string Codigo { get; set; }
-        public string Descripcion { get; set; }
+        public string Codigo { get; set; } = null!;
+        public string Descripcion { get; set; } = null!;
         public decimal Porcentaje { get; set; }
     }
 }
