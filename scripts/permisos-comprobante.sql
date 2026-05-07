@@ -1,0 +1,44 @@
+-- ============================================================
+-- PERMISOS DEL MÓDULO: COMPROBANTE
+-- Aplicación: COMPROBANTE
+-- ============================================================
+
+-- ── Tabla de permisos por acción ─────────────────────────────────────────────
+-- PERMISOS         DESCRIPCION                          COD MENU
+-- COMP.VER         VER COMPROBANTE                      COMPROBANTE
+-- COMP.GUARDAR     REGISTRAR/MODIFICAR COMPROBANTE      COMPROBANTE
+-- COMP.ENVIAR      ENVIAR COMPROBANTE                   COMPROBANTE
+-- COMP.AUTORIZAR   AUTORIZAR COMPROBANTE                COMPROBANTE
+-- COMP.APROBAR     APROBAR COMPROBANTE                  COMPROBANTE
+-- COMP.ANULAR      ANULAR COMPROBANTE                   COMPROBANTE
+-- COMP.RPT         REPORTES COMPROBANTE                 COMPROBANTE
+
+-- ── Tabla de perfiles y permisos asignados ────────────────────────────────────
+-- PERFIL              DESCRIPCION                  COMP.VER  COMP.GUARDAR  COMP.ENVIAR  COMP.AUTORIZAR  COMP.APROBAR  COMP.ANULAR  COMP.RPT
+-- ASISTENT_ADM        ASISTENTE ADMINISTRATIVO        X          X             X
+-- JEFATUR_ARE         JEFATURA DE AREA               X                                      X
+-- ANALIST_JR          ANALISTA CONTABLE JUNIOR        X                                                     X            X*          X
+-- JEFE_CONT           JEFE CONTABILIDAD               X                                                     X                        X
+--
+-- (*) COMP.ANULAR para ANALIST_JR es permiso especial: asignación explícita por usuario, no masiva por perfil.
+
+-- ── Detalle de controllers y actions protegidos ───────────────────────────────
+-- PERMISO          NIVEL        CONTROLLER                      ACTIONS CUBIERTAS
+-- COMP.VER         Controlador  ComprobanteConsultarController  Index, Detalle, Buscar, ObtenerDetalle,
+--                                                               ObtenerPdf, DocumentosElectronicos,
+--                                                               ObtenerImputaciones, ObtenerCuentasContables,
+--                                                               ObtenerCodigosUnidad, DescargarPlantillaImputacion,
+--                                                               ObtenerTiposDocumento, ObtenerTiposSunat,
+--                                                               ObtenerMonedas, ObtenerLugaresPago,
+--                                                               ObtenerTiposDetraccion, ObtenerTipos,
+--                                                               ObtenerEstados, ObtenerEmpleados, ObtenerProveedores
+-- COMP.GUARDAR     Action       ComprobanteGestionarController  Guardar, AgregarImputacion, EditarImputacion,
+--                                                               EliminarImputacion, CargarImputacionMasiva,
+--                                                               ValidarXmlSunat, ValidarPdfSunat, ValidarZipSunat,
+--                                                               SubirDocumentos, DescargarDocumento, EliminarDocumento
+-- COMP.ENVIAR      Action       ComprobanteGestionarController  Enviar
+-- COMP.ANULAR      Action       ComprobanteGestionarController  Anular
+-- COMP.AUTORIZAR   Controlador  ComprobanteAutorizarController  Firmar, Derivar
+-- COMP.APROBAR     Controlador  ComprobanteAprobarController    Aprobar, EnviarCabeceraASyteline
+-- COMP.RPT         Action       ComprobanteReporteController    ExportarDistribucionSyteline,
+--                                                               ExportarCabeceraSyteline
