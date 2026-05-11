@@ -246,7 +246,8 @@ try
         builder.Configuration.GetSection(InforSettings.Section));
 
     // HttpClient nombrado para el token service (sin typed client para permitir Singleton)
-    builder.Services.AddHttpClient(nameof(InforTokenService));
+    builder.Services.AddHttpClient(nameof(InforTokenService))
+        .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { UseProxy = false });
 
     // Singleton: el caché del token (SemaphoreSlim + campo privado) debe vivir
     // durante toda la vida de la aplicación para reutilizarse entre requests.
@@ -258,7 +259,8 @@ try
             sp.GetRequiredService<ILogger<InforTokenService>>()));
 
     // Typed HttpClient para el servicio IDO (resuelve IInforTokenService desde DI)
-    builder.Services.AddHttpClient<ISytelineIdoService, SytelineIdoService>();
+    builder.Services.AddHttpClient<ISytelineIdoService, SytelineIdoService>()
+        .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { UseProxy = false });
     builder.Services.AddScoped<ISytelineEnvioService, SytelineEnvioService>();
 
     // ── Servicios de aplicación ───────────────────────────────────────────────
