@@ -1,7 +1,6 @@
 using ComprobantePago.Application.DTOs.Seguridad;
 using ComprobantePago.Application.Exceptions;
 using ComprobantePago.Application.Interfaces.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -47,7 +46,7 @@ namespace ComprobantePago.Infrastructure.Services
                 throw new AppException(
                     apiResponse.Error?.UserMessage ?? "Error al obtener permisos.",
                     "SEGURIDAD_ERROR",
-                    StatusCodes.Status400BadRequest);
+                    400);
 
             return apiResponse.Data;
         }
