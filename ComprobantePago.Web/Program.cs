@@ -177,7 +177,8 @@ try
     builder.Services.Configure<InforSettings>(
         builder.Configuration.GetSection(InforSettings.Section));
 
-    builder.Services.AddHttpClient(nameof(InforTokenService));
+    builder.Services.AddHttpClient(nameof(InforTokenService))
+        .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { UseProxy = false });
 
     builder.Services.AddSingleton<IInforTokenService>(sp =>
         new InforTokenService(
@@ -186,7 +187,8 @@ try
             sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<InforSettings>>(),
             sp.GetRequiredService<ILogger<InforTokenService>>()));
 
-    builder.Services.AddHttpClient<ISytelineIdoService, SytelineIdoService>();
+    builder.Services.AddHttpClient<ISytelineIdoService, SytelineIdoService>()
+        .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { UseProxy = false });
     builder.Services.AddScoped<ISytelineEnvioService, SytelineEnvioService>();
 
     // ── Servicios de aplicación ───────────────────────────────────────────────
